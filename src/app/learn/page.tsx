@@ -31,10 +31,10 @@ export default async function LearnPage() {
         css: 0,
         javascript: 0,
         python: 0,
-        sql: 0,
     } as Record<string, number>;
     
-    const learningCourses: LearningCourse[] = courses;
+    // Sort courses by the 'order' property
+    const learningCourses: LearningCourse[] = [...courses].sort((a, b) => a.order - b.order);
 
     return (
         <div className="bg-secondary">

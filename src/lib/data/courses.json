@@ -2,6 +2,7 @@
 [
   {
     "id": "html",
+    "order": 1,
     "title": "Learn HTML",
     "description": "Master HTML from basics to advanced with examples and projects. The essential starting point for any web developer.",
     "level": "Beginner to Advanced",
@@ -9,86 +10,102 @@
     "modules": [
       {
         "id": "introduction",
+        "order": 1,
         "title": "Introduction to HTML",
         "difficulty": "Beginner",
         "lessons": [
           {
             "id": "what-is-html",
+            "order": 1,
             "title": "What is HTML?",
-            "content": "<h2>What is HTML?</h2><p>HTML stands for <strong>HyperText Markup Language</strong>. It is the standard markup language for creating Web pages.</p><ul><li>HTML describes the structure of a Web page.</li><li>HTML consists of a series of elements.</li><li>HTML elements tell the browser how to display the content.</li><li>HTML elements label pieces of content such as \"this is a heading\", \"this is a paragraph\", \"this is a link\", etc.</li></ul>",
-            "exampleCode": "<!doctype html>\\n<html>\\n<head>\\n  <title>Page Title</title>\\n</head>\\n<body>\\n  <h1>My First Heading</h1>\\n  <p>My first paragraph.</p>\\n</body>\\n</html>"
+            "content": "<h2>What is HTML?</h2><p>HTML stands for <strong>HyperText Markup Language</strong>. It is the standard markup language for creating Web pages and is the backbone of every website.</p><ul><li>HTML describes the structure of a Web page using a series of elements.</li><li>HTML elements tell the browser how to display the content.</li><li>Elements label pieces of content such as \"this is a heading\", \"this is a paragraph\", \"this is a link\", etc.</li></ul><p>Think of HTML as the skeleton of a building. It provides the fundamental structure that everything else is built upon.</p>",
+            "exampleCode": "<!DOCTYPE html>\n<html>\n<head>\n  <title>My First Web Page</title>\n</head>\n<body>\n\n  <h1>My First Heading</h1>\n  <p>My first paragraph.</p>\n\n</body>\n</html>"
           },
           {
             "id": "html-document-structure",
+            "order": 2,
             "title": "HTML Document Structure",
-            "content": "<h2>A Simple HTML Document</h2><p>All HTML documents must start with a document type declaration: <code>&lt;!DOCTYPE html&gt;</code>.</p><p>The HTML document itself begins with <code>&lt;html&gt;</code> and ends with <code>&lt;/html&gt;</code>.</p><p>The visible part of the HTML document is between <code>&lt;body&gt;</code> and <code>&lt;/body&gt;</code>.</p><h3>Example:</h3><pre><code class=\"language-html\">&lt;!DOCTYPE html&gt;\\n&lt;html&gt;\\n&lt;head&gt;\\n  &lt;title&gt;Page Title&lt;/title&gt;\\n&lt;/head&gt;\\n&lt;body&gt;\\n\\n  &lt;h1&gt;My First Heading&lt;/h1&gt;\\n  &lt;p&gt;My first paragraph.&lt;/p&gt;\\n\\n&lt;/body&gt;\\n&lt;/html&gt;</code></pre><p>The <code>&lt;head&gt;</code> element contains meta-information about the document, like its title, character set, styles, links, scripts, and other meta information.</p>"
+            "content": "<h2>A Simple HTML Document</h2><p>All HTML documents must start with a document type declaration: <code>&lt;!DOCTYPE html&gt;</code>. This tells the browser that the document is an HTML5 page.</p><p>The HTML document itself begins with <code>&lt;html&gt;</code> and ends with <code>&lt;/html&gt;</code>. This is the root element.</p><p>The <code>&lt;head&gt;</code> element contains meta-information about the document, like its title, character set, styles, links, and scripts. This content is not displayed on the page itself.</p><p>The visible part of the HTML document is between <code>&lt;body&gt;</code> and <code>&lt;/body&gt;</code>.</p><h3>Example Breakdown:</h3><pre><code class=\"language-html\">&lt;!DOCTYPE html&gt;\n&lt;html&gt;\n&lt;head&gt;\n  &lt;title&gt;Page Title&lt;/title&gt;\n&lt;/head&gt;\n&lt;body&gt;\n\n  &lt;h1&gt;A Heading&lt;/h1&gt;\n  &lt;p&gt;A paragraph.&lt;/p&gt;\n\n&lt;/body&gt;\n&lt;/html&gt;</code></pre>"
           }
         ]
       },
       {
         "id": "basic-elements",
+        "order": 2,
         "title": "Basic HTML Elements",
         "difficulty": "Beginner",
         "lessons": [
           {
             "id": "headings",
+            "order": 1,
             "title": "Headings",
-            "content": "<h2>HTML Headings</h2><p>HTML headings are defined with the <code>&lt;h1&gt;</code> to <code>&lt;h6&gt;</code> tags.</p><p><code>&lt;h1&gt;</code> defines the most important heading. <code>&lt;h6&gt;</code> defines the least important heading.</p>",
-            "exampleCode": "<h1>Heading 1</h1>\\n<h2>Heading 2</h2>\\n<h3>Heading 3</h3>"
+            "content": "<h2>HTML Headings</h2><p>HTML headings are defined with the <code>&lt;h1&gt;</code> to <code>&lt;h6&gt;</code> tags.</p><p><code>&lt;h1&gt;</code> defines the most important heading (usually the main title of the page), while <code>&lt;h6&gt;</code> defines the least important heading.</p><p>Search engines use headings to index the structure and content of your web pages. It's important to use headings to show the document structure and not just to make text bold or big.</p>",
+            "exampleCode": "<h1>Heading 1</h1>\n<h2>Heading 2</h2>\n<h3>Heading 3</h3>\n<h4>Heading 4</h4>\n<h5>Heading 5</h5>\n<h6>Heading 6</h6>"
           },
           {
             "id": "paragraphs",
+            "order": 2,
             "title": "Paragraphs",
-            "content": "<h2>HTML Paragraphs</h2><p>HTML paragraphs are defined with the <code>&lt;p&gt;</code> tag.</p>",
-            "exampleCode": "<p>This is a paragraph.</p>\\n<p>This is another paragraph.</p>"
+            "content": "<h2>HTML Paragraphs</h2><p>HTML paragraphs are defined with the <code>&lt;p&gt;</code> tag.</p><p>Browsers automatically add some white space (a margin) before and after a paragraph. You can have as many paragraphs as you like.</p>",
+            "exampleCode": "<p>This is a paragraph.</p>\n<p>This is another paragraph. It can contain a lot of text and will wrap automatically depending on the screen size.</p>"
           },
           {
             "id": "links",
+            "order": 3,
             "title": "Links",
-            "content": "<h2>HTML Links (Anchors)</h2><p>HTML links are defined with the <code>&lt;a&gt;</code> tag. The link's destination is specified in the <code>href</code> attribute.</p>",
-            "exampleCode": "<a href=\"https://www.mtechitinstitute.in\">Visit MTech IT Institute</a>"
+            "content": "<h2>HTML Links (Anchors)</h2><p>HTML links are defined with the <code>&lt;a&gt;</code> tag. The link's destination is specified in the <code>href</code> attribute.</p><p>The link text is the part that will be visible to the reader. Clicking on the link text will send the reader to the specified URL address.</p><p>The <code>target=\"_blank\"</code> attribute can be used to open the link in a new browser tab.</p>",
+            "exampleCode": "<!-- A simple link -->\n<a href=\"https://www.mtechitinstitute.in\">Visit MTech IT Institute</a>\n\n<!-- A link that opens in a new tab -->\n<a href=\"/about\" target=\"_blank\">About Us</a>"
           },
           {
             "id": "images",
+            "order": 4,
             "title": "Images",
-            "content": "<h2>HTML Images</h2><p>HTML images are defined with the <code>&lt;img&gt;</code> tag. The source file (<code>src</code>) and alternative text (<code>alt</code>) are provided as attributes.</p><p>The `alt` attribute is crucial for accessibility.</p>",
-            "exampleCode": "<img src=\"https://picsum.photos/200\" alt=\"A random placeholder image\" width=\"200\" height=\"200\">"
+            "content": "<h2>HTML Images</h2><p>HTML images are defined with the <code>&lt;img&gt;</code> tag. It is an empty tag, which means that it contains attributes only, and does not have a closing tag.</p><p>The <code>src</code> attribute specifies the URL (web address) of the image.</p><p>The <code>alt</code> attribute provides an alternate text for an image, if the user for some reason cannot view it (because of slow connection, an error in the src attribute, or if the user uses a screen reader). The value of the alt attribute should describe the image.</p>",
+            "exampleCode": "<img src=\"https://picsum.photos/seed/html/400/200\" alt=\"A random placeholder image from picsum.photos\" width=\"400\" height=\"200\">"
           }
         ]
       },
       {
         "id": "lists",
+        "order": 3,
         "title": "Lists",
         "difficulty": "Beginner",
         "lessons": [
           {
             "id": "unordered-lists",
+            "order": 1,
             "title": "Unordered Lists",
-            "content": "<h2>Unordered HTML List</h2><p>An unordered list starts with the <code>&lt;ul&gt;</code> tag. Each list item starts with the <code>&lt;li&gt;</code> tag.</p><p>The list items will be marked with bullets (small black circles) by default.</p>",
-            "exampleCode": "<ul>\\n  <li>Coffee</li>\\n  <li>Tea</li>\\n  <li>Milk</li>\\n</ul>"
+            "content": "<h2>Unordered HTML List</h2><p>An unordered list starts with the <code>&lt;ul&gt;</code> tag. Each list item starts with the <code>&lt;li&gt;</code> tag.</p><p>The list items will be marked with bullets (small black circles) by default. It is used when the order of items does not matter.</p>",
+            "exampleCode": "<ul>\n  <li>Coffee</li>\n  <li>Tea</li>\n  <li>Milk</li>\n</ul>"
           },
           {
             "id": "ordered-lists",
+            "order": 2,
             "title": "Ordered Lists",
-            "content": "<h2>Ordered HTML List</h2><p>An ordered list starts with the <code>&lt;ol&gt;</code> tag. Each list item starts with the <code>&lt;li&gt;</code> tag.</p><p>The list items will be marked with numbers by default.</p>",
-            "exampleCode": "<ol>\\n  <li>First step</li>\\n  <li>Second step</li>\\n  <li>Third step</li>\\n</ol>"
+            "content": "<h2>Ordered HTML List</h2><p>An ordered list starts with the <code>&lt;ol&gt;</code> tag. Each list item starts with the <code>&lt;li&gt;</code> tag.</p><p>The list items will be marked with numbers by default. It is used when the order of the items is important, like in a recipe or a set of instructions.</p>",
+            "exampleCode": "<ol>\n  <li>First, boil the water.</li>\n  <li>Second, add the tea leaves.</li>\n  <li>Third, add milk and sugar.</li>\n</ol>"
           }
         ]
       },
       {
         "id": "forms",
+        "order": 4,
         "title": "HTML Forms",
         "difficulty": "Intermediate",
         "lessons": [
           {
             "id": "form-element",
+            "order": 1,
             "title": "The Form Element",
-            "content": "<h2>The &lt;form&gt; Element</h2><p>The HTML <code>&lt;form&gt;</code> element is used to create an HTML form for user input. It can contain one or more form elements like text fields, checkboxes, radio buttons, submit buttons, and more.</p>"
+            "content": "<h2>The &lt;form&gt; Element</h2><p>The HTML <code>&lt;form&gt;</code> element is a container for different types of input elements, such as: text fields, checkboxes, radio buttons, submit buttons, etc.</p><p>The <code>action</code> attribute defines the action to be performed when the form is submitted. The <code>method</code> attribute specifies the HTTP method (GET or POST) to be used when submitting the form data.</p>",
+            "exampleCode": "<form action=\"/submit-form\" method=\"post\">\n  <!-- Form elements go here -->\n</form>"
           },
           {
             "id": "input-types",
+            "order": 2,
             "title": "Input Types",
-            "content": "<h2>HTML Input Types</h2><p>HTML offers many input types for forms. Some of the most common are:</p><ul><li><code>&lt;input type=\"text\"&gt;</code> - A single-line text field.</li><li><code>&lt;input type=\"password\"&gt;</code> - A password field.</li><li><code>&lt;input type=\"submit\"&gt;</code> - A submit button.</li><li><code>&lt;input type=\"radio\"&gt;</code> - A radio button.</li><li><code>&lt;input type=\"checkbox\"&gt;</code> - A checkbox.</li></ul>"
+            "content": "<h2>HTML Input Types</h2><p>HTML offers many input types for forms. Some of the most common are:</p><ul><li><code>&lt;input type=\"text\"&gt;</code> - A single-line text field.</li><li><code>&lt;input type=\"password\"&gt;</code> - A password field where characters are masked.</li><li><code>&lt;input type=\"submit\"&gt;</code> - A button for submitting the form.</li><li><code>&lt;input type=\"radio\"&gt;</code> - A radio button, allowing a user to select ONLY ONE of a limited number of choices.</li><li><code>&lt;input type=\"checkbox\"&gt;</code> - A checkbox, allowing a user to select ZERO or MORE choices.</li><li><code>&lt;input type=\"email\"&gt;</code> - For email addresses.</li><li><code>&lt;input type=\"date\"&gt;</code> - For picking a date.</li></ul><p>The <code>&lt;label&gt;</code> tag defines a label for many form elements. It is good practice to use labels for accessibility.</p>",
+            "exampleCode": "<form action=\"/submit-form\" method=\"post\">\n  <label for=\"fname\">First name:</label><br>\n  <input type=\"text\" id=\"fname\" name=\"fname\"><br>\n  <label for=\"lname\">Last name:</label><br>\n  <input type=\"text\" id=\"lname\" name=\"lname\"><br><br>\n  <input type=\"submit\" value=\"Submit\">\n</form>"
           }
         ]
       }
@@ -96,44 +113,60 @@
   },
   {
     "id": "css",
+    "order": 2,
     "title": "Learn CSS",
     "description": "Style your websites and bring your designs to life with modern CSS, from basic selectors to advanced layouts.",
     "level": "Beginner to Advanced",
     "icon": "🎨",
     "modules": [
       {
-        "id": "introduction",
+        "id": "introduction-css",
+        "order": 1,
         "title": "Introduction to CSS",
         "difficulty": "Beginner",
         "lessons": [
           {
             "id": "what-is-css",
+            "order": 1,
             "title": "What is CSS?",
-            "content": "<h2>What is CSS?</h2><p>CSS stands for <strong>Cascading Style Sheets</strong>. It is the language we use to style an HTML document.</p><p>CSS describes how HTML elements should be displayed.</p><ul><li>CSS saves a lot of work. It can control the layout of multiple web pages all at once.</li><li>External stylesheets are stored in CSS files.</li></ul>"
+            "content": "<h2>What is CSS?</h2><p>CSS stands for <strong>Cascading Style Sheets</strong>. It is the language we use to style an HTML document. CSS describes how HTML elements should be displayed on screen, paper, or in other media.</p><ul><li>CSS saves a lot of work. It can control the layout of multiple web pages all at once.</li><li>External stylesheets are stored in CSS files, allowing you to separate the content (HTML) from the presentation (CSS).</li></ul><p>Without CSS, all websites would look like plain text documents.</p>",
+            "exampleCode": "/* This is a CSS comment */\nbody {\n  background-color: lightblue;\n}"
           },
           {
             "id": "css-syntax",
+            "order": 2,
             "title": "CSS Syntax",
-            "content": "<h2>CSS Syntax</h2><p>A CSS rule-set consists of a selector and a declaration block.</p><p>The <strong>selector</strong> points to the HTML element you want to style.</p><p>The <strong>declaration block</strong> contains one or more declarations separated by semicolons. Each declaration includes a CSS property name and a value, separated by a colon.</p>",
-            "exampleCode": "p {\\n  color: red;\\n  text-align: center;\\n}"
+            "content": "<h2>CSS Syntax</h2><p>A CSS rule consists of a selector and a declaration block.</p><p>The <strong>selector</strong> points to the HTML element you want to style (e.g., <code>p</code> for all paragraph elements).</p><p>The <strong>declaration block</strong> contains one or more declarations separated by semicolons. Each declaration includes a CSS property name and a value, separated by a colon.</p>",
+            "exampleCode": "p {\n  color: red; /* This is a declaration */\n  font-size: 16px; /* This is another declaration */\n}"
+          },
+          {
+            "id": "how-to-add-css",
+            "order": 3,
+            "title": "How to Add CSS",
+            "content": "<h2>Three Ways to Insert CSS</h2><p>There are three ways of inserting a style sheet:</p><ol><li><strong>External CSS:</strong> With an external style sheet, you can change the look of an entire website by changing just one file. Each HTML page must include a reference to the external style sheet file inside the <code>&lt;link&gt;</code> element, inside the head section.</li><li><strong>Internal CSS:</strong> An internal style sheet may be used if one single HTML page has a unique style. The internal style is defined inside the <code>&lt;style&gt;</code> element, also inside the head section.</li><li><strong>Inline CSS:</strong> An inline style may be used to apply a unique style for a single element. To use inline styles, add the <code>style</code> attribute to the relevant element.</li></ol><p>For maintainability, External CSS is the recommended method.</p>",
+            "exampleCode": "<!-- External CSS -->\n<head>\n  <link rel=\"stylesheet\" href=\"styles.css\">\n</head>\n\n<!-- Internal CSS -->\n<head>\n  <style>\n    body { background-color: linen; }\n  </style>\n</head>\n\n<!-- Inline CSS -->\n<h1 style=\"color:blue;text-align:center;\">This is a heading</h1>"
           }
         ]
       },
       {
-        "id": "selectors",
+        "id": "selectors-and-colors",
+        "order": 2,
         "title": "Selectors & Colors",
         "difficulty": "Beginner",
         "lessons": [
           {
             "id": "css-selectors",
+            "order": 1,
             "title": "Selectors",
-            "content": "<h2>CSS Selectors</h2><p>CSS selectors are used to \"find\" (or select) the HTML elements you want to style.</p><p>Some common selectors include:</p><ul><li><strong>Element Selector:</strong> Selects elements based on the element name (e.g., <code>p</code>).</li><li><strong>ID Selector:</strong> Uses the id attribute of an HTML element to select a specific element (e.g., <code>#firstname</code>). An ID should be unique within a page.</li><li><strong>Class Selector:</strong> Selects elements with a specific class attribute (e.g., <code>.intro</code>).</li></ul>"
+            "content": "<h2>CSS Selectors</h2><p>CSS selectors are used to \"find\" (or select) the HTML elements you want to style.</p><p>Some common selectors include:</p><ul><li><strong>Element Selector:</strong> Selects elements based on the element name (e.g., <code>p</code> selects all <code>&lt;p&gt;</code> elements).</li><li><strong>ID Selector:</strong> Uses the <code>id</code> attribute of an HTML element to select a specific element (e.g., <code>#firstname</code> selects the element with <code>id=\"firstname\"</code>). An ID should be unique within a page.</li><li><strong>Class Selector:</strong> Selects elements with a specific class attribute (e.g., <code>.intro</code> selects all elements with <code>class=\"intro\"</code>).</li><li><strong>Universal Selector:</strong> The universal selector (<code>*</code>) selects all HTML elements on the page.</li></ul>",
+            "exampleCode": "/* Selects all paragraphs */\np {\n  text-align: center;\n}\n\n/* Selects the element with id='main' */\n#main {\n  border: 1px solid black;\n}\n\n/* Selects all elements with class='highlight' */\n.highlight {\n  background-color: yellow;\n}"
           },
           {
             "id": "css-colors",
+            "order": 2,
             "title": "Colors",
-            "content": "<h2>CSS Colors</h2><p>Colors in CSS can be specified in several ways:</p><ul><li><strong>By name:</strong> <code>red</code>, <code>blue</code>, <code>lightgray</code></li><li><strong>By HEX value:</strong> <code>#ff0000</code>, <code>#0000ff</code></li><li><strong>By RGB value:</strong> <code>rgb(255, 0, 0)</code></li></ul>",
-            "exampleCode": "body {\\n  background-color: lightblue;\\n}\\nh1 {\\n  color: white;\\n  text-align: center;\\n}"
+            "content": "<h2>CSS Colors</h2><p>Colors in CSS can be specified in several ways:</p><ul><li><strong>Color Names:</strong> Predefined color names like <code>red</code>, <code>blue</code>, <code>lightgray</code>.</li><li><strong>HEX Values:</strong> A six-digit hexadecimal number, preceded by a <code>#</code>. For example, <code>#ff0000</code> is red.</li><li><strong>RGB Values:</strong> Using the <code>rgb()</code> function, like <code>rgb(255, 0, 0)</code> for red.</li><li><strong>RGBA Values:</strong> Like RGB, but with an added alpha channel for opacity (from 0 to 1). E.g., <code>rgba(255, 0, 0, 0.5)</code> is a semi-transparent red.</li><li><strong>HSL Values:</strong> Stands for Hue, Saturation, and Lightness. E.g., <code>hsl(0, 100%, 50%)</code> is red.</li></ul>",
+            "exampleCode": "body {\n  background-color: lightblue;\n}\n\nh1 {\n  color: #FFFFFF; /* White */\n  background-color: rgb(60, 60, 60); /* Dark Grey */\n}"
           }
         ]
       }
@@ -141,6 +174,7 @@
   },
   {
     "id": "javascript",
+    "order": 3,
     "title": "Learn JavaScript",
     "description": "Make your websites interactive and dynamic with the web's most popular programming language.",
     "level": "Beginner to Advanced",
@@ -149,6 +183,7 @@
   },
   {
     "id": "python",
+    "order": 4,
     "title": "Learn Python",
     "description": "Start your journey into programming with Python, a versatile and powerful language for backend, data science, and more.",
     "level": "Beginner to Advanced",

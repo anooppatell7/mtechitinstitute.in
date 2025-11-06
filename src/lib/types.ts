@@ -87,6 +87,7 @@ export type QuizQuestion = {
 
 export type Lesson = {
   id: string;
+  order: number;
   title: string;
   content: string; // HTML content for theory
   exampleCode?: string;
@@ -96,6 +97,7 @@ export type Lesson = {
 
 export type LearningModule = {
   id: string;
+  order: number;
   title: string;
   difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
   lessons: Lesson[];
@@ -103,6 +105,7 @@ export type LearningModule = {
 
 export type LearningCourse = {
   id: string;
+  order: number;
   title: string;
   description: string;
   level: 'Beginner' | 'Intermediate' | 'Advanced' | 'Beginner to Advanced';
