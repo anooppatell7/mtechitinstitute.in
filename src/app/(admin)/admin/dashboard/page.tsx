@@ -63,7 +63,7 @@ import Logo from "@/components/logo";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import type { Course, BlogPost, Resource, Enrollment, ContactSubmission, InternalLink, SiteSettings, Review } from "@/lib/types";
-import { useAuth, useFirestore } from "@/firebase";
+import { auth, db } from "@/lib/firebase";
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, setDoc, Timestamp, where, arrayUnion, arrayRemove, getDoc, writeBatch } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { signOut, updateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
@@ -75,8 +75,6 @@ import coursesData from "@/lib/data/courses.json";
 type ItemType = 'courses' | 'blog' | 'guidance' | 'resources' | 'settings' | 'enrollments' | 'contacts' | 'internal-links' | 'site-settings' | 'reviews' | 'learn-content';
 
 export default function AdminDashboardPage() {
-    const auth = useAuth();
-    const db = useFirestore();
     const [user, authLoading, authError] = useAuthState(auth);
     const router = useRouter();
     const [courses, setCourses] = useState<Course[]>([]);
@@ -1287,4 +1285,7 @@ export default function AdminDashboardPage() {
             </Dialog>
         </>
     );
-}
+
+    
+
+    
