@@ -2,7 +2,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { db } from '@/lib/firebase';
-import { doc, getDoc, collection, getDocs, orderBy } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs, query, orderBy } from 'firebase/firestore';
 import type { LearningModule, Chapter } from '@/lib/types';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
