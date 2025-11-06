@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from "next/link";
@@ -63,19 +62,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import Logo from "@/components/logo";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import type { Course, BlogPost, Resource, Enrollment, ContactSubmission, InternalLink, SiteSettings, Review, LearningModule } from "@/lib/types";
-import { db, auth } from "@/lib/firebase";
+import type { Course, BlogPost, Resource, Enrollment, ContactSubmission, InternalLink, SiteSettings, Review } from "@/lib/types";
+import { useAuth, useFirestore } from "@/firebase";
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, setDoc, Timestamp, where, arrayUnion, arrayRemove, getDoc, writeBatch } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { signOut, updateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { learningModules as staticLearningModules } from "@/lib/learn-data";
+import coursesData from "@/lib/data/courses.json";
 
 
 type ItemType = 'courses' | 'blog' | 'guidance' | 'resources' | 'settings' | 'enrollments' | 'contacts' | 'internal-links' | 'site-settings' | 'reviews' | 'learn-content';
 
 export default function AdminDashboardPage() {
+    const auth = useAuth();
+    const db = useFirestore();
     const [user, authLoading, authError] = useAuthState(auth);
     const router = useRouter();
     const [courses, setCourses] = useState<Course[]>([]);
@@ -108,6 +109,7 @@ export default function AdminDashboardPage() {
     }, [user, authLoading, router]);
 
     const fetchData = async () => {
+        if (!db) return;
         setLoading(true);
         try {
             // Courses
@@ -203,6 +205,7 @@ export default function AdminDashboardPage() {
 
 
     const handleDelete = async () => {
+        if (!db) return;
         if (itemToDelete) {
             const { type, id } = itemToDelete;
             try {
@@ -286,6 +289,7 @@ export default function AdminDashboardPage() {
 
     const handleInternalLinkSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!db) return;
         if (!selectedSourcePost || !selectedTargetPost || !linkKeyword) {
             toast({ title: "Error", description: "Please fill all fields for internal linking.", variant: "destructive" });
             return;
@@ -328,6 +332,7 @@ export default function AdminDashboardPage() {
 
     const handleFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!db) return;
         
         try {
             if (activeTab === 'courses') {
@@ -404,6 +409,7 @@ export default function AdminDashboardPage() {
     };
     
     const handleApprovalChange = async (reviewId: string, isApproved: boolean) => {
+        if (!db) return;
         try {
             const reviewRef = doc(db, "reviews", reviewId);
             await updateDoc(reviewRef, { isApproved });
@@ -418,6 +424,7 @@ export default function AdminDashboardPage() {
 
     const handleSiteSettingsSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!db) return;
         try {
             await setDoc(doc(db, "site_settings", "announcement"), siteSettings, { merge: true });
             toast({ title: "Success", description: "Site settings updated successfully." });
@@ -430,6 +437,7 @@ export default function AdminDashboardPage() {
 
     const handleSettingsSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!auth) return;
         const { currentPassword, newEmail, newPassword, confirmNewPassword } = settingsFormData;
 
         if (newPassword && newPassword !== confirmNewPassword) {
@@ -494,30 +502,34 @@ export default function AdminDashboardPage() {
     };
 
     const handleUploadLearnContent = async () => {
-        if (!confirm("Are you sure you want to upload all static learning modules to Firestore? This will overwrite existing modules with the same slug.")) {
+        if (!db) {
+            toast({ title: "Error", description: "Database not initialized.", variant: "destructive" });
+            return;
+        }
+        if (!confirm("Are you sure you want to upload all learning courses to Firestore? This will overwrite existing courses with the same ID.")) {
             return;
         }
         
         try {
             const batch = writeBatch(db);
 
-            for (const module of staticLearningModules) {
-                const moduleRef = doc(db, "learningModules", module.slug);
-                const moduleData: Omit<LearningModule, 'chapters'> = {
-                    slug: module.slug,
-                    title: module.title,
-                    description: module.description,
-                    difficulty: module.difficulty,
-                    icon: module.icon,
-                };
-                batch.set(moduleRef, moduleData);
+            for (const course of coursesData) {
+                const courseRef = doc(db, "learningCourses", course.id);
+                // Create course document without modules subcollection
+                const courseDocData = { ...course };
+                delete (courseDocData as any).modules;
+                batch.set(courseRef, courseDocData);
 
-                for (const chapter of module.chapters) {
-                    const chapterRef = doc(collection(db, "learningModules", module.slug, "chapters"), chapter.slug);
-                    batch.set(chapterRef, { title: chapter.title, slug: chapter.slug });
+                // Add modules as a subcollection
+                for (const module of course.modules) {
+                    const moduleRef = doc(collection(courseRef, "modules"), module.id);
+                     const moduleDocData = { ...module };
+                     delete (moduleDocData as any).lessons;
+                    batch.set(moduleRef, moduleDocData);
 
-                    for (const lesson of chapter.lessons) {
-                        const lessonRef = doc(collection(db, "learningModules", module.slug, "chapters", chapter.slug, "lessons"), lesson.slug);
+                    // Add lessons as a subcollection
+                    for (const lesson of module.lessons) {
+                        const lessonRef = doc(collection(moduleRef, "lessons"), lesson.id);
                         batch.set(lessonRef, lesson);
                     }
                 }
@@ -649,7 +661,7 @@ export default function AdminDashboardPage() {
                 <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
                     <Logo />
                     <div className="ml-auto">
-                        <Button variant="outline" size="icon" onClick={() => signOut(auth)}>
+                        <Button variant="outline" size="icon" onClick={() => auth && signOut(auth)}>
                            <LogOut className="h-4 w-4" />
                            <span className="sr-only">Logout</span>
                         </Button>
@@ -924,7 +936,7 @@ export default function AdminDashboardPage() {
                                         <p>You can add and edit learning content directly in Firestore for now.</p>
                                         <div className="p-4 bg-muted rounded-md text-sm">
                                             <p className="font-semibold">To get started, you need to upload the initial set of courses from your local code to the database.</p>
-                                            <p className="mt-2 text-muted-foreground">This button will read the content from `src/lib/learn-data.ts` and save it to your Firestore `learningModules` collection. This is a one-time setup action.</p>
+                                            <p className="mt-2 text-muted-foreground">This button will read the content from `src/lib/data/courses.json` and save it to your Firestore `learningCourses` collection. This is a one-time setup action.</p>
                                             <Button onClick={handleUploadLearnContent} className="mt-4">
                                                 <Upload className="mr-2 h-4 w-4" />
                                                 Upload Static Content to Firestore

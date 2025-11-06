@@ -82,35 +82,32 @@ export type SiteSettings = {
 export type QuizQuestion = {
   question: string;
   options: string[];
-  correctAnswer: number; // index of the correct option
-  explanation?: string;
+  answer: number; // index of the correct option
 };
 
 export type Lesson = {
-  slug: string;
+  id: string;
   title: string;
-  order: number;
-  theory: string; // HTML content
-  codeExample?: string;
-  practiceTasks?: string[];
+  content: string; // HTML content for theory
+  exampleCode?: string;
+  practiceTask?: string;
   quiz?: QuizQuestion[];
 };
 
-export type Chapter = {
-  slug: string;
+export type LearningModule = {
+  id: string;
   title: string;
-  order: number;
+  difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
   lessons: Lesson[];
 };
 
-export type LearningModule = {
-  slug: string;
+export type LearningCourse = {
+  id: string;
   title: string;
-  order: number;
   description: string;
-  difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
-  chapters: Chapter[];
-  icon: string;
+  level: 'Beginner' | 'Intermediate' | 'Advanced' | 'Beginner to Advanced';
+  icon?: string;
+  modules: LearningModule[];
 };
 
 
