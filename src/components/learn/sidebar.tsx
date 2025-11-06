@@ -11,7 +11,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Menu, X, BookText, Layers, Search as SearchIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import courses from '@/lib/data/courses.json';
@@ -44,8 +44,10 @@ export default function LearnSidebar({ courseSlug }: SidebarProps) {
 
   const SidebarContent = () => (
     <div className="flex h-full flex-col bg-card text-card-foreground border-r">
-      <div className="p-4 border-b">
-        <Logo />
+       <div className="p-4 border-b">
+         <Link href="/learn">
+          <Logo />
+        </Link>
       </div>
 
        <div className="p-4 border-b">
@@ -122,6 +124,9 @@ export default function LearnSidebar({ courseSlug }: SidebarProps) {
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="p-0 w-80">
+             <SheetHeader className="sr-only">
+                <SheetTitle>Course Navigation</SheetTitle>
+            </SheetHeader>
             <SidebarContent />
           </SheetContent>
         </Sheet>
