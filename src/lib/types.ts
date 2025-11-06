@@ -89,6 +89,7 @@ export type QuizQuestion = {
 export type Lesson = {
   slug: string;
   title: string;
+  order: number;
   theory: string; // HTML content
   codeExample?: string;
   practiceTasks?: string[];
@@ -98,12 +99,14 @@ export type Lesson = {
 export type Chapter = {
   slug: string;
   title: string;
+  order: number;
   lessons: Lesson[];
 };
 
 export type LearningModule = {
   slug: string;
   title: string;
+  order: number;
   description: string;
   difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
   chapters: Chapter[];

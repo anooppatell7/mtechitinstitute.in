@@ -2,7 +2,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { db } from '@/lib/firebase';
-import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs, query, where } from 'firebase/firestore';
 import type { LearningModule, Chapter, Lesson } from '@/lib/types';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,7 +18,7 @@ type LessonPageProps = {
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://mtechitinstitute.in";
 
-async function getLesson(moduleSlug: string, lessonSlug: string): Promise<{ module: LearningModule | null, lesson: Lesson | null }> {
+async function getLessonData(moduleSlug: string, lessonSlug: string): Promise<{ module: LearningModule | null, lesson: Lesson | null }> {
     const moduleRef = doc(db, 'learningModules', moduleSlug);
     const moduleSnap = await getDoc(moduleRef);
     
@@ -26,15 +26,22 @@ async function getLesson(moduleSlug: string, lessonSlug: string): Promise<{ modu
         return { module: null, lesson: null };
     }
     
-    const module = { slug: moduleSnap.id, ...moduleSnap.data() } as LearningModule;
+    const moduleData = moduleSnap.data();
+    const module = { slug: moduleSnap.id, ...moduleData } as LearningModule;
 
-    const chaptersSnap = await getDocs(collection(db, 'learningModules', moduleSlug, 'chapters'));
+    const chaptersQuery = query(collection(db, 'learningModules', moduleSlug, 'chapters'));
+    const chaptersSnap = await getDocs(chaptersQuery);
 
     for (const chapterDoc of chaptersSnap.docs) {
-        const lessonRef = doc(db, 'learningModules', moduleSlug, 'chapters', chapterDoc.id, 'lessons', lessonSlug);
-        const lessonSnap = await getDoc(lessonRef);
-        if (lessonSnap.exists()) {
-            const lesson = { slug: lessonSnap.id, ...lessonSnap.data() } as Lesson;
+        const lessonsQuery = query(
+            collection(db, 'learningModules', moduleSlug, 'chapters', chapterDoc.id, 'lessons'),
+            where('slug', '==', lessonSlug)
+        );
+        const lessonSnap = await getDocs(lessonsQuery);
+        
+        if (!lessonSnap.empty) {
+            const lessonDoc = lessonSnap.docs[0];
+            const lesson = { slug: lessonDoc.id, ...lessonDoc.data() } as Lesson;
             return { module, lesson };
         }
     }
@@ -43,7 +50,7 @@ async function getLesson(moduleSlug: string, lessonSlug: string): Promise<{ modu
 }
 
 export async function generateMetadata({ params }: LessonPageProps): Promise<Metadata> {
-    const { module, lesson } = await getLesson(params.slug, params.lessonSlug);
+    const { module, lesson } = await getLessonData(params.slug, params.lessonSlug);
 
     if (!module || !lesson) {
         return { title: "Lesson Not Found" };
@@ -59,7 +66,7 @@ export async function generateMetadata({ params }: LessonPageProps): Promise<Met
 }
 
 export default async function LessonPage({ params }: LessonPageProps) {
-    const { module, lesson } = await getLesson(params.slug, params.lessonSlug);
+    const { module, lesson } = await getLessonData(params.slug, params.lessonSlug);
 
     if (!module || !lesson) {
         notFound();
@@ -84,7 +91,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
                                 <BookOpen className="h-6 w-6 text-accent" />
                                 <CardTitle className="font-headline text-2xl text-primary">Theory</CardTitle>
                             </CardHeader>
-                            <CardContent className="prose dark:prose-invert max-w-none">
+                            <CardContent className="prose dark:prose-invert max-w-none prose-headings:text-primary prose-p:text-foreground/80 prose-li:text-foreground/80 prose-strong:text-foreground prose-code:bg-muted prose-code:text-primary prose-code:p-1 prose-code:rounded-sm prose-pre:bg-muted prose-pre:p-4 prose-pre:rounded-md">
                                 <div dangerouslySetInnerHTML={{ __html: lesson.theory }} />
                             </CardContent>
                         </Card>

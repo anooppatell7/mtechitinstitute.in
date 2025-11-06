@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { db } from '@/lib/firebase';
 import { doc, getDoc, collection, getDocs, query, orderBy } from 'firebase/firestore';
-import type { LearningModule, Chapter } from '@/lib/types';
+import type { LearningModule, Chapter, Lesson } from '@/lib/types';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { BookOpen, ChevronLeft } from 'lucide-react';
@@ -26,20 +26,21 @@ async function getModule(slug: string): Promise<LearningModule | null> {
     }
     
     const moduleData = docSnap.data();
-    const chaptersQuery = query(collection(db, 'learningModules', slug, 'chapters'), orderBy('slug')); // Assuming chapters have an order field or slug can be used for ordering
+    const chaptersQuery = query(collection(db, 'learningModules', slug, 'chapters'), orderBy('order'));
     const chaptersSnap = await getDocs(chaptersQuery);
 
     const chapters: Chapter[] = [];
     for (const chapterDoc of chaptersSnap.docs) {
         const chapterData = chapterDoc.data();
-        const lessonsQuery = query(collection(db, 'learningModules', slug, 'chapters', chapterDoc.id, 'lessons'), orderBy('slug'));
+        const lessonsQuery = query(collection(db, 'learningModules', slug, 'chapters', chapterDoc.id, 'lessons'), orderBy('order'));
         const lessonsSnap = await getDocs(lessonsQuery);
-        const lessons = lessonsSnap.docs.map(lessonDoc => ({ slug: lessonDoc.id, ...lessonDoc.data() }));
+        const lessons = lessonsSnap.docs.map(lessonDoc => ({ slug: lessonDoc.id, ...lessonDoc.data() } as Lesson));
 
         chapters.push({
             slug: chapterDoc.id,
             title: chapterData.title,
-            lessons: lessons as any,
+            order: chapterData.order,
+            lessons: lessons,
         });
     }
 
@@ -49,6 +50,7 @@ async function getModule(slug: string): Promise<LearningModule | null> {
         description: moduleData.description,
         difficulty: moduleData.difficulty,
         icon: moduleData.icon,
+        order: moduleData.order,
         chapters,
     } as LearningModule;
 }

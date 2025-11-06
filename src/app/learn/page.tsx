@@ -1,5 +1,4 @@
 
-
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -30,7 +29,7 @@ export const metadata: Metadata = {
 export const revalidate = 0;
 
 async function getLearningModules(): Promise<LearningModule[]> {
-    const modulesQuery = query(collection(db, 'learningModules'), orderBy('slug'));
+    const modulesQuery = query(collection(db, 'learningModules'), orderBy('order'));
     const querySnapshot = await getDocs(modulesQuery);
     return querySnapshot.docs.map(doc => ({ slug: doc.id, ...doc.data() } as LearningModule));
 }
@@ -97,5 +96,3 @@ export default async function LearnPage() {
         </div>
     )
 }
-
-    
