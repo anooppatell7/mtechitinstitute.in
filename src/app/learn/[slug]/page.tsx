@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Layers, ArrowRight, BookOpen } from 'lucide-react';
 import type { LearningCourse, LearningModule } from '@/lib/types';
 import { getCourseData } from '@/lib/learn-helpers';
-import { useEffect, useState, use, useCallback } from 'react';
+import { useEffect, useState, use, useCallback, useMemo } from 'react';
 import { Progress } from '@/components/ui/progress';
 import { useLearnProgress } from '@/hooks/use-learn-progress';
 import { useUser } from '@/firebase';
@@ -53,7 +53,6 @@ function CoursePageSkeleton() {
 export default function LearnModulePage({ params }: { params: { slug: string } }) {
   const { slug } = use(params);
   const [course, setCourse] = useState<LearningCourse | null>(null);
-  const [progressPercentage, setProgressPercentage] = useState(0);
   const { getCourseProgress } = useLearnProgress();
   const { user, isLoading: isUserLoading } = useUser();
   const router = useRouter();
@@ -77,12 +76,11 @@ export default function LearnModulePage({ params }: { params: { slug: string } }
   useEffect(() => {
     loadData();
   }, [loadData]);
-
-  useEffect(() => {
-      if (slug) {
-          const { progressPercentage: newProgress } = getCourseProgress(slug);
-          setProgressPercentage(newProgress);
-      }
+  
+  const progressPercentage = useMemo(() => {
+      if (!slug) return 0;
+      const { progressPercentage: newProgress } = getCourseProgress(slug);
+      return newProgress;
   }, [slug, getCourseProgress]);
 
 
