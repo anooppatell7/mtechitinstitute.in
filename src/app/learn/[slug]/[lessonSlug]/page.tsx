@@ -151,11 +151,18 @@ export default function LessonPage({ params }: { params: { slug: string; lessonS
             setIsLoading(false);
         };
         
-        fetchLesson();
+        if (slug && lessonSlug) {
+            fetchLesson();
+        }
     }, [slug, lessonSlug, user, userLoading, router, updateLastVisitedLesson]);
     
     if (isLoading || userLoading || !lessonData) {
         return <LessonPageSkeleton />;
+    }
+
+    if (!lessonData.course || !lessonData.lesson || !lessonData.module) {
+        // You can return a proper 404 component here
+        return <div>Lesson not found.</div>;
     }
 
     return <LessonPageContent {...lessonData} />;
