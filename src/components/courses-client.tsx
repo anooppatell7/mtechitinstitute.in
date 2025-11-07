@@ -106,9 +106,13 @@ export default function CoursesClient({ courses }: { courses: Course[] }) {
                             </AccordionTrigger>
                             <AccordionContent>
                             <ul className="list-disc pl-6 space-y-1 mt-2 text-foreground/80">
-                                {course.syllabus.map((item, i) => (
-                                <li key={i}>{item}</li>
-                                ))}
+                                {Array.isArray(course.syllabus) ? (
+                                    course.syllabus.map((item, i) => (
+                                    <li key={i}>{item}</li>
+                                    ))
+                                ) : (
+                                    <li>Syllabus not available.</li>
+                                )}
                             </ul>
                             </AccordionContent>
                         </AccordionItem>
