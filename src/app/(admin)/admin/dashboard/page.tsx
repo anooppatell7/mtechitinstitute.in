@@ -1,8 +1,9 @@
 
+
 "use client";
 
 import Link from "next/link";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { PlusCircle, MoreHorizontal, LogOut, Trash, Edit, Settings, FileText, MessageSquare, Briefcase, Link2, Megaphone, Star, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -70,6 +71,7 @@ import { signOut, updateEmail, updatePassword, reauthenticateWithCredential, Ema
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import coursesData from "@/lib/data/courses.json";
+import marketingCoursesData from "@/lib/data/marketing-courses.json";
 
 
 type ItemType = 'courses' | 'blog' | 'guidance' | 'resources' | 'settings' | 'enrollments' | 'contacts' | 'internal-links' | 'site-settings' | 'reviews' | 'learn-content';
@@ -504,41 +506,47 @@ export default function AdminDashboardPage() {
             toast({ title: "Error", description: "Database not initialized.", variant: "destructive" });
             return;
         }
-        if (!confirm("Are you sure you want to upload all learning courses to Firestore? This will overwrite existing courses with the same ID.")) {
+        if (!confirm("Are you sure you want to upload all static content to Firestore? This will overwrite existing courses with the same IDs.")) {
             return;
         }
         
         try {
             const batch = writeBatch(db);
 
+            // Upload Learning Courses
             for (const course of coursesData) {
                 const courseRef = doc(db, "learningCourses", course.id);
-                // Create course document without modules subcollection
                 const courseDocData = { ...course };
                 delete (courseDocData as any).modules;
                 batch.set(courseRef, courseDocData);
 
-                // Add modules as a subcollection
                 for (const module of course.modules) {
                     const moduleRef = doc(collection(courseRef, "modules"), module.id);
                      const moduleDocData = { ...module };
                      delete (moduleDocData as any).lessons;
                     batch.set(moduleRef, moduleDocData);
 
-                    // Add lessons as a subcollection
                     for (const lesson of module.lessons) {
                         const lessonRef = doc(collection(moduleRef, "lessons"), lesson.id);
                         batch.set(lessonRef, lesson);
                     }
                 }
             }
+            
+            // Upload Marketing Courses
+            for (const course of marketingCoursesData) {
+                // Use addDoc to get an auto-generated ID from Firestore
+                const courseRef = doc(collection(db, "courses"));
+                batch.set(courseRef, course);
+            }
 
             await batch.commit();
-            toast({ title: "Success", description: "Learning content uploaded to Firestore." });
+            toast({ title: "Success", description: "All static course content uploaded to Firestore." });
+            await fetchData(); // Refresh data in the dashboard
 
         } catch (error) {
             console.error("Error uploading learning content:", error);
-            toast({ title: "Error", description: "Could not upload learning content.", variant: "destructive" });
+            toast({ title: "Error", description: "Could not upload content.", variant: "destructive" });
         }
     };
 
@@ -934,7 +942,7 @@ export default function AdminDashboardPage() {
                                         <p>You can add and edit learning content directly in Firestore for now.</p>
                                         <div className="p-4 bg-muted rounded-md text-sm">
                                             <p className="font-semibold">To get started, you need to upload the initial set of courses from your local code to the database.</p>
-                                            <p className="mt-2 text-muted-foreground">This button will read the content from `src/lib/data/courses.json` and save it to your Firestore `learningCourses` collection. This is a one-time setup action.</p>
+                                            <p className="mt-2 text-muted-foreground">This button will read the content from `src/lib/data/courses.json` (for interactive lessons) and `src/lib/data/marketing-courses.json` (for the public courses page) and save it to your Firestore database. This is a one-time setup action.</p>
                                             <Button onClick={handleUploadLearnContent} className="mt-4">
                                                 <Upload className="mr-2 h-4 w-4" />
                                                 Upload Static Content to Firestore
@@ -1285,7 +1293,7 @@ export default function AdminDashboardPage() {
             </Dialog>
         </>
     );
+}
 
-    
 
     

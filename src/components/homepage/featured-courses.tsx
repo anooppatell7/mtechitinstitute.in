@@ -1,19 +1,35 @@
 
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import CourseCard from "@/components/course-card";
 import { db } from "@/lib/firebase";
 import { collection, getDocs, limit, query } from "firebase/firestore";
 import type { Course } from "@/lib/types";
+import marketingCourses from '@/lib/data/marketing-courses.json';
+
 
 // This forces the component to be dynamically rendered
 export const revalidate = 0;
 
 async function getFeaturedCourses(): Promise<Course[]> {
-    const coursesQuery = query(collection(db, "courses"), limit(3));
-    const courseSnapshot = await getDocs(coursesQuery);
-    const courseList = courseSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
-    return courseList;
+    try {
+        const coursesQuery = query(collection(db, "courses"), limit(3));
+        const courseSnapshot = await getDocs(coursesQuery);
+        
+        if (courseSnapshot.empty) {
+            console.log('No courses found in Firestore, falling back to local data.');
+            // Fallback to local data if Firestore is empty
+            return marketingCourses.slice(0, 3) as Course[];
+        }
+
+        const courseList = courseSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
+        return courseList;
+    } catch (error) {
+        console.error("Error fetching featured courses:", error);
+        // Fallback to local data on error
+        return marketingCourses.slice(0, 3) as Course[];
+    }
 }
 
 export default async function FeaturedCourses() {
@@ -29,8 +45,8 @@ export default async function FeaturedCourses() {
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {featuredCourses.map((course) => (
-            <CourseCard key={course.id} course={course} />
+          {featuredCourses.map((course, index) => (
+            <CourseCard key={course.id || index} course={course} />
           ))}
         </div>
         <div className="mt-12 text-center">
@@ -42,3 +58,6 @@ export default async function FeaturedCourses() {
     </section>
   );
 }
+
+
+    
