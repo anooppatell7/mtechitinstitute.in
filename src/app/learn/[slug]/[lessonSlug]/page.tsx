@@ -127,30 +127,37 @@ export default function LessonPage({ params }: { params: { slug: string; lessonS
     const { updateLastVisitedLesson } = useLearnProgress();
 
     const [lessonData, setLessonData] = useState<{
-        course: LearningCourse | null;
-        module: LearningModule | null;
-        lesson: Lesson | null;
+        course: LearningCourse;
+        module: LearningModule;
+        lesson: Lesson;
         prevLesson: Lesson | null;
         nextLesson: Lesson | null;
     } | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     const fetchLesson = useCallback(async () => {
-        if (!user || !slug || !lessonSlug) return;
-        
         setIsLoading(true);
-        const { course, lesson, module } = await getLessonData(slug, lessonSlug);
-        
-        if (!course || !lesson || !module) {
+        setError(null);
+        try {
+            const { course, lesson, module } = await getLessonData(slug, lessonSlug);
+            
+            if (!course || !lesson || !module) {
+                // Redirect if content is not found
+                router.push(`/learn/${slug}`);
+                return;
+            }
+
+            const { prevLesson, nextLesson } = await getNextPrevLessons(slug, module.id, lessonSlug);
+            setLessonData({ course, module, lesson, prevLesson, nextLesson });
+
+        } catch (err) {
+            console.error("Failed to fetch lesson data:", err);
+            setError("Could not load the lesson. Please try again.");
+        } finally {
             setIsLoading(false);
-            router.push(`/learn/${slug}`);
-            return;
         }
-        const { prevLesson, nextLesson } = await getNextPrevLessons(slug, module.id, lessonSlug);
-        setLessonData({ course, module, lesson, prevLesson, nextLesson });
-        updateLastVisitedLesson(slug, lessonSlug);
-        setIsLoading(false);
-    }, [slug, lessonSlug, user, router, updateLastVisitedLesson]);
+    }, [slug, lessonSlug, router]);
 
 
     useEffect(() => {
@@ -161,12 +168,24 @@ export default function LessonPage({ params }: { params: { slug: string; lessonS
         }
         fetchLesson();
     }, [slug, lessonSlug, user, userLoading, router, fetchLesson]);
+
+    // This effect runs only when lessonData is successfully fetched
+    useEffect(() => {
+        if(lessonData) {
+            updateLastVisitedLesson(slug, lessonSlug);
+        }
+    }, [lessonData, slug, lessonSlug, updateLastVisitedLesson]);
     
-    if (isLoading || userLoading || !lessonData) {
+    if (isLoading || userLoading) {
         return <LessonPageSkeleton />;
     }
 
-    if (!lessonData.course || !lessonData.lesson || !lessonData.module) {
+    if (error) {
+        return <div className="text-center text-destructive">{error}</div>;
+    }
+    
+    if (!lessonData) {
+        // This case is mostly handled by loading/error states, but as a fallback:
         return <div>Lesson not found. Redirecting...</div>;
     }
 
