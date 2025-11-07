@@ -14,6 +14,7 @@ import { useLearnProgress } from '@/hooks/use-learn-progress';
 import { useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
+import Celebration from '@/components/celebration';
 
 const getFirstLesson = (module: LearningModule) => {
     return module.lessons && module.lessons.length > 0 ? module.lessons[0] : null;
@@ -57,6 +58,7 @@ export default function LearnModulePage({ params }: { params: { slug: string } }
   const { user, isLoading: isUserLoading } = useUser();
   const router = useRouter();
   const [isCourseLoading, setIsCourseLoading] = useState(true);
+  const [showCelebration, setShowCelebration] = useState(false);
 
   const loadData = useCallback(async () => {
     if (slug) {
@@ -82,13 +84,27 @@ export default function LearnModulePage({ params }: { params: { slug: string } }
       return newProgress;
   }, [course, getCourseProgress]);
 
+  useEffect(() => {
+    if (progressPercentage === 100) {
+        // Only trigger celebration if it hasn't been shown for this completion
+        const celebrationKey = `celebration_${slug}`;
+        if (!sessionStorage.getItem(celebrationKey)) {
+            setShowCelebration(true);
+            sessionStorage.setItem(celebrationKey, 'true');
+            // Hide celebration after animation
+            setTimeout(() => setShowCelebration(false), 5000);
+        }
+    }
+  }, [progressPercentage, slug]);
+
 
   if (isUserLoading || isCourseLoading || !course) {
     return <CoursePageSkeleton />;
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full relative">
+        {showCelebration && <Celebration />}
         <div className="mb-12">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                 <div>
