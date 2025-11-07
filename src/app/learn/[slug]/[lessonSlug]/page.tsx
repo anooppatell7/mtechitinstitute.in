@@ -28,6 +28,8 @@ export default function LessonPage({ params }: { params: { slug: string; lessonS
 
     useEffect(() => {
         const fetchLesson = async () => {
+            if (!params.slug || !params.lessonSlug) return;
+            
             const { course, lesson, module } = await getLessonData(params.slug, params.lessonSlug);
             if (!course || !lesson || !module) {
                 // Not found handling can be improved here
@@ -35,10 +37,13 @@ export default function LessonPage({ params }: { params: { slug: string; lessonS
             }
             const { prevLesson, nextLesson } = await getNextPrevLessons(params.slug, module.id, params.lessonSlug);
             setLessonData({ course, module, lesson, prevLesson, nextLesson });
-        }
+        };
+        
         fetchLesson();
         
-        setIsCompleted(isLessonCompleted(params.slug, params.lessonSlug));
+        if (params.slug && params.lessonSlug) {
+            setIsCompleted(isLessonCompleted(params.slug, params.lessonSlug));
+        }
         
     }, [params.slug, params.lessonSlug, isLessonCompleted]);
     
@@ -119,4 +124,3 @@ export default function LessonPage({ params }: { params: { slug: string; lessonS
         </div>
     );
 }
-
