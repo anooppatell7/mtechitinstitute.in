@@ -282,6 +282,8 @@ export default function AdminDashboardPage() {
         }
         if (activeTab === 'learn-content' && parentIds) {
             setFormParentIds(parentIds);
+        } else {
+            setFormParentIds(null);
         }
         setFormData(initialData);
         setIsFormOpen(true);
@@ -383,9 +385,9 @@ export default function AdminDashboardPage() {
         if (!db) return;
         
         try {
-            let collectionPath: any;
+            let collectionRef: any;
             let dataToSave = { ...formData };
-            let docId: string | undefined = undefined;
+            let docId: string | undefined = (editingItem as any)?.id;
             
             // Cleanup data before saving
             delete dataToSave.id;
@@ -394,13 +396,12 @@ export default function AdminDashboardPage() {
             
             // Determine collection path and data based on active tab and context
             if (activeTab === 'courses') {
-                collectionPath = collection(db, "courses");
-                docId = (editingItem as Course)?.id;
+                collectionRef = collection(db, "courses");
                 dataToSave.image = dataToSave.image || `https://picsum.photos/seed/${dataToSave.title || 'course'}/600/400`;
                 dataToSave.actualPrice = String(dataToSave.actualPrice || '');
                 dataToSave.discountPrice = String(dataToSave.discountPrice || '');
             } else if (activeTab === 'blog' || activeTab === 'guidance') {
-                collectionPath = collection(db, "blog");
+                collectionRef = collection(db, "blog");
                 docId = (editingItem as BlogPost)?.slug;
                 if (!docId) { // For new posts
                     docId = createSlug(dataToSave.title);
@@ -409,39 +410,36 @@ export default function AdminDashboardPage() {
                 }
                 dataToSave.image = dataToSave.image || `https://picsum.photos/seed/${dataToSave.title || 'blog'}/800/450`;
             } else if (activeTab === 'resources') {
-                collectionPath = collection(db, "resources");
-                docId = (editingItem as Resource)?.id;
+                collectionRef = collection(db, "resources");
                 if (dataToSave.fileUrl) {
                     dataToSave.fileUrl = convertToDirectDownloadLink(dataToSave.fileUrl);
                 }
             } else if (activeTab === 'learn-content') {
                  if (formParentIds) { // Editing/Adding Module or Lesson
                     if (formParentIds.moduleId) { // Lesson
-                        collectionPath = collection(db, "learningCourses", formParentIds.courseId, "modules", formParentIds.moduleId, "lessons");
-                        docId = (editingItem as Lesson)?.id;
+                        collectionRef = collection(db, "learningCourses", formParentIds.courseId, "modules", formParentIds.moduleId, "lessons");
                     } else { // Module
-                        collectionPath = collection(db, "learningCourses", formParentIds.courseId, "modules");
-                        docId = (editingItem as LearningModule)?.id;
+                        collectionRef = collection(db, "learningCourses", formParentIds.courseId, "modules");
                     }
                 } else { // Course
-                    collectionPath = collection(db, "learningCourses");
-                    docId = (editingItem as LearningCourse)?.id;
+                    collectionRef = collection(db, "learningCourses");
                 }
             }
 
             // Perform DB operation
             if (editingItem && docId) {
-                if(activeTab === 'blog' || activeTab === 'guidance') {
-                     await setDoc(doc(collectionPath, docId), dataToSave);
+                if(activeTab === 'blog' || activeTab === 'guidance' || (activeTab === 'learn-content' && !formParentIds)) {
+                     await setDoc(doc(collectionRef, docId), dataToSave);
                 } else {
-                     await updateDoc(doc(collectionPath, docId), dataToSave);
+                     await updateDoc(doc(collectionRef, docId), dataToSave);
                 }
             } else {
-                 if(activeTab === 'blog' || activeTab === 'guidance') {
-                    if (!docId) throw new Error("Slug could not be created for new blog post.");
-                    await setDoc(doc(collectionPath, docId), dataToSave);
+                 if(activeTab === 'blog' || activeTab === 'guidance' || activeTab === 'learn-content') {
+                    docId = dataToSave.id || createSlug(dataToSave.title);
+                    if (!docId) throw new Error("Slug/ID could not be created for new item.");
+                    await setDoc(doc(collectionRef, docId), dataToSave);
                  } else {
-                    await addDoc(collectionPath, dataToSave);
+                    await addDoc(collectionRef, dataToSave);
                  }
             }
             
@@ -1512,6 +1510,8 @@ export default function AdminDashboardPage() {
     );
 }
 
+
+    
 
     
 
