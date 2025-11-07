@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Layers, ArrowRight, BookOpen } from 'lucide-react';
 import type { LearningCourse, LearningModule } from '@/lib/types';
 import { getCourseData } from '@/lib/learn-helpers';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, use } from 'react';
 import { Progress } from '@/components/ui/progress';
 import { useLearnProgress } from '@/hooks/use-learn-progress';
 
@@ -16,25 +16,26 @@ const getFirstLesson = (module: LearningModule) => {
     return module.lessons && module.lessons.length > 0 ? module.lessons[0] : null;
 }
 
-export default function LearnModulePage({ params }: { params: { slug: string } }) {
+export default function LearnModulePage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = use(params);
   const [course, setCourse] = useState<LearningCourse | null>(null);
   const [progressPercentage, setProgressPercentage] = useState(0);
   const { getCourseProgress } = useLearnProgress();
 
   useEffect(() => {
     async function loadData() {
-        if (params.slug) {
-            const courseData = await getCourseData(params.slug);
-            setCourse(courseData);
-            
-            const { progressPercentage: newProgress } = getCourseProgress(params.slug);
-            setProgressPercentage(newProgress);
-        }
+      if (slug) {
+        const courseData = await getCourseData(slug);
+        setCourse(courseData);
+        
+        const { progressPercentage: newProgress } = getCourseProgress(slug);
+        setProgressPercentage(newProgress);
+      }
     }
     
     loadData();
     
-  }, [params.slug, getCourseProgress]);
+  }, [slug, getCourseProgress]);
 
 
   if (!course) {

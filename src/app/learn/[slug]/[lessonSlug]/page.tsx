@@ -10,11 +10,12 @@ import type { Metadata } from 'next';
 import courses from '@/lib/data/courses.json';
 import type { LearningCourse, LearningModule, Lesson } from '@/lib/types';
 import { getLessonData, getNextPrevLessons } from '@/lib/learn-helpers';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 import { useLearnProgress } from '@/hooks/use-learn-progress';
 
 
-export default function LessonPage({ params }: { params: { slug: string; lessonSlug: string } }) {
+export default function LessonPage({ params }: { params: Promise<{ slug: string; lessonSlug: string }> }) {
+    const { slug, lessonSlug } = use(params);
     const [lessonData, setLessonData] = useState<{
         course: LearningCourse | null;
         module: LearningModule | null;
@@ -28,24 +29,24 @@ export default function LessonPage({ params }: { params: { slug: string; lessonS
 
     useEffect(() => {
         const fetchLesson = async () => {
-            if (!params.slug || !params.lessonSlug) return;
+            if (!slug || !lessonSlug) return;
             
-            const { course, lesson, module } = await getLessonData(params.slug, params.lessonSlug);
+            const { course, lesson, module } = await getLessonData(slug, lessonSlug);
             if (!course || !lesson || !module) {
                 // Not found handling can be improved here
                 return;
             }
-            const { prevLesson, nextLesson } = await getNextPrevLessons(params.slug, module.id, params.lessonSlug);
+            const { prevLesson, nextLesson } = await getNextPrevLessons(slug, module.id, lessonSlug);
             setLessonData({ course, module, lesson, prevLesson, nextLesson });
         };
         
         fetchLesson();
         
-        if (params.slug && params.lessonSlug) {
-            setIsCompleted(isLessonCompleted(params.slug, params.lessonSlug));
+        if (slug && lessonSlug) {
+            setIsCompleted(isLessonCompleted(slug, lessonSlug));
         }
         
-    }, [params.slug, params.lessonSlug, isLessonCompleted]);
+    }, [slug, lessonSlug, isLessonCompleted]);
     
     const { course, module, lesson, prevLesson, nextLesson } = lessonData;
 
