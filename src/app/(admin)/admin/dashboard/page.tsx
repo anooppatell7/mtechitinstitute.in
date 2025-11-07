@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import Link from "next/link";
@@ -109,7 +108,7 @@ export default function AdminDashboardPage() {
     useEffect(() => {
         if (authLoading) return; // Wait until auth state is loaded
         if (!user) {
-            router.push('/admin/login'); // Redirect if not logged in
+            router.push('/login'); // Redirect if not logged in
         } else {
             fetchData();
         }
@@ -1109,35 +1108,35 @@ export default function AdminDashboardPage() {
                                             <Accordion type="multiple" className="w-full">
                                                 {learningCourses.map(course => (
                                                     <AccordionItem value={course.id} key={course.id}>
-                                                        <AccordionTrigger className="hover:no-underline">
-                                                             <div className="flex justify-between items-center w-full">
-                                                                <div className="flex items-center gap-4">
+                                                        <div className="flex items-center pr-4 hover:bg-muted/50 rounded-lg">
+                                                            <AccordionTrigger className="flex-1 px-4 py-2 hover:no-underline">
+                                                                 <div className="flex items-center gap-4">
                                                                     <BookOpen className="h-5 w-5 text-primary" />
                                                                     <span className="font-semibold text-lg">{course.title}</span>
                                                                 </div>
-                                                                <div className="flex items-center gap-2 pr-4">
-                                                                    <Button variant="outline" size="sm" onClick={(e) => {e.stopPropagation(); handleEdit(course)}}><Edit className="h-4 w-4 mr-1"/> Edit</Button>
-                                                                    <Button variant="destructive" size="sm" onClick={(e) => {e.stopPropagation(); openConfirmationDialog('learningCourse', course.id)}}><Trash className="h-4 w-4 mr-1"/> Delete</Button>
-                                                                </div>
-                                                             </div>
-                                                        </AccordionTrigger>
+                                                            </AccordionTrigger>
+                                                            <div className="flex items-center gap-2 pl-2">
+                                                                <Button variant="outline" size="sm" onClick={(e) => {e.stopPropagation(); handleEdit(course)}}><Edit className="h-4 w-4 mr-1"/> Edit</Button>
+                                                                <Button variant="destructive" size="sm" onClick={(e) => {e.stopPropagation(); openConfirmationDialog('learningCourse', course.id)}}><Trash className="h-4 w-4 mr-1"/> Delete</Button>
+                                                            </div>
+                                                        </div>
                                                         <AccordionContent className="pl-6 border-l ml-3">
                                                             <div className="space-y-2 py-2">
                                                                 {course.modules.map(module => (
                                                                      <Accordion type="multiple" key={module.id}>
                                                                         <AccordionItem value={module.id}>
-                                                                             <AccordionTrigger className="hover:no-underline">
-                                                                                 <div className="flex justify-between items-center w-full">
-                                                                                    <div className="flex items-center gap-3">
+                                                                             <div className="flex items-center pr-4 hover:bg-muted/50 rounded-lg">
+                                                                                <AccordionTrigger className="flex-1 px-4 py-2 hover:no-underline">
+                                                                                     <div className="flex items-center gap-3">
                                                                                          <Layers className="h-5 w-5 text-accent" />
                                                                                         <span>{module.title}</span>
                                                                                     </div>
-                                                                                    <div className="flex items-center gap-2 pr-4">
-                                                                                        <Button variant="outline" size="sm" onClick={(e) => {e.stopPropagation(); handleEdit(module, { courseId: course.id })}}><Edit className="h-4 w-4 mr-1"/> Edit</Button>
-                                                                                        <Button variant="destructive" size="sm" onClick={(e) => {e.stopPropagation(); openConfirmationDialog('learningModule', module.id, { courseId: course.id })}}><Trash className="h-4 w-4 mr-1"/> Delete</Button>
-                                                                                    </div>
-                                                                                 </div>
-                                                                            </AccordionTrigger>
+                                                                                </AccordionTrigger>
+                                                                                <div className="flex items-center gap-2 pl-2">
+                                                                                    <Button variant="outline" size="sm" onClick={(e) => {e.stopPropagation(); handleEdit(module, { courseId: course.id })}}><Edit className="h-4 w-4 mr-1"/> Edit</Button>
+                                                                                    <Button variant="destructive" size="sm" onClick={(e) => {e.stopPropagation(); openConfirmationDialog('learningModule', module.id, { courseId: course.id })}}><Trash className="h-4 w-4 mr-1"/> Delete</Button>
+                                                                                </div>
+                                                                             </div>
                                                                             <AccordionContent className="pl-6 border-l ml-3">
                                                                                 <div className="space-y-1 py-2">
                                                                                 {module.lessons.map(lesson => (
@@ -1513,6 +1512,8 @@ export default function AdminDashboardPage() {
     );
 }
 
+
+    
 
     
 
