@@ -26,11 +26,12 @@ export default function LearnModulePage({ params }: { params: { slug: string } }
         const courseData = await getCourseData(params.slug);
         setCourse(courseData);
     }
-    loadData();
-
-    // Update progress whenever params.slug or the hook's data changes
-    const { progressPercentage: newProgress } = getCourseProgress(params.slug);
-    setProgressPercentage(newProgress);
+    
+    if (params.slug) {
+        loadData();
+        const { progressPercentage: newProgress } = getCourseProgress(params.slug);
+        setProgressPercentage(newProgress);
+    }
     
   }, [params.slug, getCourseProgress]);
 
