@@ -18,7 +18,7 @@ type BlogCardProps = {
 
 export default function BlogCard({ post }: BlogCardProps) {
   return (
-    <Card className="flex flex-col h-full overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300">
+    <Card className="flex flex-col h-full overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300 rounded-xl group">
       <CardHeader className="p-0">
         <Link href={`/blog/${post.slug}`} className="block relative h-56 w-full">
             <Image
@@ -26,7 +26,7 @@ export default function BlogCard({ post }: BlogCardProps) {
               alt={`${post.title} - MTech IT Institute Blog`}
               data-ai-hint={post.tags.slice(0, 2).join(' ')}
               fill
-              className="object-cover"
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
             />
         </Link>
       </CardHeader>
@@ -54,7 +54,7 @@ export default function BlogCard({ post }: BlogCardProps) {
         <div className="flex flex-wrap gap-2">
             {post.tags.map(tag => (
                 <Link href={`/blog/tag/${tag}`} key={tag}>
-                  <Badge variant="secondary">{tag}</Badge>
+                  <Badge variant="secondary" className="hover:bg-accent/20 transition-colors">{tag}</Badge>
                 </Link>
             ))}
         </div>

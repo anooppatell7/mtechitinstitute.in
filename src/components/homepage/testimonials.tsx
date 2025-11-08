@@ -36,7 +36,7 @@ export default async function Testimonials() {
   }
 
   return (
-    <section className="py-16 sm:py-24 bg-secondary">
+    <section className="py-16 sm:py-24 bg-background">
         <div className="container">
             <div className="text-center mb-12">
                 <h2 className="font-headline text-3xl font-bold text-primary sm:text-4xl">What Our Students Say</h2>
@@ -55,22 +55,24 @@ export default async function Testimonials() {
                 <CarouselContent>
                     {reviews.map((review) => (
                         <CarouselItem key={review.id} className="md:basis-1/2 lg:basis-1/3">
-                            <div className="p-1">
-                               <Card className="h-full flex flex-col">
-                                    <CardContent className="p-6 flex-grow flex flex-col justify-between">
+                            <div className="p-1 h-full">
+                               <Card className="h-full flex flex-col shadow-lg bg-secondary/50 border-0">
+                                    <CardContent className="p-8 flex-grow flex flex-col justify-between">
                                        <div>
                                             <div className="flex items-center mb-4">
                                                 {Array.from({ length: 5 }).map((_, i) => (
                                                     <Star key={i} className={cn("h-5 w-5", i < review.rating ? "text-yellow-400 fill-yellow-400" : "text-muted-foreground/50")} />
                                                 ))}
                                             </div>
-                                            <p className="text-foreground/80 italic">"{review.comment}"</p>
+                                            <p className="text-foreground/80 italic text-lg">"{review.comment}"</p>
                                        </div>
-                                        <div className="flex items-center gap-3 mt-6 pt-4 border-t">
-                                            <div className="p-2 bg-muted rounded-full">
-                                                <User className="h-5 w-5 text-primary" />
+                                        <div className="flex items-center gap-4 mt-6 pt-6 border-t">
+                                            <div className="p-3 bg-primary text-primary-foreground rounded-full">
+                                                <User className="h-6 w-6" />
                                             </div>
-                                            <p className="font-semibold text-primary">{review.name}</p>
+                                            <div>
+                                              <p className="font-semibold text-lg text-primary">{review.name}</p>
+                                            </div>
                                         </div>
                                     </CardContent>
                                 </Card>

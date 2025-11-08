@@ -18,21 +18,20 @@ type CourseCardProps = {
 };
 
 export default function CourseCard({ course }: CourseCardProps) {
-  // Truncate description to a reasonable length
   const summary = course.description.length > 100 
     ? `${course.description.substring(0, 100)}...` 
     : course.description;
 
   return (
-    <Card className="flex flex-col h-full overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300">
+    <Card className="flex flex-col h-full overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300 rounded-xl group">
       <CardHeader className="p-0">
-        <div className="relative h-48 w-full">
+        <div className="relative h-48 w-full overflow-hidden">
             <Image
                 src={course.image}
                 alt={`${course.title} course at MTech IT Institute`}
                 data-ai-hint={course.title.split(' ').slice(0,2).join(' ').toLowerCase()}
                 fill
-                className="object-cover"
+                className="object-cover group-hover:scale-105 transition-transform duration-300"
             />
         </div>
       </CardHeader>
@@ -52,7 +51,7 @@ export default function CourseCard({ course }: CourseCardProps) {
                         <IndianRupee className="h-4 w-4" />{course.actualPrice}
                     </span>
                   )}
-                  <span className="text-accent flex items-center">
+                  <span className="text-accent flex items-center font-bold text-base">
                     <Tag className="h-4 w-4 mr-1" />
                     <IndianRupee className="h-4 w-4" />{course.discountPrice}
                   </span>
