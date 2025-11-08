@@ -1,6 +1,7 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Award, Users, Briefcase } from "lucide-react";
 
 export default function Hero() {
   return (
@@ -31,6 +32,22 @@ export default function Hero() {
             <Link href="/courses">View Courses</Link>
           </Button>
         </div>
+
+        <div className="mt-10 flex flex-wrap justify-center gap-4">
+            <div className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm">
+                <Award className="h-5 w-5 text-white" />
+                <span>20+ Years Of Experience</span>
+            </div>
+            <div className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm">
+                <Users className="h-5 w-5 text-white" />
+                <span>1000+ Students Trained</span>
+            </div>
+            <div className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm">
+                <Briefcase className="h-5 w-5 text-white" />
+                <span>Job-Ready IT Skills</span>
+            </div>
+        </div>
+
       </div>
       <div
         className="absolute bottom-0 left-0 h-40 w-full bg-gradient-to-t from-blue-600/20 to-transparent"
