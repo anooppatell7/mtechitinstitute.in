@@ -23,10 +23,10 @@ export default function Hero() {
 
       <div className="container relative z-10 flex min-h-[80vh] flex-col items-center justify-center py-20 text-center text-white">
         <h1 className="font-headline text-4xl font-bold sm:text-5xl md:text-6xl lg:text-7xl [text-shadow:0_3px_6px_rgba(0,0,0,0.6)]">
-          MTech IT Institute
+          Master Computer Skills. Build Your Future.
         </h1>
         <p className="mt-4 max-w-2xl text-lg text-slate-200 sm:text-xl [text-shadow:0_2px_4px_rgba(0,0,0,0.5)]">
-          Your Gateway to Excellence in IT Training and Computer Courses.
+          From Basics to Advanced IT Training — All in One Place.
         </p>
 
         <div className="mt-8 flex flex-wrap justify-center gap-4">
