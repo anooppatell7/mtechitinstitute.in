@@ -1,17 +1,18 @@
 
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Search, X } from 'lucide-react';
 import { useLearnProgress } from '@/hooks/use-learn-progress';
 import { useUser } from '@/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getAllCourses } from '@/lib/learn-helpers';
 import type { LearningCourse } from '@/lib/types';
+import { Input } from '@/components/ui/input';
 
 function LearnPageUnauthenticated() {
     return (
@@ -34,9 +35,20 @@ function LearnPageUnauthenticated() {
 
 function LearnPageAuthenticated({ courses }: { courses: LearningCourse[] }) {
     const { getCourseProgress } = useLearnProgress();
+    const [searchTerm, setSearchTerm] = useState('');
     
+    const filteredCourses = useMemo(() => {
+        if (!searchTerm) {
+            return courses;
+        }
+        return courses.filter(course =>
+            course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            course.description.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    }, [courses, searchTerm]);
+
     // Sort courses by the 'order' property
-    const learningCourses: LearningCourse[] = [...courses].sort((a, b) => a.order - b.order);
+    const learningCourses: LearningCourse[] = [...filteredCourses].sort((a, b) => a.order - b.order);
 
     return (
         <>
@@ -45,6 +57,21 @@ function LearnPageAuthenticated({ courses }: { courses: LearningCourse[] }) {
                 <p className="mt-4 max-w-2xl mx-auto text-lg text-primary/80">
                     Turn your curiosity into skill — start learning today with interactive modules.
                 </p>
+            </div>
+             <div className="mb-12 max-w-lg mx-auto relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                    type="text"
+                    placeholder="Search courses..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 text-base focus-visible:ring-accent"
+                />
+                {searchTerm && (
+                    <Button variant="ghost" size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7" onClick={() => setSearchTerm('')}>
+                       <X className="h-5 w-5" />
+                    </Button>
+                )}
             </div>
 
             {learningCourses.length > 0 ? (
@@ -81,8 +108,8 @@ function LearnPageAuthenticated({ courses }: { courses: LearningCourse[] }) {
             ) : (
                 <Card>
                     <CardContent className="p-12 text-center">
-                        <p className="text-lg text-muted-foreground">No learning modules have been added yet.</p>
-                        <p className="mt-2 text-sm text-muted-foreground">Admins can add content from the dashboard. Please check back soon!</p>
+                        <p className="text-lg text-muted-foreground">No courses found matching your search.</p>
+                        <p className="mt-2 text-sm text-muted-foreground">Try a different keyword or browse all available courses.</p>
                     </CardContent>
                 </Card>
             )}
@@ -114,6 +141,9 @@ export default function LearnPage() {
                         <Skeleton className="h-10 w-3/4 mx-auto" />
                         <Skeleton className="h-6 w-1/2 mx-auto mt-4" />
                     </div>
+                     <div className="mb-12 max-w-lg mx-auto">
+                        <Skeleton className="h-12 w-full" />
+                    </div>
                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {Array.from({length: 3}).map((_, i) => (
                              <Card key={i}>
@@ -136,3 +166,5 @@ export default function LearnPage() {
         </div>
     )
 }
+
+    
