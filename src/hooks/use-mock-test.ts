@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useLocalStorage } from './use-local-storage';
+import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 
 export const useMockTest = (testId: string) => {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -40,7 +41,7 @@ export const useMockTest = (testId: string) => {
 
     // Timer effect
     useEffect(() => {
-        if (!isInitialized) return;
+        if (!isInitialized || timeLeft <= 0) return;
 
         timerRef.current = setInterval(() => {
             setTimeLeft(prevTime => {
@@ -58,7 +59,7 @@ export const useMockTest = (testId: string) => {
                 clearInterval(timerRef.current);
             }
         };
-    }, [isInitialized, setTimeLeft]);
+    }, [isInitialized, setTimeLeft, timeLeft]);
     
     const handleSelectAnswer = useCallback((questionIndex: number, optionIndex: number) => {
         setSelectedAnswers(prev => {
@@ -84,22 +85,31 @@ export const useMockTest = (testId: string) => {
         window.localStorage.removeItem(`test-${testId}-time`);
     }, [testId]);
 
-    const handleSubmit = useCallback((isAutoSubmit: boolean) => {
+    const handleSubmit = useCallback((
+        isAutoSubmit: boolean, 
+        router: AppRouterInstance, 
+        toast: (options: { title: string, description: string }) => void
+        ) => {
         if (timerRef.current) {
             clearInterval(timerRef.current);
         }
 
         // TODO: Implement the logic to save the results to the database.
-        // This will involve calculating the score and sending `selectedAnswers`
-        // to a server action or API endpoint.
         
         console.log("Submitting test. Answers:", selectedAnswers);
-        if(isAutoSubmit) {
-            console.log("Test was auto-submitted due to time up.");
-        }
+        
+        const message = isAutoSubmit 
+            ? "Time's up! Your test has been automatically submitted."
+            : "Your test has been submitted successfully.";
 
-        // For now, just log and clean up.
+        toast({
+            title: "Test Submitted",
+            description: message,
+        });
+
         cleanupLocalStorage();
+        
+        router.push('/mock-tests');
 
     }, [selectedAnswers, cleanupLocalStorage]);
 
@@ -117,3 +127,5 @@ export const useMockTest = (testId: string) => {
         handleSubmit
     };
 };
+
+    

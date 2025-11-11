@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useEffect, useState, useMemo } from 'react';
-import { notFound, useParams } from 'next/navigation';
+import { notFound, useParams, useRouter } from 'next/navigation';
 import { useUser } from '@/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -17,7 +17,7 @@ import { ArrowLeft, ArrowRight, Clock, Bookmark, X, Check } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useRouter } from 'next/navigation';
+import { useToast } from '@/hooks/use-toast';
 
 
 function TestPageSkeleton() {
@@ -60,6 +60,7 @@ export default function MockTestPage() {
     const testId = params.id as string;
     const { user, isLoading: userLoading } = useUser();
     const router = useRouter();
+    const { toast } = useToast();
 
     const [testData, setTestData] = useState<MockTest | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -113,15 +114,15 @@ export default function MockTestPage() {
         }
     }, [testData, isInitialized, initializeTest]);
 
+    const handleTestSubmit = (isAuto: boolean) => {
+        handleSubmit(isAuto, router, toast);
+    }
 
     useEffect(() => {
         if(isTimeUp) {
-            handleSubmit(true); // Auto-submit when time is up
-             // You'll need to implement the results page redirection in a future step
-            alert("Time's up! Your test has been submitted.");
-            router.push('/mock-tests');
+            handleTestSubmit(true); // Auto-submit when time is up
         }
-    }, [isTimeUp, handleSubmit, router]);
+    }, [isTimeUp]);
     
     const currentQuestion: TestQuestion | undefined = testData?.questions[currentQuestionIndex];
     const progressPercentage = ((currentQuestionIndex + 1) / (testData?.questions.length || 1)) * 100;
@@ -243,7 +244,7 @@ export default function MockTestPage() {
                                 <AlertDialogFooter>
                                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                                     <AlertDialogAction 
-                                        onClick={() => handleSubmit(false)}
+                                        onClick={() => handleTestSubmit(false)}
                                         className="bg-destructive hover:bg-destructive/90"
                                     >
                                         Yes, Submit Test
@@ -267,3 +268,5 @@ export default function MockTestPage() {
         </div>
     );
 }
+
+    
