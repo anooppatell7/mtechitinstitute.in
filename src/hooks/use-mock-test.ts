@@ -35,7 +35,7 @@ export const useMockTest = (testId: string) => {
         initialDurationRef.current = durationMinutes * 60;
         
         const storedTime = localStorage.getItem(`test-${testId}-time`);
-        if (storedTime === null) {
+        if (storedTime === null || isNaN(Number(storedTime)) || Number(storedTime) <= 0) {
             setTimeLeft(initialDurationRef.current);
         }
 
@@ -49,7 +49,12 @@ export const useMockTest = (testId: string) => {
 
     // Timer effect
     useEffect(() => {
-        if (!isInitialized || timeLeft <= 0 || isSubmitting) return;
+        if (!isInitialized || timeLeft <= 0 || isSubmitting) {
+            if (timeLeft <= 0 && isInitialized) {
+                 setIsTimeUp(true);
+            }
+            return;
+        };
 
         timerRef.current = setInterval(() => {
             setTimeLeft(prevTime => {
@@ -132,7 +137,7 @@ export const useMockTest = (testId: string) => {
         
         const resultData: Omit<TestResult, 'id' | 'submittedAt'> = {
             userId: user.uid,
-            userName: user.displayName || 'Anonymous',
+            userName: user.displayName || user.email || 'Anonymous',
             testId: testData.id,
             testTitle: testData.title,
             score,
