@@ -1,9 +1,9 @@
 
 
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getFirestore, collection, query, where, getDocs, orderBy, doc, getDoc, setDoc } from "firebase/firestore";
+import { getFirestore, collection, query, where, getDocs, orderBy, doc, getDoc, setDoc, addDoc, serverTimestamp } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
-import type { BlogPost, SiteSettings, UserProgress } from "./types";
+import type { BlogPost, SiteSettings, UserProgress, TestResult } from "./types";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -96,6 +96,15 @@ export async function updateUserProgress(userId: string, progress: UserProgress)
      } catch (error) {
         console.error("Error updating user progress:", error);
      }
+}
+
+export async function saveTestResult(result: Omit<TestResult, 'id' | 'submittedAt'>): Promise<string> {
+    const resultWithTimestamp = {
+        ...result,
+        submittedAt: serverTimestamp(),
+    };
+    const docRef = await addDoc(collection(db, 'testResults'), resultWithTimestamp);
+    return docRef.id;
 }
 
 

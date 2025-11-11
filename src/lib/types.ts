@@ -141,21 +141,23 @@ export type MockTest = {
 };
 
 export type TestResponse = {
-    [questionId: string]: {
-        selectedOption: number | null;
-        isCorrect: boolean;
-    }
+    questionId: string;
+    selectedOption: number | null;
+    isCorrect: boolean;
+    marksAwarded: number;
 };
 
 export type TestResult = {
     id: string;
     userId: string;
+    userName: string;
     testId: string;
+    testTitle: string;
     score: number;
     totalMarks: number;
     accuracy: number; // percentage
     timeTaken: number; // in seconds
-    responses: TestResponse;
+    responses: TestResponse[];
     submittedAt: any; // Firestore Timestamp
 };
 

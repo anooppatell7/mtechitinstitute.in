@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { ArrowLeft, ArrowRight, Clock, Bookmark, X, Check } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Clock, Bookmark, X, Check, Loader2 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -76,6 +76,7 @@ export default function MockTestPage() {
         toggleMarkForReview,
         timeLeft,
         isTimeUp,
+        isSubmitting,
         handleSubmit,
     } = useMockTest(testId);
 
@@ -115,14 +116,16 @@ export default function MockTestPage() {
     }, [testData, isInitialized, initializeTest]);
 
     const handleTestSubmit = (isAuto: boolean) => {
-        handleSubmit(isAuto, router, toast);
+        if (testData && user) {
+            handleSubmit(isAuto, router, toast, testData, user);
+        }
     }
 
     useEffect(() => {
-        if(isTimeUp) {
+        if(isTimeUp && !isSubmitting) {
             handleTestSubmit(true); // Auto-submit when time is up
         }
-    }, [isTimeUp]);
+    }, [isTimeUp, isSubmitting]);
     
     const currentQuestion: TestQuestion | undefined = testData?.questions[currentQuestionIndex];
     const progressPercentage = ((currentQuestionIndex + 1) / (testData?.questions.length || 1)) * 100;
@@ -161,7 +164,7 @@ export default function MockTestPage() {
                         <CardHeader className="border-b">
                              <div className="flex justify-between items-center">
                                 <h1 className="text-xl font-bold text-primary">{testData.title}</h1>
-                                <div className="flex items-center gap-2 font-mono text-lg font-semibold bg-destructive text-destructive-foreground px-3 py-1 rounded-md">
+                                <div className={cn("flex items-center gap-2 font-mono text-lg font-semibold px-3 py-1 rounded-md", timeLeft < 300 ? 'bg-destructive text-destructive-foreground' : 'bg-primary text-primary-foreground')}>
                                     <Clock className="h-5 w-5" />
                                     <span>{timeFormatted}</span>
                                 </div>
@@ -190,10 +193,10 @@ export default function MockTestPage() {
 
                         </CardContent>
                          <CardFooter className="justify-between border-t pt-6">
-                             <Button variant="outline" onClick={() => setCurrentQuestionIndex(prev => Math.max(0, prev - 1))} disabled={currentQuestionIndex === 0}>
+                             <Button variant="outline" onClick={() => setCurrentQuestionIndex(prev => Math.max(0, prev - 1))} disabled={currentQuestionIndex === 0 || isSubmitting}>
                                 <ArrowLeft className="mr-2 h-4 w-4" /> Previous
                             </Button>
-                             <Button onClick={() => setCurrentQuestionIndex(prev => Math.min(testData.questions.length - 1, prev + 1))} disabled={currentQuestionIndex === testData.questions.length - 1}>
+                             <Button onClick={() => setCurrentQuestionIndex(prev => Math.min(testData.questions.length - 1, prev + 1))} disabled={currentQuestionIndex === testData.questions.length - 1 || isSubmitting}>
                                 Next <ArrowRight className="ml-2 h-4 w-4" />
                             </Button>
                         </CardFooter>
@@ -215,6 +218,7 @@ export default function MockTestPage() {
                                         currentQuestionIndex === index && 'ring-2 ring-primary ring-offset-2'
                                     )}
                                     onClick={() => setCurrentQuestionIndex(index)}
+                                    disabled={isSubmitting}
                                 >
                                     {index + 1}
                                 </Button>
@@ -226,13 +230,17 @@ export default function MockTestPage() {
                        <Button 
                             variant={markedForReview.includes(currentQuestionIndex) ? "secondary" : "outline"} 
                             onClick={() => toggleMarkForReview(currentQuestionIndex)}
+                            disabled={isSubmitting}
                         >
                             {markedForReview.includes(currentQuestionIndex) ? <X className="mr-2 h-4 w-4" /> : <Bookmark className="mr-2 h-4 w-4" />}
                             {markedForReview.includes(currentQuestionIndex) ? 'Unmark' : 'Mark Review'}
                         </Button>
                         <AlertDialog>
                             <AlertDialogTrigger asChild>
-                                <Button variant="destructive"><Check className="mr-2 h-4 w-4" /> Submit Test</Button>
+                                <Button variant="destructive" disabled={isSubmitting}>
+                                    {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Check className="mr-2 h-4 w-4" />}
+                                     {isSubmitting ? 'Submitting...' : 'Submit Test'}
+                                </Button>
                             </AlertDialogTrigger>
                              <AlertDialogContent>
                                 <AlertDialogHeader>
@@ -268,5 +276,3 @@ export default function MockTestPage() {
         </div>
     );
 }
-
-    

@@ -4,6 +4,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useLocalStorage } from './use-local-storage';
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
+import { User } from 'firebase/auth';
+import type { MockTest, TestQuestion, TestResponse, TestResult } from '@/lib/types';
+import { saveTestResult } from '@/lib/firebase';
+import { UseToast } from '@/hooks/use-toast';
 
 export const useMockTest = (testId: string) => {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -20,28 +24,32 @@ export const useMockTest = (testId: string) => {
 
     const [timeLeft, setTimeLeft] = useLocalStorage<number>(`test-${testId}-time`, 0);
     const [isTimeUp, setIsTimeUp] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const timerRef = useRef<NodeJS.Timeout | null>(null);
+    const initialDurationRef = useRef<number>(0);
     
     const initializeTest = useCallback((questionCount: number, durationMinutes: number) => {
         if (isInitialized) return;
 
-        const initialTime = durationMinutes * 60;
+        initialDurationRef.current = durationMinutes * 60;
         
-        // Only set initial values if they haven't been set before (i.e., user refreshes)
-        if (localStorage.getItem(`test-${testId}-time`) === null) {
-            setTimeLeft(initialTime);
-        }
-        if (localStorage.getItem(`test-${testId}-answers`) === null) {
-            setSelectedAnswers(Array(questionCount).fill(null));
+        const storedTime = localStorage.getItem(`test-${testId}-time`);
+        if (storedTime === null) {
+            setTimeLeft(initialDurationRef.current);
         }
 
+        const storedAnswers = localStorage.getItem(`test-${testId}-answers`);
+        if (storedAnswers === null) {
+            setSelectedAnswers(Array(questionCount).fill(null));
+        }
+        
         setIsInitialized(true);
     }, [isInitialized, testId, setTimeLeft, setSelectedAnswers]);
 
     // Timer effect
     useEffect(() => {
-        if (!isInitialized || timeLeft <= 0) return;
+        if (!isInitialized || timeLeft <= 0 || isSubmitting) return;
 
         timerRef.current = setInterval(() => {
             setTimeLeft(prevTime => {
@@ -59,7 +67,7 @@ export const useMockTest = (testId: string) => {
                 clearInterval(timerRef.current);
             }
         };
-    }, [isInitialized, setTimeLeft, timeLeft]);
+    }, [isInitialized, setTimeLeft, timeLeft, isSubmitting]);
     
     const handleSelectAnswer = useCallback((questionIndex: number, optionIndex: number) => {
         setSelectedAnswers(prev => {
@@ -85,33 +93,81 @@ export const useMockTest = (testId: string) => {
         window.localStorage.removeItem(`test-${testId}-time`);
     }, [testId]);
 
-    const handleSubmit = useCallback((
+    const handleSubmit = useCallback(async (
         isAutoSubmit: boolean, 
         router: AppRouterInstance, 
-        toast: (options: { title: string, description: string }) => void
+        toast: ReturnType<typeof UseToast>['toast'],
+        testData: MockTest,
+        user: User
         ) => {
+        
+        if (isSubmitting) return;
+        setIsSubmitting(true);
+
         if (timerRef.current) {
             clearInterval(timerRef.current);
         }
 
-        // TODO: Implement the logic to save the results to the database.
-        
-        console.log("Submitting test. Answers:", selectedAnswers);
-        
-        const message = isAutoSubmit 
-            ? "Time's up! Your test has been automatically submitted."
-            : "Your test has been submitted successfully.";
+        let score = 0;
+        let correctAnswers = 0;
 
-        toast({
-            title: "Test Submitted",
-            description: message,
+        const responses: TestResponse[] = testData.questions.map((q, i) => {
+            const isCorrect = selectedAnswers[i] === q.correctOption;
+            const marksAwarded = isCorrect ? q.marks : 0;
+            if (isCorrect) {
+                score += q.marks;
+                correctAnswers++;
+            }
+            return {
+                questionId: q.id,
+                selectedOption: selectedAnswers[i],
+                isCorrect,
+                marksAwarded
+            };
         });
 
-        cleanupLocalStorage();
+        const attemptedQuestions = selectedAnswers.filter(a => a !== null).length;
+        const accuracy = attemptedQuestions > 0 ? (correctAnswers / attemptedQuestions) * 100 : 0;
+        const timeTaken = initialDurationRef.current - timeLeft;
         
-        router.push('/mock-tests');
+        const resultData: Omit<TestResult, 'id' | 'submittedAt'> = {
+            userId: user.uid,
+            userName: user.displayName || 'Anonymous',
+            testId: testData.id,
+            testTitle: testData.title,
+            score,
+            totalMarks: testData.totalMarks,
+            accuracy: parseFloat(accuracy.toFixed(2)),
+            timeTaken,
+            responses,
+        };
+        
+        try {
+            const resultId = await saveTestResult(resultData);
+            
+            const message = isAutoSubmit 
+                ? "Time's up! Your test has been automatically submitted."
+                : "Your test has been submitted successfully.";
 
-    }, [selectedAnswers, cleanupLocalStorage]);
+            toast({
+                title: "Test Submitted",
+                description: message,
+            });
+
+            cleanupLocalStorage();
+            router.push(`/mock-tests/result/${resultId}`);
+
+        } catch (error) {
+             console.error("Failed to save test results:", error);
+             toast({
+                title: "Submission Failed",
+                description: "Could not save your test results. Please try again.",
+                variant: 'destructive'
+             });
+             setIsSubmitting(false);
+        }
+
+    }, [selectedAnswers, timeLeft, cleanupLocalStorage, isSubmitting]);
 
     return {
         isInitialized,
@@ -124,8 +180,7 @@ export const useMockTest = (testId: string) => {
         toggleMarkForReview,
         timeLeft,
         isTimeUp,
+        isSubmitting,
         handleSubmit
     };
 };
-
-    
