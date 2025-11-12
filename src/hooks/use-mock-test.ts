@@ -133,7 +133,10 @@ export const useMockTest = (testId: string) => {
 
         const attemptedQuestions = selectedAnswers.filter(a => a !== null).length;
         const accuracy = attemptedQuestions > 0 ? (correctAnswers / attemptedQuestions) * 100 : 0;
-        const timeTaken = initialDurationRef.current - timeLeft;
+        let timeTaken = initialDurationRef.current - timeLeft;
+        if (isNaN(timeTaken) || timeTaken < 0) {
+            timeTaken = 0;
+        }
         
         const resultData: Omit<TestResult, 'id' | 'submittedAt'> = {
             userId: user.uid,
