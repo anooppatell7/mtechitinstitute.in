@@ -34,14 +34,22 @@ export const useMockTest = (testId: string) => {
 
         initialDurationRef.current = durationMinutes * 60;
         
-        const storedTime = localStorage.getItem(`test-${testId}-time`);
-        if (storedTime === null || isNaN(Number(storedTime)) || Number(storedTime) <= 0) {
+        // Only set the time if it's a fresh start.
+        // Check if there's any time stored. If it's 0 or not a number, it's likely a new test.
+        const storedTime = Number(localStorage.getItem(`test-${testId}-time`));
+        if (isNaN(storedTime) || storedTime <= 0) {
             setTimeLeft(initialDurationRef.current);
         }
 
         const storedAnswers = localStorage.getItem(`test-${testId}-answers`);
         if (storedAnswers === null) {
             setSelectedAnswers(Array(questionCount).fill(null));
+        } else {
+            // Ensure the stored array matches the question count
+            const parsedAnswers = JSON.parse(storedAnswers);
+            if (parsedAnswers.length !== questionCount) {
+                setSelectedAnswers(Array(questionCount).fill(null));
+            }
         }
         
         setIsInitialized(true);
@@ -103,10 +111,20 @@ export const useMockTest = (testId: string) => {
         router: AppRouterInstance, 
         toast: ReturnType<typeof UseToast>['toast'],
         testData: MockTest,
-        user: User
+        user: User | null
         ) => {
         
         if (isSubmitting) return;
+        
+        if (!user?.uid) {
+            toast({
+                title: "Authentication Error",
+                description: "You must be logged in to submit a test.",
+                variant: 'destructive'
+            });
+            return;
+        }
+
         setIsSubmitting(true);
 
         if (timerRef.current) {
@@ -126,14 +144,15 @@ export const useMockTest = (testId: string) => {
             }
             return {
                 questionId: q.id,
-                selectedOption: selectedOption === undefined ? null : selectedOption, // Explicitly set to null if undefined
+                selectedOption: selectedOption === undefined || selectedOption === null ? null : selectedOption,
                 isCorrect,
                 marksAwarded
             };
         });
 
-        const attemptedQuestions = selectedAnswers.filter(a => a !== null).length;
+        const attemptedQuestions = selectedAnswers.filter(a => a !== null && a !== undefined).length;
         const accuracy = attemptedQuestions > 0 ? (correctAnswers / attemptedQuestions) * 100 : 0;
+        
         let timeTaken = initialDurationRef.current - timeLeft;
         if (isNaN(timeTaken) || timeTaken < 0) {
             timeTaken = 0;
@@ -144,15 +163,30 @@ export const useMockTest = (testId: string) => {
             userName: user.displayName || user.email || 'Anonymous',
             testId: testData.id,
             testTitle: testData.title,
-            score,
+            score: score || 0,
             totalMarks: testData.totalMarks,
-            accuracy: parseFloat(accuracy.toFixed(2)),
-            timeTaken,
+            accuracy: parseFloat(accuracy.toFixed(2)) || 0,
+            timeTaken: timeTaken,
             responses,
         };
         
+        // Helper function to remove any undefined fields before Firestore write
+        const cleanData = (obj: any): any => {
+            if (Array.isArray(obj)) {
+                return obj.map(v => cleanData(v));
+            } else if (obj !== null && typeof obj === 'object') {
+                return Object.entries(obj)
+                    .filter(([_, v]) => v !== undefined)
+                    .reduce((acc, [k, v]) => ({ ...acc, [k]: cleanData(v) }), {});
+            }
+            return obj;
+        };
+        
+        const finalData = cleanData(resultData);
+
         try {
-            const resultId = await saveTestResult(resultData);
+            console.log("Attempting to save test result:", finalData);
+            const resultId = await saveTestResult(finalData);
             
             const message = isAutoSubmit 
                 ? "Time's up! Your test has been automatically submitted."
@@ -176,7 +210,7 @@ export const useMockTest = (testId: string) => {
              setIsSubmitting(false);
         }
 
-    }, [selectedAnswers, timeLeft, cleanupLocalStorage, isSubmitting]);
+    }, [selectedAnswers, timeLeft, cleanupLocalStorage, isSubmitting, toast, router]);
 
     return {
         isInitialized,
