@@ -55,9 +55,7 @@ function TestPageSkeleton() {
     )
 }
 
-export default function MockTestPage() {
-    const params = useParams();
-    const testId = params.id as string;
+function MockTestClientComponent({ testId }: { testId: string }) {
     const { user, isLoading: userLoading } = useUser();
     const router = useRouter();
     const { toast } = useToast();
@@ -108,7 +106,6 @@ export default function MockTestPage() {
         fetchTest();
     }, [testId, user, userLoading, router]);
 
-    // Initialize the test state once testData is loaded
     useEffect(() => {
         if (testData && !isInitialized) {
             initializeTest(testData.questions.length, testData.duration);
@@ -123,7 +120,7 @@ export default function MockTestPage() {
 
     useEffect(() => {
         if(isTimeUp && !isSubmitting) {
-            handleTestSubmit(true); // Auto-submit when time is up
+            handleTestSubmit(true);
         }
     }, [isTimeUp, isSubmitting]);
     
@@ -153,7 +150,6 @@ export default function MockTestPage() {
     const handleOptionSelect = (value: string) => {
         handleSelectAnswer(currentQuestionIndex, parseInt(value, 10));
     };
-
 
     return (
         <div className="bg-secondary min-h-screen">
@@ -275,4 +271,8 @@ export default function MockTestPage() {
             </div>
         </div>
     );
+}
+
+export default function MockTestPage({ params }: { params: { id: string } }) {
+    return <MockTestClientComponent testId={params.id} />;
 }

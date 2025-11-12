@@ -35,25 +35,27 @@ export const useMockTest = (testId: string) => {
         initialDurationRef.current = durationMinutes * 60;
         
         // Only set the time if it's a fresh start.
-        // Check if there's any time stored. If it's 0 or not a number, it's likely a new test.
-        const storedTime = Number(localStorage.getItem(`test-${testId}-time`));
+        const storedTimeItem = typeof window !== 'undefined' ? localStorage.getItem(`test-${testId}-time`) : null;
+        const storedTime = storedTimeItem ? Number(JSON.parse(storedTimeItem)) : NaN;
+        
         if (isNaN(storedTime) || storedTime <= 0) {
             setTimeLeft(initialDurationRef.current);
         }
 
-        const storedAnswers = localStorage.getItem(`test-${testId}-answers`);
-        if (storedAnswers === null) {
+        const storedAnswersItem = typeof window !== 'undefined' ? localStorage.getItem(`test-${testId}-answers`) : null;
+        if (storedAnswersItem === null) {
             setSelectedAnswers(Array(questionCount).fill(null));
         } else {
-            // Ensure the stored array matches the question count
-            const parsedAnswers = JSON.parse(storedAnswers);
+            const parsedAnswers = JSON.parse(storedAnswersItem);
             if (parsedAnswers.length !== questionCount) {
+                // If the stored answers don't match the test, reset them.
                 setSelectedAnswers(Array(questionCount).fill(null));
             }
         }
         
         setIsInitialized(true);
     }, [isInitialized, testId, setTimeLeft, setSelectedAnswers]);
+
 
     // Timer effect
     useEffect(() => {
@@ -210,7 +212,7 @@ export const useMockTest = (testId: string) => {
              setIsSubmitting(false);
         }
 
-    }, [selectedAnswers, timeLeft, cleanupLocalStorage, isSubmitting, toast, router]);
+    }, [selectedAnswers, timeLeft, cleanupLocalStorage, isSubmitting]);
 
     return {
         isInitialized,
