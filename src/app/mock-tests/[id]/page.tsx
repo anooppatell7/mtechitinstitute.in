@@ -273,6 +273,6 @@ function MockTestClientComponent({ testId }: { testId: string }) {
     );
 }
 
-export default function MockTestPage({ params }: { params: { id: string } }) {
-    return <MockTestClientComponent testId={params.id} />;
+export default function MockTestPage({ params: { id } }: { params: { id: string } }) {
+    return <MockTestClientComponent testId={id} />;
 }
