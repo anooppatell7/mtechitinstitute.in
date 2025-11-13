@@ -4,12 +4,12 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, notFound, useRouter } from 'next/navigation';
 import { useUser } from '@/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { MockTest, TestQuestion, TestResult, TestResponse } from '@/lib/types';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { BarChart, Clock, Target, Check, X, ShieldQuestion, HelpCircle } from 'lucide-react';
+import { BarChart, Clock, Target, Check, X, ShieldQuestion, HelpCircle, Award, Loader2 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -54,6 +54,8 @@ export default function ResultPage() {
 
     const [result, setResult] = useState<TestResult | null>(null);
     const [test, setTest] = useState<MockTest | null>(null);
+    const [rank, setRank] = useState<number | null>(null);
+    const [isRankLoading, setIsRankLoading] = useState(true);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -86,7 +88,34 @@ export default function ResultPage() {
             }
             
             setIsLoading(false);
+            
+            // Fetch rank after getting result
+            fetchRank(resultData);
         };
+        
+        const fetchRank = async (currentResult: TestResult) => {
+            setIsRankLoading(true);
+            try {
+                const resultsQuery = query(
+                    collection(db, "testResults"),
+                    where("testId", "==", currentResult.testId)
+                );
+                const querySnapshot = await getDocs(resultsQuery);
+                const allResults = querySnapshot.docs.map(doc => doc.data() as TestResult);
+
+                // Sort by score desc, then timeTaken asc
+                allResults.sort((a, b) => b.score - a.score || a.timeTaken - b.timeTaken);
+
+                const currentUserRank = allResults.findIndex(r => r.userId === currentResult.userId) + 1;
+                setRank(currentUserRank > 0 ? currentUserRank : null);
+            } catch (error) {
+                console.error("Failed to calculate rank:", error);
+                setRank(null); // Set rank to null on error
+            } finally {
+                setIsRankLoading(false);
+            }
+        };
+
 
         if (user) {
             fetchResultAndTest();
@@ -157,11 +186,15 @@ export default function ResultPage() {
                      <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Rank</CardTitle>
-                            <Target className="h-4 w-4 text-muted-foreground" />
+                            <Award className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">N/A</div>
-                            <p className="text-xs text-muted-foreground">Ranking coming soon</p>
+                             {isRankLoading ? (
+                                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                            ) : (
+                                <div className="text-2xl font-bold">{rank || 'N/A'}</div>
+                            )}
+                            <p className="text-xs text-muted-foreground">Your position among all test takers</p>
                         </CardContent>
                     </Card>
                 </div>
