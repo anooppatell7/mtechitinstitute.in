@@ -5,6 +5,7 @@ import type { MockTest, TestResult } from "@/lib/types";
 import type { Metadata } from 'next';
 import MockTestsClient from "@/components/mock-tests-client";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { useUser } from "@/firebase";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://mtechitinstitute.in";
 
@@ -51,7 +52,7 @@ export default async function MockTestsPage() {
     const { getUser } = getKindeServerSession();
     const user = await getUser();
 
-    const userResults = user ? await getUserResults(user.id) : [];
+    const userResults = user?.id ? await getUserResults(user.id) : [];
 
     return (
         <MockTestsClient mockTests={mockTests} userResults={userResults} />

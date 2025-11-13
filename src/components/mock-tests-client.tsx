@@ -13,7 +13,7 @@ export default function MockTestsClient({ mockTests, userResults }: { mockTests:
     const latestResultsMap = new Map<string, TestResult>();
     userResults.forEach(result => {
         const existing = latestResultsMap.get(result.testId);
-        if (!existing || new Date(result.submittedAt.seconds * 1000) > new Date(existing.submittedAt.seconds * 1000)) {
+        if (!existing || (result.submittedAt && existing.submittedAt && result.submittedAt.seconds > existing.submittedAt.seconds)) {
             latestResultsMap.set(result.testId, result);
         }
     });
