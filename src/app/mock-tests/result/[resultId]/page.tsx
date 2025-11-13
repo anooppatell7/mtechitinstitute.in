@@ -13,6 +13,7 @@ import { BarChart, Clock, Target, Check, X, ShieldQuestion, HelpCircle, Award, L
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
+import SectionDivider from '@/components/section-divider';
 
 const COLORS = {
   correct: 'hsl(var(--chart-2))',
@@ -146,6 +147,7 @@ export default function ResultPage() {
 
     return (
         <div className="bg-secondary min-h-screen">
+             <SectionDivider style="wave" className="text-background" position="top"/>
             <div className="container py-8 sm:py-12">
                 <div className="mb-8">
                     <h1 className="text-3xl sm:text-4xl font-bold text-primary font-headline">Test Result</h1>

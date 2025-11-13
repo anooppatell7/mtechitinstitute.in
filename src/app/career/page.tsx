@@ -5,6 +5,7 @@ import Link from "next/link";
 import { getBlogPostsByCategory } from "@/lib/firebase";
 import type { BlogPost } from "@/lib/types";
 import type { Metadata } from "next";
+import SectionDivider from "@/components/section-divider";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://mtechitinstitute.in";
 
@@ -45,7 +46,8 @@ export default async function CareerPage() {
         </div>
       </div>
 
-      <div className="bg-secondary">
+      <div className="bg-secondary relative">
+        <SectionDivider style="wave" className="text-background" position="top"/>
         <div className="container py-16 sm:py-24">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
               <Card className="text-center">

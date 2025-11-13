@@ -13,10 +13,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { getAllCourses } from '@/lib/learn-helpers';
 import type { LearningCourse } from '@/lib/types';
 import { Input } from '@/components/ui/input';
+import SectionDivider from '@/components/section-divider';
 
 function LearnPageUnauthenticated() {
     return (
-        <div className="text-center mb-12">
+        <div className="text-center">
             <h1 className="font-headline text-4xl font-bold text-primary sm:text-5xl">Start Your Learning Journey</h1>
             <p className="mt-4 max-w-2xl mx-auto text-lg text-primary/80">
                 Create an account or log in to access our interactive courses and track your progress.
@@ -80,7 +81,7 @@ function LearnPageAuthenticated({ courses }: { courses: LearningCourse[] }) {
                         const { progressPercentage } = getCourseProgress(course);
 
                         return (
-                            <Card key={course.id} className="flex flex-col shadow-sm hover:shadow-lg transition-shadow">
+                            <Card key={course.id} className="flex flex-col shadow-sm hover:shadow-lg transition-shadow bg-background">
                                 <CardHeader className="flex-row items-center gap-4">
                                     <div className="text-4xl">{course.icon || '📚'}</div>
                                     <div>
@@ -133,36 +134,45 @@ export default function LearnPage() {
         fetchCourses();
     }, []);
 
-    if (userLoading || dataLoading) {
-        return (
-            <div className="bg-secondary">
-                <div className="container py-16 sm:py-24">
-                     <div className="text-center mb-12">
-                        <Skeleton className="h-10 w-3/4 mx-auto" />
-                        <Skeleton className="h-6 w-1/2 mx-auto mt-4" />
-                    </div>
-                     <div className="mb-12 max-w-lg mx-auto">
-                        <Skeleton className="h-12 w-full" />
-                    </div>
-                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {Array.from({length: 3}).map((_, i) => (
-                             <Card key={i}>
-                                <CardHeader><Skeleton className="h-8 w-3/4" /></CardHeader>
-                                <CardContent><Skeleton className="h-10 w-full" /></CardContent>
-                                <CardFooter><Skeleton className="h-10 w-full" /></CardFooter>
-                             </Card>
-                        ))}
-                    </div>
-                </div>
-            </div>
-        )
-    }
+    const isLoading = userLoading || dataLoading;
 
     return (
-        <div className="bg-secondary">
+      <>
+        <div className="bg-background">
             <div className="container py-16 sm:py-24">
-                {user ? <LearnPageAuthenticated courses={courses} /> : <LearnPageUnauthenticated />}
+              {isLoading ? (
+                  <div className="text-center mb-12">
+                      <Skeleton className="h-10 w-3/4 mx-auto" />
+                      <Skeleton className="h-6 w-1/2 mx-auto mt-4" />
+                  </div>
+              ) : (user ? null : <LearnPageUnauthenticated />)
+              }
             </div>
         </div>
+        {user && (
+          <div className="bg-secondary relative">
+              <SectionDivider style="wave" className="text-background" position="top"/>
+              <div className="container py-16 sm:py-24">
+                   {isLoading ? (
+                      <>
+                         <div className="mb-12 max-w-lg mx-auto">
+                            <Skeleton className="h-12 w-full" />
+                        </div>
+                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            {Array.from({length: 3}).map((_, i) => (
+                                 <Card key={i}>
+                                    <CardHeader><Skeleton className="h-8 w-3/4" /></CardHeader>
+                                    <CardContent><Skeleton className="h-10 w-full" /></CardContent>
+                                    <CardFooter><Skeleton className="h-10 w-full" /></CardFooter>
+                                 </Card>
+                            ))}
+                        </div>
+                      </>
+                  ) : <LearnPageAuthenticated courses={courses} />
+                  }
+              </div>
+          </div>
+        )}
+      </>
     )
 }

@@ -4,6 +4,7 @@ import { collection, getDocs, query, where, orderBy } from "firebase/firestore";
 import type { Review } from "@/lib/types";
 import type { Metadata } from 'next';
 import ReviewPageClient from "@/components/reviews-page-client";
+import SectionDivider from "@/components/section-divider";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://mtechitinstitute.in";
 
@@ -47,8 +48,14 @@ export default async function ReviewsPage() {
   const reviews = await getApprovedReviews();
   
   return (
-    <div className="bg-secondary">
+    <>
+      <div className="bg-background">
         <ReviewPageClient reviews={reviews} />
-    </div>
+      </div>
+      <div className="relative bg-secondary">
+          <SectionDivider style="wave" className="text-background" position="top"/>
+          <div className="h-24"></div>
+      </div>
+    </>
   )
 }

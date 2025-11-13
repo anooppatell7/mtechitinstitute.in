@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { GraduationCap, Users, IndianRupee } from "lucide-react";
 import type { Metadata } from "next";
+import SectionDivider from "@/components/section-divider";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://mtechitinstitute.in";
 
@@ -53,7 +54,8 @@ export default function AboutPage() {
         </div>
       </div>
       
-      <div className="bg-secondary">
+      <div className="bg-secondary relative">
+        <SectionDivider style="wave" className="text-background" position="top"/>
         <div className="container py-16 sm:py-24">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
@@ -85,7 +87,8 @@ export default function AboutPage() {
         </div>
       </div>
 
-      <div className="bg-background">
+      <div className="bg-background relative">
+        <SectionDivider style="wave" className="text-secondary" position="top"/>
         <div className="container py-16 sm:py-24">
           <div className="text-center mb-12">
             <h2 className="font-headline text-3xl font-bold text-primary sm:text-4xl">Why Choose Us?</h2>
