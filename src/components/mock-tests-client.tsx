@@ -93,7 +93,7 @@ export default function MockTestsClient({ mockTests }: { mockTests: MockTest[] }
         <div className="bg-secondary">
             <div className="container py-16 sm:py-24">
                 <div className="text-center mb-12">
-                    <h1 className="font-headline text-4xl font-bold text-primary sm:text-5xl">Online Mock Tests</h1>
+                    <h1 className="font-headline text-4xl font-bold text-primary sm:text-5xl">Online Mock Tests<span className="text-accent">.</span></h1>
                     <p className="mt-4 max-w-2xl mx-auto text-lg text-primary/80">
                         Sharpen your skills and prepare for success with our collection of mock tests.
                     </p>
@@ -104,8 +104,8 @@ export default function MockTestsClient({ mockTests }: { mockTests: MockTest[] }
                 ) : mockTests.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {mockTests.map((test) => {
-                            const hasAttempted = latestResultsMap.has(test.id);
-                            const result = latestResultsMap.get(test.id);
+                            const hasAttempted = user && latestResultsMap.has(test.id);
+                            const result = user ? latestResultsMap.get(test.id) : undefined;
 
                             return (
                                 <Card key={test.id} className="flex flex-col shadow-sm hover:shadow-lg transition-shadow">
