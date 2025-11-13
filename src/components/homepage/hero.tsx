@@ -9,7 +9,7 @@ export default function Hero() {
     <section className="relative w-full bg-gradient-to-br from-indigo-600 via-blue-500 to-cyan-400">
       <div className="container relative z-10 flex min-h-[90vh] flex-col items-center justify-center py-20 text-center">
         <h1 className="font-headline text-5xl font-bold text-white drop-shadow-md sm:text-6xl lg:text-7xl">
-          Master Computer Skills. Build Your Future.
+          Master Computer Skills<span className="text-green-300">.</span> Build Your Future<span className="text-green-300">.</span>
         </h1>
         <p className="mt-6 max-w-[700px] text-lg text-blue-50 sm:text-xl">
           From Basics to Advanced IT Training — All in One Place. Learn,
@@ -54,3 +54,4 @@ export default function Hero() {
     </section>
   );
 }
+
