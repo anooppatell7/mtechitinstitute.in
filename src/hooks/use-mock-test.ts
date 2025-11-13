@@ -141,7 +141,7 @@ export const useMockTest = (testId: string) => {
             const isCorrect = selectedOption === q.correctOption;
             const marksAwarded = isCorrect ? q.marks : 0;
             if (isCorrect) {
-                score += q.marks;
+                score += marksAwarded;
                 correctAnswers++;
             }
             return {
@@ -165,7 +165,7 @@ export const useMockTest = (testId: string) => {
             userName: user.displayName || user.email || 'Anonymous',
             testId: testData.id,
             testTitle: testData.title,
-            score: score || 0,
+            score: score,
             totalMarks: testData.totalMarks,
             accuracy: parseFloat(accuracy.toFixed(2)) || 0,
             timeTaken: timeTaken,
@@ -187,7 +187,7 @@ export const useMockTest = (testId: string) => {
         const finalData = cleanData(resultData);
 
         try {
-            console.log("Attempting to save test result:", finalData);
+            console.log("Data being written:", finalData);
             const resultId = await saveTestResult(finalData);
             
             const message = isAutoSubmit 
