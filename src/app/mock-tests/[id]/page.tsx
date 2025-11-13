@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, use } from 'react';
 import { notFound, useParams, useRouter } from 'next/navigation';
 import { useUser } from '@/firebase';
 import { doc, getDoc } from 'firebase/firestore';
@@ -273,6 +273,7 @@ function MockTestClientComponent({ testId }: { testId: string }) {
     );
 }
 
-export default function MockTestPage({ params: { id } }: { params: { id: string } }) {
+export default function MockTestPage({ params }: { params: { id: string } }) {
+    const { id } = use(params);
     return <MockTestClientComponent testId={id} />;
 }
