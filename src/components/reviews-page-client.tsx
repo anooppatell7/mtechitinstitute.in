@@ -30,7 +30,7 @@ export default function ReviewPageClient({ reviews }: { reviews: Review[] }) {
                 {reviews.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {reviews.map((review) => (
-                            <Card key={review.id} className="flex flex-col shadow-sm hover:shadow-lg transition-shadow duration-300">
+                            <Card key={review.id} className="flex flex-col shadow-sm hover:shadow-lg transition-shadow duration-300 bg-secondary">
                                 <CardContent className="p-6 flex-grow flex flex-col justify-between">
                                     <div>
                                         <div className="flex items-center mb-4">

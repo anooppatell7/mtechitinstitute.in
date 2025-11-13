@@ -126,10 +126,10 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     <>
       <JsonLd data={postSchema} />
       <JsonLd data={breadcrumbSchema(breadcrumbs)} />
-      <div className="bg-background">
+      <div className="bg-secondary">
         <div className="container py-16 sm:py-24">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
-              <article className="lg:col-span-3 prose prose-lg max-w-none dark:prose-invert prose-headings:font-headline prose-headings:text-primary prose-a:text-accent">
+              <article className="lg:col-span-3 prose prose-lg max-w-none dark:prose-invert prose-headings:font-headline prose-headings:text-primary prose-a:text-accent bg-background p-8 rounded-lg shadow-md">
                   <div className="mb-8">
                       <div className="relative w-full aspect-video rounded-lg overflow-hidden mb-6">
                           <Image src={post.image} alt={`${post.title} - Blog Post Banner`} data-ai-hint={(post.tags || []).slice(0, 2).join(' ')} fill className="object-cover" />

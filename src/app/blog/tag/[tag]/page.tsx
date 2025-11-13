@@ -32,9 +32,9 @@ export default async function TagPage({ params }: TagPageProps) {
   }
 
   return (
-    <div className="bg-secondary">
+    <div className="bg-background">
       <div className="container py-16 sm:py-24">
-        <div className="mb-12">
+        <div className="mb-12 text-center">
           <h1 className="font-headline text-4xl font-bold text-primary sm:text-5xl">
             Blog Posts Tagged: <span className="text-accent">{tagName}</span>
           </h1>

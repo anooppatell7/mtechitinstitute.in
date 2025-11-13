@@ -42,7 +42,7 @@ export default async function CoursesPage() {
   const courses = await getCourses();
 
   return (
-    <div className="bg-background">
+    <div className="bg-secondary">
       <div className="container py-16 sm:py-24">
         <div className="text-center mb-12">
           <h1 className="font-headline text-4xl font-bold text-primary sm:text-5xl">Our Professional IT Courses</h1>

@@ -69,7 +69,7 @@ export default function BlogPage() {
   }, [posts, searchTerm]);
 
   return (
-    <div className="bg-secondary">
+    <div className="bg-background">
       <div className="container py-16 sm:py-24">
         <div className="text-center mb-12">
           <h1 className="font-headline text-4xl font-bold text-primary sm:text-5xl">Our Tech Blog</h1>
@@ -120,7 +120,7 @@ export default function BlogPage() {
                 </div>
             </main>
             <aside className="lg:col-span-1 space-y-8">
-                <div className="p-6 bg-background rounded-lg shadow-sm">
+                <div className="p-6 bg-secondary rounded-lg shadow-sm">
                     <h3 className="font-headline text-lg font-semibold text-primary mb-4">Popular Tags</h3>
                      {loading ? (
                       <div className="flex flex-wrap gap-2">

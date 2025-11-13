@@ -46,5 +46,9 @@ async function getApprovedReviews(): Promise<Review[]> {
 export default async function ReviewsPage() {
   const reviews = await getApprovedReviews();
   
-  return <ReviewPageClient reviews={reviews} />;
+  return (
+    <div className="bg-secondary">
+        <ReviewPageClient reviews={reviews} />
+    </div>
+  )
 }

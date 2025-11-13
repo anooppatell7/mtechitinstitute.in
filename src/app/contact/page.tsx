@@ -30,7 +30,7 @@ export const metadata: Metadata = {
 
 export default function ContactPage() {
   return (
-    <div className="bg-secondary">
+    <div className="bg-background">
       <div className="container py-16 sm:py-24">
         <div className="text-center mb-12">
           <h1 className="font-headline text-4xl font-bold text-primary sm:text-5xl">Contact Us</h1>
@@ -41,7 +41,7 @@ export default function ContactPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-12">
           <div className="lg:col-span-3">
-            <Card>
+            <Card className="bg-secondary">
               <CardHeader>
                 <CardTitle className="font-headline text-2xl">Send a Message</CardTitle>
                 <CardDescription>Fill out the form below and our team will get back to you shortly.</CardDescription>
@@ -53,7 +53,7 @@ export default function ContactPage() {
           </div>
 
           <div className="lg:col-span-2 space-y-8">
-            <Card>
+            <Card className="bg-secondary">
               <CardHeader>
                  <CardTitle className="font-headline text-2xl">Contact Information</CardTitle>
               </CardHeader>
@@ -73,7 +73,7 @@ export default function ContactPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="bg-secondary">
                 <CardHeader>
                     <CardTitle className="font-headline text-xl">Follow Us</CardTitle>
                 </CardHeader>
