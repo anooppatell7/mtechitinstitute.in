@@ -1,15 +1,16 @@
-
 'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { ArrowRight, FileText } from "lucide-react";
+import { ArrowRight, FileText, Search, X } from "lucide-react";
 import type { TestCategory } from "@/lib/types";
 import { collection, query, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Skeleton } from "@/components/ui/skeleton";
 import SectionDivider from "@/components/section-divider";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 function CategoryLoadingSkeleton() {
     return (
@@ -35,6 +36,7 @@ function CategoryLoadingSkeleton() {
 export default function MockTestCategoriesPage() {
     const [categories, setCategories] = useState<TestCategory[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -53,6 +55,16 @@ export default function MockTestCategoriesPage() {
 
         fetchCategories();
     }, []);
+    
+    const filteredCategories = useMemo(() => {
+        if (!searchTerm) {
+            return categories;
+        }
+        return categories.filter(category =>
+            category.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            category.description.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    }, [categories, searchTerm]);
 
     return (
          <>
@@ -68,11 +80,27 @@ export default function MockTestCategoriesPage() {
             <div className="bg-secondary relative">
                 <SectionDivider style="wave" className="text-background" position="top"/>
                 <div className="container py-16 sm:py-24">
+                    <div className="mb-12 max-w-lg mx-auto relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <Input
+                            type="text"
+                            placeholder="Search categories like 'MS Word', 'Tally'..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="pl-10 text-base"
+                        />
+                         {searchTerm && (
+                            <Button variant="ghost" size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7" onClick={() => setSearchTerm('')}>
+                               <X className="h-5 w-5" />
+                            </Button>
+                        )}
+                    </div>
+
                     {isLoading ? (
                         <CategoryLoadingSkeleton />
-                    ) : categories.length > 0 ? (
+                    ) : filteredCategories.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {categories.map((category) => (
+                            {filteredCategories.map((category) => (
                                 <Link key={category.id} href={`/mock-tests/category/${category.id}`} className="group">
                                   <Card className="flex flex-col h-full shadow-sm hover:shadow-lg transition-shadow bg-background border-t-4 border-t-accent">
                                       <CardHeader className="flex-row items-center gap-4">
@@ -96,8 +124,8 @@ export default function MockTestCategoriesPage() {
                     ) : (
                         <Card>
                             <CardContent className="p-12 text-center text-muted-foreground">
-                                <p className="text-lg">No test categories are available at the moment.</p>
-                                <p className="mt-2 text-sm">Please check back later.</p>
+                                <p className="text-lg">No test categories found.</p>
+                                <p className="mt-2 text-sm">{searchTerm ? "Try a different search term." : "Please check back later."}</p>
                             </CardContent>
                         </Card>
                     )}
