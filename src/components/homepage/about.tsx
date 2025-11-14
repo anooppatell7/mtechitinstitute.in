@@ -8,27 +8,58 @@ import { Button } from "../ui/button";
 import { Award, BrainCircuit, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// Simple SVG Icon components for branded software
+// Brand-inspired SVG Icon components
 const IconPhotoshop = ({ className }: { className?: string }) => (
-    <svg className={cn("h-10 w-10 text-blue-500", className)} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="3" width="18" height="18" rx="4" fill="#31a8ff"/><path d="M9.5 8.5H12C13.3807 8.5 14.5 9.61929 14.5 11C14.5 12.3807 13.3807 13.5 12 13.5H9.5V16" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M9.5 8.5V13.5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+    <svg className={cn("h-10 w-10", className)} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="24" height="24" rx="4" fill="#31a8ff"/>
+        <path d="M8.5 8H12C13.6569 8 15 9.34315 15 11C15 12.6569 13.6569 14 12 14H8.5V16" stroke="#001d33" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M8.5 11H12" stroke="#001d33" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
 );
 
 const IconTally = ({ className }: { className?: string }) => (
-    <svg className={cn("h-10 w-10 text-red-500", className)} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="3" width="18" height="18" rx="4" fill="#ef4444" /><text x="12" y="15" textAnchor="middle" fontSize="10" fill="white" fontWeight="bold">T</text></svg>
+     <svg className={cn("h-10 w-10", className)} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="24" height="24" rx="4" fill="#0d47a1"/>
+        <rect x="4" y="4" width="8" height="8" fill="#1e88e5"/>
+        <rect x="12" y="4" width="8" height="16" fill="#42a5f5"/>
+        <rect x="4" y="12" width="8" height="8" fill="#ffc107"/>
+        <path d="M6 16L8 14" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+    </svg>
 );
 
 const IconExcel = ({ className }: { className?: string }) => (
-    <svg className={cn("h-10 w-10 text-green-600", className)} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="3" width="18" height="18" rx="4" fill="#10b981"/><path d="M9.5 9.5L14.5 14.5M14.5 9.5L9.5 14.5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+    <svg className={cn("h-10 w-10", className)} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2 5C2 3.89543 2.89543 3 4 3H14L22 8V19C22 20.1046 21.1046 21 20 21H4C2.89543 21 2 20.1046 2 19V5Z" fill="#107c41"/>
+        <path d="M14 3L22 8H16C14.8954 8 14 7.10457 14 6V3Z" fill="#16a34a"/>
+        <text x="8" y="16" fontFamily="Arial, sans-serif" fontSize="10" fill="white" fontWeight="bold">X</text>
+    </svg>
 );
 
 const IconWord = ({ className }: { className?: string }) => (
-    <svg className={cn("h-10 w-10 text-blue-600", className)} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="3" width="18" height="18" rx="4" fill="#2563eb"/><path d="M8 8L10 16L12 10L14 16L16 8" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+    <svg className={cn("h-10 w-10", className)} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2 5C2 3.89543 2.89543 3 4 3H14L22 8V19C22 20.1046 21.1046 21 20 21H4C2.89543 21 2 20.1046 2 19V5Z" fill="#2b579a"/>
+        <path d="M14 3L22 8H16C14.8954 8 14 7.10457 14 6V3Z" fill="#2d72d9"/>
+        <text x="7" y="16" fontFamily="Arial, sans-serif" fontSize="10" fill="white" fontWeight="bold">W</text>
+    </svg>
+);
+
+const IconPowerPoint = ({ className }: { className?: string }) => (
+    <svg className={cn("h-10 w-10", className)} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="24" height="24" rx="4" fill="#d24726"/>
+        <circle cx="12" cy="12" r="6" fill="white"/>
+        <text x="9" y="16" fontFamily="Arial, sans-serif" fontSize="10" fill="#d24726" fontWeight="bold">P</text>
+    </svg>
 );
 
 const IconCorel = ({ className }: { className?: string }) => (
-    <svg className={cn("h-10 w-10 text-teal-500", className)} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="3" width="18" height="18" rx="4" fill="#14b8a6"/><path d="M16 8L8 16M8 8L16 16L12 12" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+    <svg className={cn("h-10 w-10", className)} viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <path d="M50,2.5A47.5,47.5 0 0,0 2.5,50V90L50,75,97.5,90V50A47.5,47.5 0 0,0 50,2.5Z" fill="#00a94f"/>
+        <path d="M50,2.5A47.5,47.5 0 0,1 97.5,50V90L50,75Z" fill="#8bc53f"/>
+        <path d="M50,45 A15,15 0 0,1 50,75" fill="#f04e46"/>
+        <path d="M50,45 A15,15 0 0,0 50,75" fill="#f9ad3d"/>
+        <path d="M50,2.5A47.5,47.5 0 0,0 2.5,50V90L50,75V2.5Z" opacity="0.1"/>
+    </svg>
 );
-
 
 const AnimatedIcon = ({ children, className, style }: { children: React.ReactNode, className?: string, style?: React.CSSProperties }) => (
   <div className={cn("absolute bg-card/60 backdrop-blur-sm p-3 rounded-full shadow-lg border border-border/20 animate-float", className)} style={style}>
@@ -47,6 +78,7 @@ export default function About() {
       <AnimatedIcon className="bottom-1/4 left-[10%]" style={{ animationDelay: '2s' }}><IconExcel /></AnimatedIcon>
       <AnimatedIcon className="bottom-[15%] right-[5%]" style={{ animationDelay: '0.5s' }}><IconWord /></AnimatedIcon>
       <AnimatedIcon className="top-[15%] right-[20%]" style={{ animationDelay: '1.5s' }}><IconCorel className="h-8 w-8" /></AnimatedIcon>
+       <AnimatedIcon className="top-[60%] left-[15%]" style={{ animationDelay: '2.5s' }}><IconPowerPoint className="h-8 w-8" /></AnimatedIcon>
 
       <div className="container relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
