@@ -73,7 +73,7 @@ export default function BlogPage() {
     <>
       <div className="bg-background">
         <div className="container py-16 sm:py-24 text-center">
-          <h1 className="font-headline text-4xl font-bold text-primary sm:text-5xl">Our Tech Blog</h1>
+          <h1 className="font-headline text-4xl font-bold text-primary sm:text-5xl">Our Tech Blog<span className="text-accent">.</span></h1>
           <p className="mt-4 max-w-2xl mx-auto text-lg text-primary/80">
             Find insights, tutorials, and career advice from our IT experts. Stay updated with the latest trends in technology.
           </p>

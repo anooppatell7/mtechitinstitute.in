@@ -46,7 +46,7 @@ export default async function CoursesPage() {
     <>
       <div className="bg-background">
         <div className="container py-16 sm:py-24 text-center">
-          <h1 className="font-headline text-4xl font-bold text-primary sm:text-5xl">Our Professional IT Courses</h1>
+          <h1 className="font-headline text-4xl font-bold text-primary sm:text-5xl">Our Professional IT Courses<span className="text-accent">.</span></h1>
           <p className="mt-4 max-w-2xl mx-auto text-lg text-foreground/80">
             Find the perfect job-oriented computer course in Patti to advance your skills and launch your career in the tech industry.
           </p>

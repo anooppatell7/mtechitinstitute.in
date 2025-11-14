@@ -40,7 +40,7 @@ export default async function ResourcesPage() {
     <>
       <div className="bg-background">
         <div className="container py-16 sm:py-24 text-center">
-          <h1 className="font-headline text-4xl font-bold text-primary sm:text-5xl">Free Student Resources</h1>
+          <h1 className="font-headline text-4xl font-bold text-primary sm:text-5xl">Free Resources<span className="text-accent">.</span></h1>
           <p className="mt-4 max-w-2xl mx-auto text-lg text-foreground/80">
             Access free materials like PDF notes, worksheets, and quizzes to support your learning journey with us.
           </p>

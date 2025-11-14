@@ -39,7 +39,7 @@ export default async function CareerPage() {
     <>
       <div className="bg-background">
         <div className="container py-16 sm:py-24 text-center">
-          <h1 className="font-headline text-4xl font-bold text-primary sm:text-5xl">Career Guidance Center</h1>
+          <h1 className="font-headline text-4xl font-bold text-primary sm:text-5xl">Career Guidance<span className="text-accent">.</span></h1>
           <p className="mt-4 max-w-2xl mx-auto text-lg text-primary/80">
             Let us help you navigate your career path in the world of technology, whether you're a student or a professional.
           </p>
