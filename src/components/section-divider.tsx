@@ -56,7 +56,7 @@ export default function SectionDivider({
 }: SectionDividerProps) {
 
   return (
-    <div className={cn("pointer-events-none relative w-full", className)}>
+    <div className={cn("pointer-events-none absolute left-0 w-full z-10", className)}>
         {style === 'wave' && <Wave position={position} />}
         {style === 'angle' && <Angle position={position} />}
     </div>
