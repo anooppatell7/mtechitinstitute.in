@@ -13,6 +13,8 @@ import { useAuth, useUser } from "@/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import Head from "next/head";
 
+const ADMIN_EMAILS = ["mtechitinstitute@gmail.com", "anooppbh8@gmail.com"];
+
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -25,7 +27,7 @@ export default function LoginPage() {
   useEffect(() => {
     if (user) {
       // If user is already logged in, decide where to send them
-      if (user.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL) {
+      if (user.email && ADMIN_EMAILS.includes(user.email)) {
         router.push('/admin/dashboard');
       } else {
         router.push('/learn');
@@ -53,7 +55,7 @@ export default function LoginPage() {
         });
         
         // Redirect based on user role
-        if (userCredential.user.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL) {
+        if (userCredential.user.email && ADMIN_EMAILS.includes(userCredential.user.email)) {
             router.push('/admin/dashboard');
         } else {
             router.push('/learn');
@@ -142,5 +144,3 @@ export default function LoginPage() {
     </>
   );
 }
-
-    

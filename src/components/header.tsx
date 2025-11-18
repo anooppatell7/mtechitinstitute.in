@@ -36,6 +36,8 @@ const navItems: NavItem[] = [
   { title: "Contact", href: "/contact" },
 ];
 
+const ADMIN_EMAILS = ["mtechitinstitute@gmail.com", "anooppbh8@gmail.com"];
+
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
@@ -46,7 +48,7 @@ export default function Header() {
   const isLearnPage = pathname.startsWith('/learn');
   const courseSlug = isLearnPage && pathname.split('/')[2] ? pathname.split('/')[2] : '';
 
-  const isAdmin = user?.email === "mtechitinstitute@gmail.com";
+  const isAdmin = user?.email ? ADMIN_EMAILS.includes(user.email) : false;
 
   const handleLogout = async () => {
     if (auth) {
