@@ -48,6 +48,17 @@ export default function ExamRegistrationPage() {
 
     const form = useForm<FormData>({
         resolver: zodResolver(formSchema),
+        defaultValues: {
+            fullName: '',
+            fatherName: '',
+            phone: '',
+            email: '',
+            address: '',
+            city: '',
+            state: '',
+            pinCode: '',
+            photo: undefined,
+        }
     });
 
     const onSubmit: SubmitHandler<FormData> = async (data) => {
