@@ -3,7 +3,7 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore, collection, query, where, getDocs, orderBy, doc, getDoc, setDoc, addDoc, serverTimestamp } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
-import type { BlogPost, SiteSettings, UserProgress, TestResult } from "./types";
+import type { BlogPost, SiteSettings, UserProgress, TestResult, ExamResult } from "./types";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -104,6 +104,15 @@ export async function saveTestResult(result: Omit<TestResult, 'id' | 'submittedA
         submittedAt: serverTimestamp(),
     };
     const docRef = await addDoc(collection(db, 'testResults'), resultWithTimestamp);
+    return docRef.id;
+}
+
+export async function saveExamResult(result: Omit<ExamResult, 'id' | 'submittedAt'>): Promise<string> {
+    const resultWithTimestamp = {
+        ...result,
+        submittedAt: serverTimestamp(),
+    };
+    const docRef = await addDoc(collection(db, 'examResults'), resultWithTimestamp);
     return docRef.id;
 }
 

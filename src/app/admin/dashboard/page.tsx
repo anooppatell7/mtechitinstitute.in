@@ -4,7 +4,7 @@
 import Link from "next/link";
 import React, { useState, useEffect, use } from "react";
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { PlusCircle, MoreHorizontal, LogOut, Trash, Edit, Settings, FileText, MessageSquare, Briefcase, Link2, Megaphone, Star, Upload, BookOpen, Layers, ChevronDown, ListTodo, BookCopy } from "lucide-react";
+import { PlusCircle, MoreHorizontal, LogOut, Trash, Edit, Settings, FileText, MessageSquare, Briefcase, Link2, Megaphone, Star, Upload, BookOpen, Layers, ChevronDown, ListTodo, BookCopy, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -68,7 +68,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import Logo from "@/components/logo";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import type { Course, BlogPost, Resource, Enrollment, ContactSubmission, InternalLink, SiteSettings, Review, LearningCourse, LearningModule, Lesson, MockTest, TestQuestion, TestCategory } from "@/lib/types";
+import type { Course, BlogPost, Resource, Enrollment, ContactSubmission, InternalLink, SiteSettings, Review, LearningCourse, LearningModule, Lesson, MockTest, TestQuestion, TestCategory, ExamRegistration, ExamResult } from "@/lib/types";
 import { auth, db } from "@/lib/firebase";
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, setDoc, Timestamp, where, arrayUnion, arrayRemove, getDoc, writeBatch } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
@@ -80,7 +80,7 @@ import marketingCoursesData from "@/lib/data/marketing-courses.json";
 import type { Metadata } from 'next';
 
 
-type ItemType = 'courses' | 'blog' | 'guidance' | 'resources' | 'settings' | 'enrollments' | 'contacts' | 'internal-links' | 'site-settings' | 'reviews' | 'learningCourse' | 'learningModule' | 'learningLesson' | 'mockTest' | 'testQuestion' | 'testCategory';
+type ItemType = 'courses' | 'blog' | 'guidance' | 'resources' | 'settings' | 'enrollments' | 'contacts' | 'internal-links' | 'site-settings' | 'reviews' | 'learningCourse' | 'learningModule' | 'learningLesson' | 'mockTest' | 'testQuestion' | 'testCategory' | 'examRegistration' | 'examResult';
 
 export default function AdminDashboardPage() {
     const [user, authLoading, authError] = useAuthState(auth);
@@ -95,6 +95,8 @@ export default function AdminDashboardPage() {
     const [reviews, setReviews] = useState<Review[]>([]);
     const [mockTests, setMockTests] = useState<MockTest[]>([]);
     const [testCategories, setTestCategories] = useState<TestCategory[]>([]);
+    const [examRegistrations, setExamRegistrations] = useState<ExamRegistration[]>([]);
+    const [examResults, setExamResults] = useState<ExamResult[]>([]);
     const [loading, setLoading] = useState(true);
     const { toast } = useToast();
 
@@ -207,6 +209,26 @@ export default function AdminDashboardPage() {
             const mockTestsSnapshot = await getDocs(mockTestsQuery);
             const mockTestsList = mockTestsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as MockTest));
             setMockTests(mockTestsList);
+            
+            // Exam Registrations
+            const examRegQuery = query(collection(db, "examRegistrations"), orderBy("registeredAt", "desc"));
+            const examRegSnapshot = await getDocs(examRegQuery);
+            const examRegList = examRegSnapshot.docs.map(doc => {
+                const data = doc.data();
+                const registeredAt = (data.registeredAt as Timestamp)?.toDate().toLocaleString() || new Date().toLocaleString();
+                return { id: doc.id, ...data, registeredAt } as ExamRegistration;
+            });
+            setExamRegistrations(examRegList);
+
+            // Exam Results
+            const examResQuery = query(collection(db, "examResults"), orderBy("submittedAt", "desc"));
+            const examResSnapshot = await getDocs(examResQuery);
+            const examResList = examResSnapshot.docs.map(doc => {
+                const data = doc.data();
+                const submittedAt = (data.submittedAt as Timestamp)?.toDate().toLocaleString() || new Date().toLocaleString();
+                return { id: doc.id, ...data, submittedAt } as ExamResult;
+            });
+            setExamResults(examResList);
 
 
             // Site Settings
@@ -266,6 +288,8 @@ export default function AdminDashboardPage() {
                 if (type === 'learningModule' && parentIds?.courseId) await deleteDoc(doc(db, "learningCourses", parentIds.courseId, "modules", id));
                 if (type === 'learningLesson' && parentIds?.courseId && parentIds?.moduleId) await deleteDoc(doc(db, "learningCourses", parentIds.courseId, "modules", parentIds.moduleId, "lessons", id));
                 if (type === 'testCategory') await deleteDoc(doc(db, "testCategories", id));
+                if (type === 'examRegistration') await deleteDoc(doc(db, "examRegistrations", id));
+                if (type === 'examResult') await deleteDoc(doc(db, "examResults", id));
                 if (type === 'mockTest') {
                     // Delete the mock test itself
                     await deleteDoc(doc(db, "mockTests", id));
@@ -1064,6 +1088,8 @@ export default function AdminDashboardPage() {
                                     <TabsTrigger value="test-categories"><BookCopy className="mr-2 h-4 w-4"/>Test Categories</TabsTrigger>
                                     <TabsTrigger value="mock-tests"><ListTodo className="mr-2 h-4 w-4" />Mock Tests</TabsTrigger>
                                     <TabsTrigger value="reviews"><Star className="mr-2 h-4 w-4" />Reviews</TabsTrigger>
+                                    <TabsTrigger value="exam-registrations"><UserCheck className="mr-2 h-4 w-4"/>Exam Registrations</TabsTrigger>
+                                    <TabsTrigger value="exam-results"><FileText className="mr-2 h-4 w-4"/>Exam Results</TabsTrigger>
                                     <TabsTrigger value="internal-links"><Link2 className="mr-2 h-4 w-4"/>Internal Links</TabsTrigger>
                                     <TabsTrigger value="enrollments"><FileText className="mr-2 h-4 w-4"/>Enrollments</TabsTrigger>
                                     <TabsTrigger value="contacts"><MessageSquare className="mr-2 h-4 w-4"/>Contacts</TabsTrigger>
@@ -1073,7 +1099,7 @@ export default function AdminDashboardPage() {
                                 <ScrollBar orientation="horizontal" />
                             </ScrollArea>
                              <div className="ml-auto flex items-center gap-2 pl-4">
-                                {activeTab !== 'settings' && activeTab !== 'site-settings' && activeTab !== 'enrollments' && activeTab !== 'contacts' && activeTab !== 'internal-links' && activeTab !== 'reviews' && (
+                                {activeTab !== 'settings' && activeTab !== 'site-settings' && activeTab !== 'enrollments' && activeTab !== 'contacts' && activeTab !== 'internal-links' && activeTab !== 'reviews' && activeTab !== 'exam-registrations' && activeTab !== 'exam-results' && (
                                 <Button size="sm" className="h-8 gap-1" onClick={() => handleAddNew()}>
                                     <PlusCircle className="h-3.5 w-3.5" />
                                     <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
@@ -1551,6 +1577,109 @@ export default function AdminDashboardPage() {
                                 </CardContent>
                             </Card>
                         </TabsContent>
+                         <TabsContent value="exam-registrations">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Exam Registrations</CardTitle>
+                                    <CardDescription>View and manage student registrations for official exams.</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    {loading ? <p>Loading registrations...</p> :
+                                    <ScrollArea className="w-full whitespace-nowrap">
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead>Reg. No</TableHead>
+                                                    <TableHead>Name</TableHead>
+                                                    <TableHead>Course</TableHead>
+                                                    <TableHead className="hidden md:table-cell">Phone</TableHead>
+                                                    <TableHead className="hidden md:table-cell">Registered</TableHead>
+                                                    <TableHead className="text-right">Actions</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {examRegistrations.map(reg => (
+                                                    <TableRow key={reg.id}>
+                                                        <TableCell className="font-mono">{reg.registrationNumber}</TableCell>
+                                                        <TableCell className="font-medium">{reg.fullName}</TableCell>
+                                                        <TableCell>{reg.course}</TableCell>
+                                                        <TableCell className="hidden md:table-cell">{reg.phone}</TableCell>
+                                                        <TableCell className="hidden md:table-cell">{reg.registeredAt}</TableCell>
+                                                        <TableCell className="text-right">
+                                                            <DropdownMenu>
+                                                                <DropdownMenuTrigger asChild>
+                                                                    <Button aria-haspopup="true" size="icon" variant="ghost"><MoreHorizontal className="h-4 w-4" /></Button>
+                                                                </DropdownMenuTrigger>
+                                                                <DropdownMenuContent align="end">
+                                                                    <DropdownMenuItem className="text-destructive" onClick={() => openConfirmationDialog('examRegistration', reg.id)}>
+                                                                        <Trash className="mr-2 h-4 w-4" />Delete
+                                                                    </DropdownMenuItem>
+                                                                </DropdownMenuContent>
+                                                            </DropdownMenu>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                        <ScrollBar orientation="horizontal" />
+                                    </ScrollArea>
+                                    }
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+                         <TabsContent value="exam-results">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Exam Results</CardTitle>
+                                    <CardDescription>View results from registration-based exams.</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    {loading ? <p>Loading results...</p> :
+                                    <ScrollArea className="w-full whitespace-nowrap">
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead>Reg. No</TableHead>
+                                                    <TableHead>Student Name</TableHead>
+                                                    <TableHead>Test Name</TableHead>
+                                                    <TableHead>Score</TableHead>
+                                                    <TableHead>Submitted</TableHead>
+                                                    <TableHead className="text-right">Actions</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {examResults.map(res => (
+                                                    <TableRow key={res.id}>
+                                                        <TableCell className="font-mono">{res.registrationNumber}</TableCell>
+                                                        <TableCell className="font-medium">{res.studentName}</TableCell>
+                                                        <TableCell>{res.testName}</TableCell>
+                                                        <TableCell>{res.score}/{res.totalMarks}</TableCell>
+                                                        <TableCell>{res.submittedAt}</TableCell>
+                                                        <TableCell className="text-right">
+                                                            <DropdownMenu>
+                                                                <DropdownMenuTrigger asChild>
+                                                                    <Button aria-haspopup="true" size="icon" variant="ghost"><MoreHorizontal className="h-4 w-4" /></Button>
+                                                                </DropdownMenuTrigger>
+                                                                <DropdownMenuContent align="end">
+                                                                     <DropdownMenuItem onClick={() => router.push(`/exam/result/${res.id}`)}>
+                                                                        <FileText className="mr-2 h-4 w-4" /> View Details
+                                                                    </DropdownMenuItem>
+                                                                    <DropdownMenuItem className="text-destructive" onClick={() => openConfirmationDialog('examResult', res.id)}>
+                                                                        <Trash className="mr-2 h-4 w-4" />Delete
+                                                                    </DropdownMenuItem>
+                                                                </DropdownMenuContent>
+                                                            </DropdownMenu>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                        <ScrollBar orientation="horizontal" />
+                                    </ScrollArea>
+                                    }
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
                          <TabsContent value="internal-links">
                              <Card>
                                 <CardHeader>
@@ -1840,8 +1969,6 @@ export default function AdminDashboardPage() {
     );
 }
 
-
-    
 
     
 

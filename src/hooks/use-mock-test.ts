@@ -5,24 +5,26 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useLocalStorage } from './use-local-storage';
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { User } from 'firebase/auth';
-import type { MockTest, TestQuestion, TestResponse, TestResult } from '@/lib/types';
-import { saveTestResult } from '@/lib/firebase';
+import type { MockTest, TestQuestion, TestResponse, TestResult, ExamResult } from '@/lib/types';
+import { saveTestResult, saveExamResult } from '@/lib/firebase';
 import { UseToast } from '@/hooks/use-toast';
 
-export const useMockTest = (testId: string) => {
+export const useMockTest = (testId: string, registrationNumber?: string | null) => {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [isInitialized, setIsInitialized] = useState(false);
 
+    const storageKeyPrefix = registrationNumber ? `exam-${testId}-${registrationNumber}` : `test-${testId}`;
+
     const [selectedAnswers, setSelectedAnswers] = useLocalStorage<(number | null)[]>(
-        `test-${testId}-answers`, 
+        `${storageKeyPrefix}-answers`, 
         []
     );
     const [markedForReview, setMarkedForReview] = useLocalStorage<number[]>(
-        `test-${testId}-review`,
+        `${storageKeyPrefix}-review`,
         []
     );
 
-    const [timeLeft, setTimeLeft] = useLocalStorage<number>(`test-${testId}-time`, 0);
+    const [timeLeft, setTimeLeft] = useLocalStorage<number>(`${storageKeyPrefix}-time`, 0);
     const [isTimeUp, setIsTimeUp] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -34,27 +36,29 @@ export const useMockTest = (testId: string) => {
 
         initialDurationRef.current = durationMinutes * 60;
         
-        // Only set the time if it's a fresh start.
-        const storedTimeItem = typeof window !== 'undefined' ? localStorage.getItem(`test-${testId}-time`) : null;
+        const storedTimeItem = typeof window !== 'undefined' ? localStorage.getItem(`${storageKeyPrefix}-time`) : null;
         const storedTime = storedTimeItem ? Number(JSON.parse(storedTimeItem)) : NaN;
         
         if (isNaN(storedTime) || storedTime <= 0) {
             setTimeLeft(initialDurationRef.current);
         }
 
-        const storedAnswersItem = typeof window !== 'undefined' ? localStorage.getItem(`test-${testId}-answers`) : null;
+        const storedAnswersItem = typeof window !== 'undefined' ? localStorage.getItem(`${storageKeyPrefix}-answers`) : null;
         if (storedAnswersItem === null) {
             setSelectedAnswers(Array(questionCount).fill(null));
         } else {
-            const parsedAnswers = JSON.parse(storedAnswersItem);
-            if (parsedAnswers.length !== questionCount) {
-                // If the stored answers don't match the test, reset them.
+            try {
+                const parsedAnswers = JSON.parse(storedAnswersItem);
+                if (parsedAnswers.length !== questionCount) {
+                    setSelectedAnswers(Array(questionCount).fill(null));
+                }
+            } catch {
                 setSelectedAnswers(Array(questionCount).fill(null));
             }
         }
         
         setIsInitialized(true);
-    }, [isInitialized, testId, setTimeLeft, setSelectedAnswers]);
+    }, [isInitialized, storageKeyPrefix, setTimeLeft, setSelectedAnswers]);
 
 
     // Timer effect
@@ -103,25 +107,26 @@ export const useMockTest = (testId: string) => {
     }, [setMarkedForReview]);
 
     const cleanupLocalStorage = useCallback(() => {
-        window.localStorage.removeItem(`test-${testId}-answers`);
-        window.localStorage.removeItem(`test-${testId}-review`);
-        window.localStorage.removeItem(`test-${testId}-time`);
-    }, [testId]);
+        window.localStorage.removeItem(`${storageKeyPrefix}-answers`);
+        window.localStorage.removeItem(`${storageKeyPrefix}-review`);
+        window.localStorage.removeItem(`${storageKeyPrefix}-time`);
+    }, [storageKeyPrefix]);
 
     const handleSubmit = useCallback(async (
         isAutoSubmit: boolean, 
         router: AppRouterInstance, 
         toast: ReturnType<typeof UseToast>['toast'],
         testData: MockTest,
-        user: User | null
+        user: User | null,
+        studentName?: string // For registered exams
         ) => {
         
         if (isSubmitting) return;
         
-        if (!user?.uid) {
+        if (!user?.uid && !registrationNumber) {
             toast({
                 title: "Authentication Error",
-                description: "You must be logged in to submit a test.",
+                description: "You must be logged in or registered to submit a test.",
                 variant: 'destructive'
             });
             return;
@@ -161,18 +166,6 @@ export const useMockTest = (testId: string) => {
             timeTaken = 0;
         }
         
-        const resultData: Omit<TestResult, 'id' | 'submittedAt'> = {
-            userId: user.uid,
-            userName: user.displayName || user.email || 'Anonymous',
-            testId: testData.id,
-            testTitle: testData.title,
-            score: score,
-            totalMarks: testData.totalMarks,
-            accuracy: parseFloat(accuracy.toFixed(2)) || 0,
-            timeTaken: timeTaken,
-            responses,
-        };
-        
         // Helper function to remove any undefined fields before Firestore write
         const cleanData = (obj: any): any => {
             if (Array.isArray(obj)) {
@@ -184,24 +177,54 @@ export const useMockTest = (testId: string) => {
             }
             return obj;
         };
-        
-        const finalData = cleanData(resultData);
 
         try {
-            console.log("Data being written:", finalData);
-            const resultId = await saveTestResult(finalData);
+            let resultId: string;
             
             const message = isAutoSubmit 
                 ? "Time's up! Your test has been automatically submitted."
                 : "Your test has been submitted successfully.";
 
-            toast({
-                title: "Test Submitted",
-                description: message,
-            });
+            if (registrationNumber && studentName) {
+                // This is a registered exam
+                const resultData: Omit<ExamResult, 'id' | 'submittedAt'> = {
+                    registrationNumber,
+                    studentName,
+                    testId: testData.id,
+                    testName: testData.title,
+                    score,
+                    totalMarks: testData.totalMarks,
+                    accuracy: parseFloat(accuracy.toFixed(2)) || 0,
+                    timeTaken: timeTaken,
+                    responses,
+                };
+                const finalData = cleanData(resultData);
+                resultId = await saveExamResult(finalData);
+                 toast({ title: "Exam Submitted", description: message });
+                router.push(`/exam/result/${resultId}`);
 
+            } else if (user) {
+                // This is a regular mock test for a logged-in user
+                const resultData: Omit<TestResult, 'id' | 'submittedAt'> = {
+                    userId: user.uid,
+                    userName: user.displayName || user.email || 'Anonymous',
+                    testId: testData.id,
+                    testTitle: testData.title,
+                    score,
+                    totalMarks: testData.totalMarks,
+                    accuracy: parseFloat(accuracy.toFixed(2)) || 0,
+                    timeTaken: timeTaken,
+                    responses,
+                };
+                const finalData = cleanData(resultData);
+                resultId = await saveTestResult(finalData);
+                toast({ title: "Test Submitted", description: message });
+                router.push(`/mock-tests/result/${resultId}`);
+            } else {
+                throw new Error("Cannot submit result without user login or registration number.");
+            }
+            
             cleanupLocalStorage();
-            router.push(`/mock-tests/result/${resultId}`);
 
         } catch (error) {
              console.error("Failed to save test results:", error);
@@ -213,7 +236,7 @@ export const useMockTest = (testId: string) => {
              setIsSubmitting(false);
         }
 
-    }, [selectedAnswers, timeLeft, cleanupLocalStorage, isSubmitting]);
+    }, [selectedAnswers, timeLeft, cleanupLocalStorage, isSubmitting, registrationNumber]);
 
     return {
         isInitialized,
