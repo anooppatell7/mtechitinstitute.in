@@ -36,8 +36,12 @@ const formSchema = z.object({
   state: z.string().min(2, "State is required."),
   pinCode: z.string().length(6, "Pin code must be 6 digits."),
   photo: z.any()
-    .refine(files => files?.length == 1, "Photo is required.")
-    .refine(files => files?.[0]?.size <= 2000000, `Max file size is 2MB.`)
+    .refine((files) => files?.length == 1, "Photo is required.")
+    .refine((files) => files?.[0]?.size <= 2000000, `Max file size is 2MB.`)
+    .refine(
+      (files) => ["image/jpeg", "image/jpg", "image/png"].includes(files?.[0]?.type),
+      "Only .jpg, .jpeg, and .png formats are supported."
+    ),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -59,7 +63,6 @@ export default function ExamRegistrationPage() {
             city: '',
             state: '',
             pinCode: '',
-            photo: undefined,
         }
     });
 
