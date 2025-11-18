@@ -2,7 +2,6 @@
 import Link from "next/link";
 import { Facebook, Instagram, Phone, Mail, MapPin, Send } from "lucide-react";
 import Logo from "./logo";
-import { navItems } from "@/lib/data";
 
 export default function Footer() {
   // Split links for a two-column layout

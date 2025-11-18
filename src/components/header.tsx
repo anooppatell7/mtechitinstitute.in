@@ -9,10 +9,8 @@ import { useUser, useAuth } from "@/firebase";
 import { signOut } from "firebase/auth";
 
 import { cn } from "@/lib/utils";
-import { navItems } from "@/lib/data";
 import Logo from "@/components/logo";
 import { Button } from "@/components/ui/button";
-import { EnrollModal } from "@/components/enroll-modal";
 import LearnSidebar from "./learn/sidebar"; 
 import {
   DropdownMenu,
@@ -23,6 +21,20 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import type { NavItem } from "@/lib/types";
+
+const navItems: NavItem[] = [
+  { title: "Home", href: "/" },
+  { title: "About", href: "/about" },
+  { title: "Courses", href: "/courses" },
+  { title: "Learn", href: "/learn" },
+  { title: "Tests", href: "/mock-tests" },
+  { title: "Registration", href: "/exam/register" },
+  { title: "Blog", href: "/blog" },
+  { title: "Career", href: "/career" },
+  { title: "Resources", href: "/resources" },
+  { title: "Contact", href: "/contact" },
+];
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
@@ -34,7 +46,7 @@ export default function Header() {
   const isLearnPage = pathname.startsWith('/learn');
   const courseSlug = isLearnPage && pathname.split('/')[2] ? pathname.split('/')[2] : '';
 
-  const isAdmin = user?.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL;
+  const isAdmin = user?.email === "mtechitinstitute@gmail.com";
 
   const handleLogout = async () => {
     if (auth) {
@@ -43,27 +55,6 @@ export default function Header() {
     }
   }
 
-  const renderNavLinks = () => (
-      navItems.map((item) => {
-        // Hide "Learn" link if user is not authenticated
-        if (item.href === "/learn" && !user) return null;
-        
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={cn(
-              "flex w-full items-center rounded-md p-2 text-sm font-medium hover:underline",
-              pathname === item.href ? "text-accent" : "text-foreground/70"
-            )}
-            onClick={() => setIsOpen(false)}
-          >
-            {item.title}
-          </Link>
-        )
-      })
-  );
-
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 max-w-screen-2xl items-center justify-between">
@@ -71,6 +62,7 @@ export default function Header() {
 
         <nav className="hidden md:flex md:items-center md:gap-6">
           {navItems.map((item) => {
+            if (item.href === '/learn' && !user && !isLoading) return null;
             return (
                 <Link
                   key={item.href}
@@ -159,19 +151,22 @@ export default function Header() {
               ) : (
                 <>
                   <nav className="grid grid-flow-row auto-rows-max text-sm">
-                    {navItems.map((item) => (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        className={cn(
-                          "flex w-full items-center rounded-md p-2 text-sm font-medium hover:underline",
-                          pathname === item.href ? "text-accent" : "text-foreground/70"
-                        )}
-                        onClick={() => setIsOpen(false)}
-                      >
-                        {item.title}
-                      </Link>
-                    ))}
+                    {navItems.map((item) => {
+                      if (item.href === '/learn' && !user) return null;
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          className={cn(
+                            "flex w-full items-center rounded-md p-2 text-sm font-medium hover:underline",
+                            pathname === item.href ? "text-accent" : "text-foreground/70"
+                          )}
+                          onClick={() => setIsOpen(false)}
+                        >
+                          {item.title}
+                        </Link>
+                      )
+                    })}
                   </nav>
                   {!user && (
                     <div className="flex flex-col gap-2">
