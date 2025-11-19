@@ -78,6 +78,7 @@ export default function ProfilePage() {
 
         const fetchProfileData = async () => {
             setIsLoading(true);
+            // The registration ID is the user's UID
             const docRef = doc(db, 'examRegistrations', user.uid);
             const docSnap = await getDoc(docRef);
 
@@ -85,7 +86,7 @@ export default function ProfilePage() {
                 const regData = { id: docSnap.id, ...docSnap.data() } as ExamRegistration;
                 setRegistration(regData);
 
-                // Fetch exam history
+                // Fetch exam history for the registration number
                 const historyQuery = query(
                     collection(db, "examResults"),
                     where("registrationNumber", "==", regData.registrationNumber),
@@ -184,7 +185,7 @@ export default function ProfilePage() {
                                                 {examHistory.map(result => (
                                                     <TableRow key={result.id}>
                                                         <TableCell className="font-medium">{result.testName}</TableCell>
-                                                        <TableCell>{format(result.submittedAt.toDate(), "PPP")}</TableCell>
+                                                        <TableCell>{format(new Date(result.submittedAt.seconds * 1000), "PPP")}</TableCell>
                                                         <TableCell>
                                                             <Badge variant={result.score / result.totalMarks > 0.4 ? 'default' : 'destructive'}>
                                                                 {result.score} / {result.totalMarks}
@@ -219,3 +220,5 @@ export default function ProfilePage() {
         </>
     );
 }
+
+    

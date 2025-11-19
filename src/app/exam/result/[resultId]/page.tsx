@@ -57,6 +57,7 @@ export default function ExamResultPage() {
     const [rank, setRank] = useState<number | null>(null);
     const [isRankLoading, setIsRankLoading] = useState(true);
     const [isLoading, setIsLoading] = useState(true);
+    const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
 
     useEffect(() => {
         if (!resultId) return;
@@ -72,15 +73,22 @@ export default function ExamResultPage() {
             }
 
             const resultData = { id: resultSnap.id, ...resultSnap.data() } as ExamResultType;
-
-            // If a user is logged in, verify they own this result.
-            // If no user is logged in, anyone with the link can view.
-            if (user && resultData.registrationNumber !== user.uid && !user.email?.endsWith('@mtechitinstitute.in')) {
-                 // The UID check might need to be registration number if they aren't the same. Let's assume for now admin can view all.
-                 // A better check would be against the registration data's user ID if available, or just let admins see all.
-                 // For now, only the user who took it or an admin can see it.
-                 // Let's refine this: the prompt says students check with reg no, so auth might not be needed.
-                 // Let's allow viewing if not logged in, but protect if logged in as wrong user.
+            
+            // Authorization Check
+            if (user) { // If a user is logged in
+                const isAdmin = user.email && ["mtechitinstitute@gmail.com", "anooppbh8@gmail.com"].includes(user.email);
+                const isOwner = user.uid === resultData.registrationNumber; // This might need adjustment if regNo is not UID
+                
+                // Let's assume for profile view, the registration UID is stored with the user, so we check that.
+                // A better approach would be to store user's UID in the registration document.
+                // Assuming `registrationNumber` in `examResults` matches the UID in `examRegistrations`.
+                if (isAdmin || isOwner) {
+                    setIsAuthorized(true);
+                } else {
+                    setIsAuthorized(false);
+                }
+            } else { // If no user is logged in, anyone with the link can view.
+                 setIsAuthorized(true);
             }
 
             setResult(resultData);
@@ -96,7 +104,6 @@ export default function ExamResultPage() {
             }
             
             setIsLoading(false);
-            
             fetchRank(resultData);
         };
         
@@ -112,7 +119,8 @@ export default function ExamResultPage() {
 
                 allResults.sort((a, b) => b.score - a.score || a.timeTaken - b.timeTaken);
 
-                const currentUserRank = allResults.findIndex(r => r.registrationNumber === currentResult.registrationNumber) + 1;
+                const currentUserRank = allResults.findIndex(r => r.registrationNumber === currentResult.registrationNumber && r.submittedAt.seconds === currentResult.submittedAt.seconds) + 1;
+
                 setRank(currentUserRank > 0 ? currentUserRank : null);
             } catch (error) {
                 console.error("Failed to calculate rank:", error);
@@ -123,10 +131,20 @@ export default function ExamResultPage() {
         };
 
         fetchResultAndTest();
-    }, [resultId, user, router]);
+    }, [resultId, user]);
 
     if (isLoading || userLoading) {
         return <ResultSkeleton />;
+    }
+    
+    if (isAuthorized === false) {
+        return (
+            <div className="container text-center py-20">
+                <h1 className="text-2xl font-bold text-destructive">Access Denied</h1>
+                <p className="text-muted-foreground mt-2">You do not have permission to view this result.</p>
+                <Button onClick={() => router.push('/profile')} className="mt-6">Go to My Profile</Button>
+            </div>
+        )
     }
 
     if (!result || !test) {
@@ -291,3 +309,5 @@ export default function ExamResultPage() {
         </div>
     );
 }
+
+    

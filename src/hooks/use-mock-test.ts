@@ -128,7 +128,7 @@ export const useMockTest = (testId: string, registrationNumber?: string | null, 
         
         if (isSubmitting) return;
         
-        if (!user) {
+        if (!user && !registrationNumber) {
             toast({
                 title: "Authentication Error",
                 description: "You must be logged in to submit a test.",
@@ -207,7 +207,7 @@ export const useMockTest = (testId: string, registrationNumber?: string | null, 
                 resultId = await saveExamResult(finalData);
                 toast({ title: "Exam Submitted", description: message });
                 router.push(`/exam/result/${resultId}`);
-            } else {
+            } else if (user) {
                  // This is a general mock test
                 const resultData: Omit<TestResult, 'id' | 'submittedAt'> = {
                     userId: user.uid,
@@ -224,6 +224,8 @@ export const useMockTest = (testId: string, registrationNumber?: string | null, 
                 resultId = await saveTestResult(finalData);
                 toast({ title: "Test Submitted", description: message });
                 router.push(`/mock-tests/result/${resultId}`);
+            } else {
+                throw new Error("Cannot submit test without user or registration number.");
             }
             
             cleanupLocalStorage();
@@ -255,3 +257,5 @@ export const useMockTest = (testId: string, registrationNumber?: string | null, 
         handleSubmit
     };
 };
+
+    
