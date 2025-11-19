@@ -7,7 +7,7 @@ import { useParams, notFound, useRouter } from 'next/navigation';
 import { useUser } from '@/firebase';
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import type { MockTest, TestQuestion, TestResult, TestResponse } from '@/lib/types';
+import type { MockTest, TestQuestion, ExamResult as TestResult, TestResponse } from '@/lib/types';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { BarChart, Clock, Target, Check, X, ShieldQuestion, HelpCircle, Award, Loader2 } from 'lucide-react';
@@ -69,10 +69,10 @@ export default function ResultPage() {
 
         const fetchResultAndTest = async () => {
             setIsLoading(true);
-            const resultRef = doc(db, 'testResults', resultId);
+            const resultRef = doc(db, 'examResults', resultId);
             const resultSnap = await getDoc(resultRef);
 
-            if (!resultSnap.exists() || resultSnap.data().userId !== user.uid) {
+            if (!resultSnap.exists() || resultSnap.data().registrationNumber !== user.uid) {
                 // Also check admin access
                 const isAdmin = user.email && ["mtechitinstitute@gmail.com", "anooppbh8@gmail.com"].includes(user.email);
                 if (!isAdmin) {
@@ -83,7 +83,7 @@ export default function ResultPage() {
 
             const resultData = { id: resultSnap.id, ...resultSnap.data() } as TestResult;
             setResult(resultData);
-            document.title = `Result: ${resultData.testTitle} - MTech IT Institute`;
+            document.title = `Result: ${resultData.testName} - MTech IT Institute`;
 
             const testRef = doc(db, 'mockTests', resultData.testId);
             const testSnap = await getDoc(testRef);
@@ -103,7 +103,7 @@ export default function ResultPage() {
             setIsRankLoading(true);
             try {
                 const resultsQuery = query(
-                    collection(db, "testResults"),
+                    collection(db, "examResults"),
                     where("testId", "==", currentResult.testId)
                 );
                 const querySnapshot = await getDocs(resultsQuery);
@@ -111,7 +111,7 @@ export default function ResultPage() {
 
                 allResults.sort((a, b) => b.score - a.score || a.timeTaken - b.timeTaken);
 
-                const currentUserRank = allResults.findIndex(r => r.userId === currentResult.userId) + 1;
+                const currentUserRank = allResults.findIndex(r => r.registrationNumber === currentResult.registrationNumber) + 1;
                 setRank(currentUserRank > 0 ? currentUserRank : null);
             } catch (error) {
                 console.error("Failed to calculate rank:", error);
@@ -156,7 +156,7 @@ export default function ResultPage() {
                 <div className="container py-8 sm:py-12">
                     <div className="mb-8">
                         <h1 className="text-3xl sm:text-4xl font-bold text-primary font-headline">Test Result</h1>
-                        <p className="text-muted-foreground mt-1">Analysis of your performance in "{result.testTitle}"</p>
+                        <p className="text-muted-foreground mt-1">Analysis of your performance in "{result.testName}"</p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

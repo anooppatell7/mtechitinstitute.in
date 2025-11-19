@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -7,7 +6,7 @@ import { useLocalStorage } from './use-local-storage';
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { User } from 'firebase/auth';
 import type { MockTest, TestQuestion, TestResponse, TestResult, ExamResult } from '@/lib/types';
-import { saveTestResult, saveExamResult } from '@/lib/firebase';
+import { saveExamResult } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 
 export const useMockTest = (testId: string, registrationNumber?: string | null, studentName?: string | null) => {
@@ -128,7 +127,7 @@ export const useMockTest = (testId: string, registrationNumber?: string | null, 
         
         if (isSubmitting) return;
         
-        if (!user && !registrationNumber) {
+        if (!user) {
             toast({
                 title: "Authentication Error",
                 description: "You must be logged in to submit a test.",
@@ -171,7 +170,6 @@ export const useMockTest = (testId: string, registrationNumber?: string | null, 
             timeTaken = 0;
         }
         
-        // Helper function to remove any undefined fields before Firestore write
         const cleanData = (obj: any): any => {
             if (Array.isArray(obj)) {
                 return obj.map(v => cleanData(v));
@@ -190,42 +188,32 @@ export const useMockTest = (testId: string, registrationNumber?: string | null, 
                 ? "Time's up! Your test has been automatically submitted."
                 : "Your test has been submitted successfully.";
 
-            if (registrationNumber && studentName) {
-                // This is a registered exam
-                const examResultData: Omit<ExamResult, 'id' | 'submittedAt'> = {
-                    registrationNumber,
-                    studentName,
-                    testId: testData.id,
-                    testName: testData.title,
-                    score,
-                    totalMarks: testData.totalMarks,
-                    accuracy: parseFloat(accuracy.toFixed(2)) || 0,
-                    timeTaken: timeTaken,
-                    responses,
-                };
-                const finalData = cleanData(examResultData);
-                resultId = await saveExamResult(finalData);
-                toast({ title: "Exam Submitted", description: message });
-                router.push(`/exam/result/${resultId}`);
-            } else if (user) {
-                 // This is a general mock test
-                const resultData: Omit<TestResult, 'id' | 'submittedAt'> = {
-                    userId: user.uid,
-                    userName: user.displayName || user.email || 'Anonymous',
-                    testId: testData.id,
-                    testTitle: testData.title,
-                    score,
-                    totalMarks: testData.totalMarks,
-                    accuracy: parseFloat(accuracy.toFixed(2)) || 0,
-                    timeTaken: timeTaken,
-                    responses,
-                };
-                const finalData = cleanData(resultData);
-                resultId = await saveTestResult(finalData);
-                toast({ title: "Test Submitted", description: message });
-                router.push(`/mock-tests/result/${resultId}`);
+            const isOfficialExam = !!registrationNumber && !!studentName;
+
+            const resultData: Omit<ExamResult, 'id' | 'submittedAt'> = {
+                registrationNumber: isOfficialExam ? registrationNumber : user.uid,
+                studentName: isOfficialExam ? studentName : user.displayName || user.email || 'Anonymous',
+                testId: testData.id,
+                testName: testData.title,
+                score,
+                totalMarks: testData.totalMarks,
+                accuracy: parseFloat(accuracy.toFixed(2)) || 0,
+                timeTaken: timeTaken,
+                responses,
+            };
+            
+            const finalData = cleanData(resultData);
+            
+            // We always save to examResults now for simplicity and consistency
+            resultId = await saveExamResult(finalData);
+
+            toast({ title: "Test Submitted", description: message });
+            
+            // Redirect to the correct result page
+            if (isOfficialExam) {
+                 router.push(`/exam/result/${resultId}`);
             } else {
-                throw new Error("Cannot submit test without user or registration number.");
+                 router.push(`/mock-tests/result/${resultId}`);
             }
             
             cleanupLocalStorage();
@@ -257,5 +245,3 @@ export const useMockTest = (testId: string, registrationNumber?: string | null, 
         handleSubmit
     };
 };
-
-    

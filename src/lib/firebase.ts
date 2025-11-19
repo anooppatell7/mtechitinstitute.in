@@ -98,15 +98,6 @@ export async function updateUserProgress(userId: string, progress: UserProgress)
      }
 }
 
-export async function saveTestResult(result: Omit<TestResult, 'id' | 'submittedAt'>): Promise<string> {
-    const resultWithTimestamp = {
-        ...result,
-        submittedAt: serverTimestamp(),
-    };
-    const docRef = await addDoc(collection(db, 'testResults'), resultWithTimestamp);
-    return docRef.id;
-}
-
 export async function saveExamResult(result: Omit<ExamResult, 'id' | 'submittedAt'>): Promise<string> {
     const resultWithTimestamp = {
         ...result,
