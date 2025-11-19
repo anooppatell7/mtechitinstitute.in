@@ -45,7 +45,9 @@ export default function MockTestCategoriesPage() {
             try {
                 const categoriesQuery = query(collection(db, "testCategories"));
                 const querySnapshot = await getDocs(categoriesQuery);
-                const categoryList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as TestCategory));
+                const categoryList = querySnapshot.docs
+                    .map(doc => ({ id: doc.id, ...doc.data() } as TestCategory))
+                    .filter(cat => cat.title !== "Student Exam"); // Exclude the special category
                 setCategories(categoryList);
             } catch (error) {
                 console.error("Failed to fetch test categories:", error);
