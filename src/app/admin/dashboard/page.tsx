@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from "next/link";
@@ -278,42 +279,76 @@ export default function AdminDashboardPage() {
         if (itemToDelete) {
             const { type, id, parentIds } = itemToDelete;
             try {
-                if (type === 'courses') await deleteDoc(doc(db, "courses", id));
-                if (type === 'blog' || type === 'guidance') await deleteDoc(doc(db, "blog", id));
-                if (type === 'resources') await deleteDoc(doc(db, "resources", id));
-                if (type === 'enrollments') await deleteDoc(doc(db, "enrollments", id));
-                if (type === 'contacts') await deleteDoc(doc(db, "contacts", id));
-                if (type === 'reviews') await deleteDoc(doc(db, "reviews", id));
-                if (type === 'learningCourse') await deleteDoc(doc(db, "learningCourses", id));
-                if (type === 'learningModule' && parentIds?.courseId) await deleteDoc(doc(db, "learningCourses", parentIds.courseId, "modules", id));
-                if (type === 'learningLesson' && parentIds?.courseId && parentIds?.moduleId) await deleteDoc(doc(db, "learningCourses", parentIds.courseId, "modules", parentIds.moduleId, "lessons", id));
-                if (type === 'testCategory') await deleteDoc(doc(db, "testCategories", id));
-                if (type === 'examRegistration') await deleteDoc(doc(db, "examRegistrations", id));
-                if (type === 'examResult') await deleteDoc(doc(db, "examResults", id));
-                if (type === 'mockTest') {
-                    // Delete the mock test itself
-                    await deleteDoc(doc(db, "mockTests", id));
-                    
-                    // Also delete all associated test results
-                    const resultsQuery = query(collection(db, "testResults"), where("testId", "==", id));
-                    const resultsSnapshot = await getDocs(resultsQuery);
-                    
-                    const batch = writeBatch(db);
-                    resultsSnapshot.docs.forEach(resultDoc => {
-                        batch.delete(resultDoc.ref);
-                    });
-                    await batch.commit();
+                let docRef: any;
+                switch (type) {
+                    case 'courses':
+                        docRef = doc(db, "courses", id);
+                        break;
+                    case 'blog':
+                    case 'guidance':
+                        docRef = doc(db, "blog", id);
+                        break;
+                    case 'resources':
+                        docRef = doc(db, "resources", id);
+                        break;
+                    case 'enrollments':
+                        docRef = doc(db, "enrollments", id);
+                        break;
+                    case 'contacts':
+                        docRef = doc(db, "contacts", id);
+                        break;
+                    case 'reviews':
+                        docRef = doc(db, "reviews", id);
+                        break;
+                    case 'learningCourse':
+                        docRef = doc(db, "learningCourses", id);
+                        break;
+                    case 'learningModule':
+                        if (parentIds?.courseId) {
+                            docRef = doc(db, "learningCourses", parentIds.courseId, "modules", id);
+                        }
+                        break;
+                    case 'learningLesson':
+                         if (parentIds?.courseId && parentIds?.moduleId) {
+                            docRef = doc(db, "learningCourses", parentIds.courseId, "modules", parentIds.moduleId, "lessons", id);
+                        }
+                        break;
+                    case 'testCategory':
+                        docRef = doc(db, "testCategories", id);
+                        break;
+                    case 'examRegistration':
+                        docRef = doc(db, "examRegistrations", id);
+                        break;
+                    case 'examResult':
+                        docRef = doc(db, "examResults", id);
+                        break;
+                    case 'mockTest':
+                        docRef = doc(db, "mockTests", id);
+                        // Special handling for associated test results
+                        const resultsQuery = query(collection(db, "testResults"), where("testId", "==", id));
+                        const resultsSnapshot = await getDocs(resultsQuery);
+                        const batch = writeBatch(db);
+                        resultsSnapshot.docs.forEach(resultDoc => batch.delete(resultDoc.ref));
+                        await batch.commit();
+                        break;
+                    case 'testQuestion':
+                        if (parentIds?.testId) {
+                            const testRef = doc(db, "mockTests", parentIds.testId);
+                            const testDoc = await getDoc(testRef);
+                            if (testDoc.exists()) {
+                                const testData = testDoc.data() as MockTest;
+                                const updatedQuestions = testData.questions.filter(q => q.id !== id);
+                                await updateDoc(testRef, { questions: updatedQuestions });
+                            }
+                        }
+                        docRef = null; // No direct doc to delete, it's an update operation.
+                        break;
+                }
 
+                if (docRef) {
+                    await deleteDoc(docRef);
                 }
-                if (type === 'testQuestion' && parentIds?.testId) {
-                    const testRef = doc(db, "mockTests", parentIds.testId);
-                    const testDoc = await getDoc(testRef);
-                    if (testDoc.exists()) {
-                        const testData = testDoc.data() as MockTest;
-                        const updatedQuestions = testData.questions.filter(q => q.id !== id);
-                        await updateDoc(testRef, { questions: updatedQuestions });
-                    }
-                }
+
                 await fetchData(); // Refetch all data
                 toast({ title: "Success", description: "Item deleted successfully." });
             } catch (error) {
@@ -1969,6 +2004,8 @@ export default function AdminDashboardPage() {
     );
 }
 
+
+    
 
     
 
