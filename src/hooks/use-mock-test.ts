@@ -190,25 +190,41 @@ export const useMockTest = (testId: string, registrationNumber?: string | null, 
                 ? "Time's up! Your test has been automatically submitted."
                 : "Your test has been submitted successfully.";
 
-            // For both registered and non-registered users, we now save the result to the same collection `testResults`.
-            // The result page can then handle displaying it.
-            const resultData: Omit<TestResult, 'id' | 'submittedAt'> = {
-                userId: user.uid,
-                userName: studentName || user.displayName || user.email || 'Anonymous',
-                testId: testData.id,
-                testTitle: testData.title,
-                score,
-                totalMarks: testData.totalMarks,
-                accuracy: parseFloat(accuracy.toFixed(2)) || 0,
-                timeTaken: timeTaken,
-                responses,
-            };
-            const finalData = cleanData(resultData);
-            resultId = await saveTestResult(finalData);
-
-            toast({ title: "Test Submitted", description: message });
-            // Always redirect to the standard result page
-            router.push(`/mock-tests/result/${resultId}`);
+            if (registrationNumber && studentName) {
+                // This is a registered exam
+                const examResultData: Omit<ExamResult, 'id' | 'submittedAt'> = {
+                    registrationNumber,
+                    studentName,
+                    testId: testData.id,
+                    testName: testData.title,
+                    score,
+                    totalMarks: testData.totalMarks,
+                    accuracy: parseFloat(accuracy.toFixed(2)) || 0,
+                    timeTaken: timeTaken,
+                    responses,
+                };
+                const finalData = cleanData(examResultData);
+                resultId = await saveExamResult(finalData);
+                toast({ title: "Exam Submitted", description: message });
+                router.push(`/exam/result/${resultId}`);
+            } else {
+                 // This is a general mock test
+                const resultData: Omit<TestResult, 'id' | 'submittedAt'> = {
+                    userId: user.uid,
+                    userName: user.displayName || user.email || 'Anonymous',
+                    testId: testData.id,
+                    testTitle: testData.title,
+                    score,
+                    totalMarks: testData.totalMarks,
+                    accuracy: parseFloat(accuracy.toFixed(2)) || 0,
+                    timeTaken: timeTaken,
+                    responses,
+                };
+                const finalData = cleanData(resultData);
+                resultId = await saveTestResult(finalData);
+                toast({ title: "Test Submitted", description: message });
+                router.push(`/mock-tests/result/${resultId}`);
+            }
             
             cleanupLocalStorage();
 
