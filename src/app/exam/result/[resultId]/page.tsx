@@ -6,7 +6,7 @@ import { useParams, notFound, useRouter } from 'next/navigation';
 import { useUser } from '@/firebase';
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import type { MockTest, TestQuestion, ExamResult as ExamResultType } from '@/lib/types';
+import type { MockTest, ExamResult as ExamResultType, ExamRegistration } from '@/lib/types';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { BarChart, Clock, Target, Check, X, ShieldQuestion, HelpCircle, Award, Loader2 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
@@ -75,19 +75,28 @@ export default function ExamResultPage() {
             const resultData = { id: resultSnap.id, ...resultSnap.data() } as ExamResultType;
             
             // Authorization Check
-            if (user) { // If a user is logged in
+            if (user) {
                 const isAdmin = user.email && ["mtechitinstitute@gmail.com", "anooppbh8@gmail.com"].includes(user.email);
-                const isOwner = user.uid === resultData.registrationNumber; // This might need adjustment if regNo is not UID
+                let isOwner = false;
                 
-                // Let's assume for profile view, the registration UID is stored with the user, so we check that.
-                // A better approach would be to store user's UID in the registration document.
-                // Assuming `registrationNumber` in `examResults` matches the UID in `examRegistrations`.
+                // A user is the owner if their UID matches the UID on the registration document associated with this result.
+                const registrationQuery = query(collection(db, "examRegistrations"), where("registrationNumber", "==", resultData.registrationNumber), limit(1));
+                const registrationSnapshot = await getDocs(registrationQuery);
+
+                if (!registrationSnapshot.empty) {
+                    const registrationDoc = registrationSnapshot.docs[0];
+                    if(registrationDoc.id === user.uid) {
+                        isOwner = true;
+                    }
+                }
+
                 if (isAdmin || isOwner) {
                     setIsAuthorized(true);
                 } else {
                     setIsAuthorized(false);
                 }
-            } else { // If no user is logged in, anyone with the link can view.
+            } else {
+                 // Public link sharing is allowed for now, can be restricted by setting to false
                  setIsAuthorized(true);
             }
 
@@ -117,9 +126,17 @@ export default function ExamResultPage() {
                 const querySnapshot = await getDocs(resultsQuery);
                 const allResults = querySnapshot.docs.map(doc => doc.data() as ExamResultType);
 
+                // Ensure submittedAt is a valid date for sorting
+                allResults.forEach(r => {
+                    if (r.submittedAt && r.submittedAt.seconds) {
+                        r.submittedAt = new Date(r.submittedAt.seconds * 1000);
+                    }
+                });
+
                 allResults.sort((a, b) => b.score - a.score || a.timeTaken - b.timeTaken);
 
-                const currentUserRank = allResults.findIndex(r => r.registrationNumber === currentResult.registrationNumber && r.submittedAt.seconds === currentResult.submittedAt.seconds) + 1;
+                const currentUserRank = allResults.findIndex(r => r.registrationNumber === currentResult.registrationNumber && new Date(r.submittedAt).getTime() === new Date(currentResult.submittedAt).getTime()) + 1;
+
 
                 setRank(currentUserRank > 0 ? currentUserRank : null);
             } catch (error) {
@@ -148,7 +165,7 @@ export default function ExamResultPage() {
     }
 
     if (!result || !test) {
-        return <div>Result or test not found.</div>;
+        return <div className="text-center py-10">Result or test not found.</div>;
     }
 
     const timeTakenFormatted = `${Math.floor(result.timeTaken / 60)}m ${result.timeTaken % 60}s`;
