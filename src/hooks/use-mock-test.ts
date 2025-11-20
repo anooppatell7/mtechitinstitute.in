@@ -5,20 +5,22 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useLocalStorage } from './use-local-storage';
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { User } from 'firebase/auth';
-import type { MockTest, TestQuestion, TestResponse, TestResult, ExamResult } from '@/lib/types';
+import { db } from '@/lib/firebase';
+import { doc, getDoc } from "firebase/firestore";
+import type { MockTest, TestQuestion, TestResponse, TestResult, ExamResult, ExamRegistration } from '@/lib/types';
 import { saveExamResult } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 
-export const useMockTest = (testId: string, registrationNumber?: string | null, studentName?: string | null) => {
+export const useMockTest = (testId: string) => {
+    const { toast } = useToast();
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [isInitialized, setIsInitialized] = useState(false);
 
     // Use a more generic key and then add user-specific part if available
-    const getStorageKey = (base: string) => {
-        if (registrationNumber) return `exam-${testId}-${registrationNumber}-${base}`;
-        // Fallback for non-registered tests, assumes a user is logged in, but we handle that in the component
+    const getStorageKey = useCallback((base: string, regNo?: string | null) => {
+        if (regNo) return `exam-${testId}-${regNo}-${base}`;
         return `test-${testId}-${base}`;
-    }
+    }, [testId]);
 
     const [selectedAnswers, setSelectedAnswers] = useLocalStorage<(number | null)[]>(
         getStorageKey('answers'), 
@@ -36,19 +38,21 @@ export const useMockTest = (testId: string, registrationNumber?: string | null, 
     const timerRef = useRef<NodeJS.Timeout | null>(null);
     const initialDurationRef = useRef<number>(0);
     
-    const initializeTest = useCallback((questionCount: number, durationMinutes: number) => {
+    const initializeTest = useCallback((questionCount: number, durationMinutes: number, regNo?: string | null) => {
         if (isInitialized) return;
 
         initialDurationRef.current = durationMinutes * 60;
         
-        const storedTimeItem = typeof window !== 'undefined' ? localStorage.getItem(getStorageKey('time')) : null;
+        const storageKeyTime = getStorageKey('time', regNo);
+        const storedTimeItem = typeof window !== 'undefined' ? localStorage.getItem(storageKeyTime) : null;
         const storedTime = storedTimeItem ? Number(JSON.parse(storedTimeItem)) : NaN;
         
         if (isNaN(storedTime) || storedTime <= 0) {
             setTimeLeft(initialDurationRef.current);
         }
 
-        const storedAnswersItem = typeof window !== 'undefined' ? localStorage.getItem(getStorageKey('answers')) : null;
+        const storageKeyAnswers = getStorageKey('answers', regNo);
+        const storedAnswersItem = typeof window !== 'undefined' ? localStorage.getItem(storageKeyAnswers) : null;
         if (storedAnswersItem === null) {
             setSelectedAnswers(Array(questionCount).fill(null));
         } else {
@@ -63,7 +67,7 @@ export const useMockTest = (testId: string, registrationNumber?: string | null, 
         }
         
         setIsInitialized(true);
-    }, [isInitialized, testId, registrationNumber, setTimeLeft, setSelectedAnswers]);
+    }, [isInitialized, getStorageKey, setTimeLeft, setSelectedAnswers]);
 
 
     // Timer effect
@@ -111,31 +115,23 @@ export const useMockTest = (testId: string, registrationNumber?: string | null, 
         });
     }, [setMarkedForReview]);
 
-    const cleanupLocalStorage = useCallback(() => {
-        window.localStorage.removeItem(getStorageKey('answers'));
-        window.localStorage.removeItem(getStorageKey('review'));
-        window.localStorage.removeItem(getStorageKey('time'));
-    }, [testId, registrationNumber]);
+    const cleanupLocalStorage = useCallback((regNo?: string | null) => {
+        window.localStorage.removeItem(getStorageKey('answers', regNo));
+        window.localStorage.removeItem(getStorageKey('review', regNo));
+        window.localStorage.removeItem(getStorageKey('time', regNo));
+    }, [testId, getStorageKey]);
 
     const handleSubmit = useCallback(async (
         isAutoSubmit: boolean, 
         router: AppRouterInstance, 
-        toast: ReturnType<typeof useToast>['toast'],
         testData: MockTest,
-        user: User | null
+        user: User,
+        regNo?: string | null,
+        studentName?: string | null
         ) => {
         
         if (isSubmitting) return;
         
-        if (!user) {
-            toast({
-                title: "Authentication Error",
-                description: "You must be logged in to submit a test.",
-                variant: 'destructive'
-            });
-            return;
-        }
-
         setIsSubmitting(true);
 
         if (timerRef.current) {
@@ -148,17 +144,16 @@ export const useMockTest = (testId: string, registrationNumber?: string | null, 
         const responses: TestResponse[] = testData.questions.map((q, i) => {
             const selectedOption = selectedAnswers[i];
             const isCorrect = selectedOption === q.correctOption;
-            const questionMarks = q.marks || 1; // Default to 1 mark if not specified
-            const marksAwarded = isCorrect ? questionMarks : 0;
+            const questionMarks = q.marks || 1;
             if (isCorrect) {
-                score += marksAwarded;
+                score += questionMarks;
                 correctAnswers++;
             }
             return {
                 questionId: q.id,
                 selectedOption: selectedOption === undefined || selectedOption === null ? null : selectedOption,
                 isCorrect,
-                marksAwarded
+                marksAwarded: isCorrect ? questionMarks : 0,
             };
         });
 
@@ -182,17 +177,30 @@ export const useMockTest = (testId: string, registrationNumber?: string | null, 
         };
 
         try {
-            let resultId: string;
-            
-            const message = isAutoSubmit 
-                ? "Time's up! Your test has been automatically submitted."
-                : "Your test has been submitted successfully.";
+            const isOfficialExam = !!regNo && !!studentName;
 
-            const isOfficialExam = !!registrationNumber && !!studentName;
+            let finalRegistrationNumber = user.uid;
+            let finalStudentName = user.displayName || user.email || 'Anonymous';
+
+            if(isOfficialExam) {
+                 finalRegistrationNumber = regNo;
+                 finalStudentName = studentName;
+            } else {
+                // For non-official exams, we still check if the user is registered
+                // to associate the result with their proper name and REG number.
+                const regRef = doc(db, 'examRegistrations', user.uid);
+                const regSnap = await getDoc(regRef);
+                if (regSnap.exists()) {
+                    const regData = regSnap.data() as ExamRegistration;
+                    finalRegistrationNumber = regData.registrationNumber;
+                    finalStudentName = regData.fullName;
+                }
+            }
+
 
             const resultData: Omit<ExamResult, 'id' | 'submittedAt'> = {
-                registrationNumber: isOfficialExam ? registrationNumber : user.uid,
-                studentName: isOfficialExam ? studentName : user.displayName || user.email || 'Anonymous',
+                registrationNumber: finalRegistrationNumber,
+                studentName: finalStudentName,
                 testId: testData.id,
                 testName: testData.title,
                 score,
@@ -204,19 +212,20 @@ export const useMockTest = (testId: string, registrationNumber?: string | null, 
             
             const finalData = cleanData(resultData);
             
-            // We always save to examResults now for simplicity and consistency
-            resultId = await saveExamResult(finalData);
+            const resultId = await saveExamResult(finalData);
 
-            toast({ title: "Test Submitted", description: message });
+            toast({ 
+                title: "Test Submitted", 
+                description: isAutoSubmit 
+                    ? "Time's up! Your test has been automatically submitted."
+                    : "Your test has been submitted successfully."
+            });
             
-            // Redirect to the correct result page
-            if (isOfficialExam) {
-                 router.push(`/exam/result/${resultId}`);
-            } else {
-                 router.push(`/mock-tests/result/${resultId}`);
-            }
+            // For both official and unofficial tests, we redirect to the same result page structure
+            // The result page will handle authorization based on user ID or admin role
+            router.push(`/exam/result/${resultId}`);
             
-            cleanupLocalStorage();
+            cleanupLocalStorage(regNo);
 
         } catch (error) {
              console.error("Failed to save test results:", error);
@@ -228,7 +237,7 @@ export const useMockTest = (testId: string, registrationNumber?: string | null, 
              setIsSubmitting(false);
         }
 
-    }, [selectedAnswers, timeLeft, cleanupLocalStorage, isSubmitting, registrationNumber, studentName]);
+    }, [selectedAnswers, timeLeft, cleanupLocalStorage, isSubmitting, toast]);
 
     return {
         isInitialized,
@@ -242,6 +251,7 @@ export const useMockTest = (testId: string, registrationNumber?: string | null, 
         timeLeft,
         isTimeUp,
         isSubmitting,
-        handleSubmit
+        handleSubmit,
+        getStorageKey
     };
 };

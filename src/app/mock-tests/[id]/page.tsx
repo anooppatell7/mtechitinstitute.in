@@ -1,8 +1,6 @@
-
-
 "use client";
 
-import React, { useEffect, useState, useMemo, use } from 'react';
+import React, { useEffect, useState, useMemo, use, useCallback } from 'react';
 import { notFound, useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useUser } from '@/firebase';
 import { doc, getDoc } from 'firebase/firestore';
@@ -18,8 +16,6 @@ import { ArrowLeft, ArrowRight, Clock, Bookmark, X, Check, Loader2 } from 'lucid
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useToast } from '@/hooks/use-toast';
-
 
 function TestPageSkeleton() {
     return (
@@ -60,7 +56,6 @@ function MockTestClientComponent({ testId }: { testId: string }) {
     const { user, isLoading: userLoading } = useUser();
     const router = useRouter();
     const searchParams = useSearchParams();
-    const { toast } = useToast();
     
     const registrationNumber = searchParams.get('regNo');
     const studentName = searchParams.get('studentName');
@@ -81,12 +76,15 @@ function MockTestClientComponent({ testId }: { testId: string }) {
         isTimeUp,
         isSubmitting,
         handleSubmit,
-    } = useMockTest(testId, registrationNumber, studentName);
+    } = useMockTest(testId);
 
     useEffect(() => {
-        // If it's a registered exam, we still need a logged-in user to store results against
+        // Any user (registered or not) must be logged in to attempt any test
         if (!user && !userLoading) {
-            router.push(`/login?redirect=/mock-tests/${testId}`);
+            const redirectUrl = registrationNumber 
+                ? `/login?redirect=/exam/start` 
+                : `/login?redirect=/mock-tests/${testId}`;
+            router.push(redirectUrl);
             return;
         }
 
@@ -110,25 +108,26 @@ function MockTestClientComponent({ testId }: { testId: string }) {
         };
 
         fetchTest();
-    }, [testId, user, userLoading, router]);
+    }, [testId, user, userLoading, router, registrationNumber]);
 
     useEffect(() => {
         if (testData && !isInitialized) {
-            initializeTest(testData.questions.length, testData.duration);
+            initializeTest(testData.questions.length, testData.duration, registrationNumber);
         }
-    }, [testData, isInitialized, initializeTest]);
+    }, [testData, isInitialized, initializeTest, registrationNumber]);
 
-    const handleTestSubmit = (isAuto: boolean) => {
-        if (testData) {
-            handleSubmit(isAuto, router, toast, testData, user);
+    const handleTestSubmit = useCallback((isAuto: boolean) => {
+        if (testData && user) {
+            handleSubmit(isAuto, router, testData, user, registrationNumber, studentName);
         }
-    }
+    }, [testData, user, handleSubmit, router, registrationNumber, studentName]);
+
 
     useEffect(() => {
         if(isTimeUp && !isSubmitting) {
             handleTestSubmit(true);
         }
-    }, [isTimeUp, isSubmitting]);
+    }, [isTimeUp, isSubmitting, handleTestSubmit]);
     
     const currentQuestion: TestQuestion | undefined = testData?.questions[currentQuestionIndex];
     const progressPercentage = ((currentQuestionIndex + 1) / (testData?.questions.length || 1)) * 100;

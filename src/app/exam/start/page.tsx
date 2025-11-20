@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from 'react';
@@ -64,7 +63,7 @@ export default function StartExamPage() {
         setStudentDetails(studentData);
         
         // Fetch available tests
-        const testsQuery = query(collection(db, "mockTests"), where("isPublished", "==", true));
+        const testsQuery = query(collection(db, "mockTests"), where("isPublished", "==", true), where("categoryName", "==", "Student Exam"));
         const testsSnapshot = await getDocs(testsQuery);
         const tests = testsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as MockTest));
         setAvailableTests(tests);
@@ -84,10 +83,16 @@ export default function StartExamPage() {
         toast({ title: "No Test Selected", description: "Please select a test from the dropdown.", variant: "destructive"});
         return;
     }
-    // Here you would typically store the registration number in a secure context or session
-    // For simplicity, we'll pass it via query params which is NOT secure for real applications.
-    // A better approach would use server-side sessions or a state management library that persists through navigation.
-    router.push(`/mock-tests/${selectedTestId}?regNo=${studentDetails?.registrationNumber}&studentName=${studentDetails?.fullName}`);
+    if (!studentDetails) {
+        toast({ title: "Student details not found.", description: "Please re-verify your registration number.", variant: "destructive"});
+        return;
+    }
+    // Pass the correct registration number and student name as query parameters.
+    const params = new URLSearchParams({
+        regNo: studentDetails.registrationNumber,
+        studentName: studentDetails.fullName
+    });
+    router.push(`/mock-tests/${selectedTestId}?${params.toString()}`);
   };
 
   return (
