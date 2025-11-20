@@ -32,7 +32,7 @@ import ProfilePage from '@/app/profile/page';
 const formSchema = z.object({
   fullName: z.string().min(3, "Full name must be at least 3 characters."),
   fatherName: z.string().min(3, "Father's name must be at least 3 characters."),
-  phone: z.string().min(10, "Please enter a valid 10-digit phone number.").max(10),
+  phone: z.string().regex(/^\d{10}$/, "Please enter a valid 10-digit phone number."),
   email: z.string()
     .email({ message: "Please enter a valid email address." })
     .refine(email => isValidTLD(email), {
@@ -415,5 +415,3 @@ export default function ExamRegistrationPage() {
         </>
     );
 }
-
-    
