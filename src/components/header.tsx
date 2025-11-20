@@ -49,6 +49,9 @@ export default function Header() {
         setIsRegistered(docSnap.exists());
       };
       checkRegistration();
+    } else if (isAdmin) {
+      // Admins should see all links, so we can treat them as "registered" for nav purposes
+      setIsRegistered(true);
     } else {
       setIsRegistered(false);
     }
@@ -84,7 +87,7 @@ export default function Header() {
           {navItems.map((item) => {
             if (item.auth && !user && !isLoading) return null;
             if (item.registeredOnly && !isRegistered) return null;
-            if (item.hideWhenRegistered && isRegistered) return null;
+            if (item.hideWhenRegistered && isRegistered && !isAdmin) return null;
 
             return (
                 <Link
@@ -183,7 +186,7 @@ export default function Header() {
                     {navItems.map((item) => {
                       if (item.auth && !user) return null;
                       if (item.registeredOnly && !isRegistered) return null;
-                      if (item.hideWhenRegistered && isRegistered) return null;
+                      if (item.hideWhenRegistered && isRegistered && !isAdmin) return null;
                       return (
                         <Link
                           key={item.href}
