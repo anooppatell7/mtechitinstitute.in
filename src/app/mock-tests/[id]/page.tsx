@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useEffect, useState, useMemo, use, useCallback } from 'react';
@@ -59,6 +60,8 @@ function MockTestClientComponent({ testId }: { testId: string }) {
     
     const registrationNumber = searchParams.get('regNo');
     const studentName = searchParams.get('studentName');
+    const isOfficialExam = !!registrationNumber;
+
 
     const [testData, setTestData] = useState<MockTest | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -240,7 +243,7 @@ function MockTestClientComponent({ testId }: { testId: string }) {
                             <AlertDialogTrigger asChild>
                                 <Button variant="destructive" disabled={isSubmitting}>
                                     {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Check className="mr-2 h-4 w-4" />}
-                                     {isSubmitting ? 'Submitting...' : 'Submit Test'}
+                                     {isSubmitting ? 'Submitting...' : isOfficialExam ? 'Submit Exam' : 'Submit Test'}
                                 </Button>
                             </AlertDialogTrigger>
                              <AlertDialogContent>
@@ -256,7 +259,7 @@ function MockTestClientComponent({ testId }: { testId: string }) {
                                         onClick={() => handleTestSubmit(false)}
                                         className="bg-destructive hover:bg-destructive/90"
                                     >
-                                        Yes, Submit Test
+                                        Yes, Submit {isOfficialExam ? 'Exam' : 'Test'}
                                     </AlertDialogAction>
                                 </AlertDialogFooter>
                             </AlertDialogContent>
