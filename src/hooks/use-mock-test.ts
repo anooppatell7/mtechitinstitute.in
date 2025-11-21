@@ -5,11 +5,14 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useLocalStorage } from './use-local-storage';
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { User } from 'firebase/auth';
-import { db } from '@/lib/firebase';
-import { doc, getDoc, getDocs, query, collection, where } from "firebase/firestore";
-import type { MockTest, TestQuestion, TestResponse, TestResult, ExamResult, ExamRegistration } from '@/lib/types';
-import { saveExamResult } from '@/lib/firebase';
+import { db, storage } from '@/lib/firebase';
+import { doc, getDoc, getDocs, query, collection, where, runTransaction, serverTimestamp } from "firebase/firestore";
+import type { MockTest, TestQuestion, TestResponse, TestResult, ExamResult, ExamRegistration, Certificate } from '@/lib/types';
+import { saveExamResult, saveCertificate } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
+import { getDownloadURL, ref, uploadString } from "firebase/storage";
+import { generateCertificatePdf } from '@/lib/certificate-generator';
+
 
 export const useMockTest = (testId: string) => {
     const { toast } = useToast();
@@ -139,9 +142,10 @@ export const useMockTest = (testId: string) => {
         }
         
         const isOfficialExam = !!registrationNumber;
-
-        let finalRegistrationNumber = registrationNumber || user.uid;
-        let finalStudentName = studentName || user.displayName || user.email || 'Anonymous';
+        
+        let finalRegistrationNumber = registrationNumber;
+        let finalStudentName = studentName;
+        let examDate = new Date();
 
         // For official exams, re-verify details from Firestore to ensure accuracy.
         if (isOfficialExam && registrationNumber) {
@@ -151,7 +155,18 @@ export const useMockTest = (testId: string) => {
              if (!regSnap.empty) {
                 const regData = regSnap.docs[0].data() as ExamRegistration;
                 finalStudentName = regData.fullName;
+                // @ts-ignore
+                examDate = regData.registeredAt?.toDate ? regData.registeredAt.toDate() : new Date();
              }
+        } else {
+            finalRegistrationNumber = user.uid;
+            finalStudentName = user.displayName || user.email || 'Anonymous';
+        }
+        
+        if (!finalRegistrationNumber || !finalStudentName) {
+            toast({ title: "Error", description: "Could not verify student details.", variant: "destructive" });
+            setIsSubmitting(false);
+            return;
         }
 
         let score = 0;
@@ -205,9 +220,55 @@ export const useMockTest = (testId: string) => {
                 responses,
             };
             
-            const finalData = cleanData(resultData);
-            
-            const resultId = await saveExamResult(finalData);
+            const finalResultData = cleanData(resultData);
+            const resultId = await saveExamResult(finalResultData);
+
+            if (isOfficialExam) {
+                // Generate and save certificate
+                const counterRef = doc(db, 'counters', 'certificates');
+                const certIdNumber = await runTransaction(db, async (transaction) => {
+                    const counterDoc = await transaction.get(counterRef);
+                    const currentYear = new Date().getFullYear();
+                    let newCount = 1;
+                    if (!counterDoc.exists() || counterDoc.data().year !== currentYear) {
+                        transaction.set(counterRef, { count: newCount, year: currentYear });
+                    } else {
+                        newCount = counterDoc.data().count + 1;
+                        transaction.update(counterRef, { count: newCount });
+                    }
+                    return `CERT-${currentYear}-${String(newCount).padStart(4, '0')}`;
+                });
+
+                const issueDate = new Date();
+                const certDataForPdf = {
+                    ...resultData,
+                    certificateId: certIdNumber,
+                    issueDate: issueDate.toLocaleDateString('en-GB'),
+                    examDate: examDate.toLocaleDateString('en-GB'),
+                    percentage: (score / testData.totalMarks) * 100
+                };
+
+                const pdfString = await generateCertificatePdf(certDataForPdf);
+                const storageRef = ref(storage, `certificates/${finalRegistrationNumber}/${testData.title.replace(/\s+/g, '_')}.pdf`);
+                const uploadResult = await uploadString(storageRef, pdfString, 'data_url');
+                const downloadUrl = await getDownloadURL(uploadResult.ref);
+                
+                const certificateDbRecord: Omit<Certificate, 'id'> = {
+                    certificateId: certIdNumber,
+                    studentName: finalStudentName,
+                    registrationNumber: finalRegistrationNumber,
+                    courseName: testData.title,
+                    score,
+                    totalMarks: testData.totalMarks,
+                    percentage: certDataForPdf.percentage,
+                    examDate: certDataForPdf.examDate,
+                    issueDate: certDataForPdf.issueDate,
+                    certificateUrl: downloadUrl,
+                    examResultId: resultId
+                };
+
+                await saveCertificate(certificateDbRecord);
+            }
 
             toast({
                 title: isOfficialExam ? "Exam Submitted" : "Test Submitted",

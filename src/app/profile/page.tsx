@@ -5,10 +5,10 @@ import { useEffect, useState } from 'react';
 import { useUser } from '@/firebase';
 import { doc, getDoc, collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import type { ExamRegistration, ExamResult } from '@/lib/types';
+import type { ExamRegistration, ExamResult, Certificate } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { User, Mail, Phone, Calendar, Key, UserCheck, Briefcase, FileText, BarChart, GraduationCap } from 'lucide-react';
+import { User, Mail, Phone, Calendar, Key, UserCheck, Briefcase, FileText, BarChart, GraduationCap, Award } from 'lucide-react';
 import SectionDivider from '@/components/section-divider';
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -72,6 +72,7 @@ export default function ProfilePage() {
     const { user, isLoading: userLoading } = useUser();
     const [registration, setRegistration] = useState<ExamRegistration | null>(null);
     const [examHistory, setExamHistory] = useState<ExamResult[]>([]);
+    const [certificates, setCertificates] = useState<Certificate[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
 
@@ -91,6 +92,7 @@ export default function ProfilePage() {
                 const regData = { id: docSnap.id, ...docSnap.data() } as ExamRegistration;
                 setRegistration(regData);
 
+                // Fetch Exam History
                 const historyQuery = query(
                     collection(db, "examResults"),
                     where("registrationNumber", "==", regData.registrationNumber),
@@ -102,6 +104,17 @@ export default function ProfilePage() {
                     ...doc.data()
                 } as ExamResult));
                 setExamHistory(history);
+
+                // Fetch Certificates
+                const certsQuery = query(
+                    collection(db, "certificates"),
+                    where("registrationNumber", "==", regData.registrationNumber),
+                    orderBy("issueDate", "desc")
+                );
+                const certsSnapshot = await getDocs(certsQuery);
+                const certs = certsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Certificate));
+                setCertificates(certs);
+
             }
             setIsLoading(false);
         };
@@ -164,6 +177,46 @@ export default function ProfilePage() {
                             <ProfileDetail icon={<UserCheck className="h-6 w-6"/>} label="Gender" value={registration.gender} />
                         </div>
                         
+                        <div className="mt-12 pt-8 border-t">
+                            <h3 className="font-headline text-2xl text-primary mb-6 border-l-4 border-accent pl-4">My Certificates</h3>
+                             {certificates.length > 0 ? (
+                                <div className="border rounded-lg overflow-hidden bg-card">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Course Name</TableHead>
+                                                <TableHead>Certificate ID</TableHead>
+                                                <TableHead>Issued On</TableHead>
+                                                <TableHead className="text-right">Action</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {certificates.map(cert => (
+                                                <TableRow key={cert.id}>
+                                                    <TableCell className="font-medium">{cert.courseName}</TableCell>
+                                                    <TableCell>{cert.certificateId}</TableCell>
+                                                    <TableCell>{cert.issueDate}</TableCell>
+                                                    <TableCell className="text-right">
+                                                        <Button asChild variant="outline" size="sm">
+                                                            <a href={cert.certificateUrl} target="_blank" rel="noopener noreferrer">
+                                                                <Award className="mr-2 h-4 w-4" /> View Certificate
+                                                            </a>
+                                                        </Button>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </div>
+                            ) : (
+                                 <div className="text-center py-10 px-4 border-2 border-dashed rounded-lg bg-card">
+                                    <Award className="mx-auto h-12 w-12 text-muted-foreground/50" />
+                                    <p className="mt-4 font-semibold text-lg text-primary/90">No Certificates Issued Yet</p>
+                                    <p className="text-muted-foreground mt-1">Your certificates will appear here after you successfully complete an exam.</p>
+                                </div>
+                            )}
+                        </div>
+
                         <div className="mt-12 pt-8 border-t">
                             <h3 className="font-headline text-2xl text-primary mb-6 border-l-4 border-accent pl-4">Exam History</h3>
                             {examHistory.length > 0 ? (

@@ -2,8 +2,9 @@
 
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore, collection, query, where, getDocs, orderBy, doc, getDoc, setDoc, addDoc, serverTimestamp } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 import { getAuth } from "firebase/auth";
-import type { BlogPost, SiteSettings, UserProgress, TestResult, ExamResult } from "./types";
+import type { BlogPost, SiteSettings, UserProgress, TestResult, ExamResult, Certificate } from "./types";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -19,6 +20,7 @@ const firebaseConfig = {
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const db = getFirestore(app);
 const auth = getAuth(app);
+const storage = getStorage(app);
 
 // This is needed for phone auth to work with app check
 if (typeof window !== "undefined") {
@@ -107,5 +109,9 @@ export async function saveExamResult(result: Omit<ExamResult, 'id' | 'submittedA
     return docRef.id;
 }
 
+export async function saveCertificate(certificateData: Omit<Certificate, 'id'>): Promise<string> {
+  const docRef = await addDoc(collection(db, 'certificates'), certificateData);
+  return docRef.id;
+}
 
-export { app, db, auth };
+export { app, db, auth, storage };

@@ -204,6 +204,21 @@ export type ExamResult = {
   submittedAt: any; // Firestore Timestamp
 };
 
+export type Certificate = {
+    id: string; // Auto-generated
+    certificateId: string; // Human-readable ID e.g., CERT-2025-0001
+    studentName: string;
+    registrationNumber: string;
+    courseName: string;
+    score: number;
+    totalMarks: number;
+    percentage: number;
+    examDate: string; // The date the exam was submitted
+    issueDate: string; // The date the certificate was generated
+    certificateUrl: string; // URL to the PDF in Firebase Storage
+    examResultId: string; // Link back to the specific exam result
+}
+
 
 // Add types for more complex schemas
 export type HowToSchema = HowTo;

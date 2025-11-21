@@ -5,7 +5,7 @@
 import Link from "next/link";
 import React, { useState, useEffect, use } from "react";
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { PlusCircle, MoreHorizontal, LogOut, Trash, Edit, Settings, FileText, MessageSquare, Briefcase, Link2, Megaphone, Star, Upload, BookOpen, Layers, ChevronDown, ListTodo, BookCopy, UserCheck } from "lucide-react";
+import { PlusCircle, MoreHorizontal, LogOut, Trash, Edit, Settings, FileText, MessageSquare, Briefcase, Link2, Megaphone, Star, Upload, BookOpen, Layers, ChevronDown, ListTodo, BookCopy, UserCheck, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -69,7 +69,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import Logo from "@/components/logo";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import type { Course, BlogPost, Resource, Enrollment, ContactSubmission, InternalLink, SiteSettings, Review, LearningCourse, LearningModule, Lesson, MockTest, TestQuestion, TestCategory, ExamRegistration, ExamResult } from "@/lib/types";
+import type { Course, BlogPost, Resource, Enrollment, ContactSubmission, InternalLink, SiteSettings, Review, LearningCourse, LearningModule, Lesson, MockTest, TestQuestion, TestCategory, ExamRegistration, ExamResult, Certificate } from "@/lib/types";
 import { auth, db } from "@/lib/firebase";
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, setDoc, Timestamp, where, arrayUnion, arrayRemove, getDoc, writeBatch } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
@@ -81,7 +81,7 @@ import marketingCoursesData from "@/lib/data/marketing-courses.json";
 import type { Metadata } from 'next';
 
 
-type ItemType = 'courses' | 'blog' | 'guidance' | 'resources' | 'settings' | 'enrollments' | 'contacts' | 'internal-links' | 'site-settings' | 'reviews' | 'learningCourse' | 'learningModule' | 'learningLesson' | 'mockTest' | 'testQuestion' | 'testCategory' | 'examRegistration' | 'examResult';
+type ItemType = 'courses' | 'blog' | 'guidance' | 'resources' | 'settings' | 'enrollments' | 'contacts' | 'internal-links' | 'site-settings' | 'reviews' | 'learningCourse' | 'learningModule' | 'learningLesson' | 'mockTest' | 'testQuestion' | 'testCategory' | 'examRegistration' | 'examResult' | 'certificate';
 
 export default function AdminDashboardPage() {
     const [user, authLoading, authError] = useAuthState(auth);
@@ -98,6 +98,7 @@ export default function AdminDashboardPage() {
     const [testCategories, setTestCategories] = useState<TestCategory[]>([]);
     const [examRegistrations, setExamRegistrations] = useState<ExamRegistration[]>([]);
     const [examResults, setExamResults] = useState<ExamResult[]>([]);
+    const [certificates, setCertificates] = useState<Certificate[]>([]);
     const [loading, setLoading] = useState(true);
     const { toast } = useToast();
 
@@ -231,6 +232,12 @@ export default function AdminDashboardPage() {
             });
             setExamResults(examResList);
 
+            // Certificates
+            const certsQuery = query(collection(db, "certificates"), orderBy("issueDate", "desc"));
+            const certsSnapshot = await getDocs(certsQuery);
+            const certsList = certsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Certificate));
+            setCertificates(certsList);
+
 
             // Site Settings
             const announcementDoc = await getDoc(doc(db, "site_settings", "announcement"));
@@ -321,6 +328,9 @@ export default function AdminDashboardPage() {
                         break;
                     case 'examResult':
                         docRef = doc(db, "examResults", id);
+                        break;
+                    case 'certificate':
+                        docRef = doc(db, "certificates", id);
                         break;
                     case 'mockTest':
                         docRef = doc(db, "mockTests", id);
@@ -1125,6 +1135,7 @@ export default function AdminDashboardPage() {
                                     <TabsTrigger value="reviews"><Star className="mr-2 h-4 w-4" />Reviews</TabsTrigger>
                                     <TabsTrigger value="exam-registrations"><UserCheck className="mr-2 h-4 w-4"/>Exam Registrations</TabsTrigger>
                                     <TabsTrigger value="exam-results"><FileText className="mr-2 h-4 w-4"/>Exam Results</TabsTrigger>
+                                    <TabsTrigger value="certificates"><Award className="mr-2 h-4 w-4" />Certificates</TabsTrigger>
                                     <TabsTrigger value="internal-links"><Link2 className="mr-2 h-4 w-4"/>Internal Links</TabsTrigger>
                                     <TabsTrigger value="enrollments"><FileText className="mr-2 h-4 w-4"/>Enrollments</TabsTrigger>
                                     <TabsTrigger value="contacts"><MessageSquare className="mr-2 h-4 w-4"/>Contacts</TabsTrigger>
@@ -1134,7 +1145,7 @@ export default function AdminDashboardPage() {
                                 <ScrollBar orientation="horizontal" />
                             </ScrollArea>
                              <div className="ml-auto flex items-center gap-2 pl-4">
-                                {activeTab !== 'settings' && activeTab !== 'site-settings' && activeTab !== 'enrollments' && activeTab !== 'contacts' && activeTab !== 'internal-links' && activeTab !== 'reviews' && activeTab !== 'exam-registrations' && activeTab !== 'exam-results' && (
+                                {activeTab !== 'settings' && activeTab !== 'site-settings' && activeTab !== 'enrollments' && activeTab !== 'contacts' && activeTab !== 'internal-links' && activeTab !== 'reviews' && activeTab !== 'exam-registrations' && activeTab !== 'exam-results' && activeTab !== 'certificates' && (
                                 <Button size="sm" className="h-8 gap-1" onClick={() => handleAddNew()}>
                                     <PlusCircle className="h-3.5 w-3.5" />
                                     <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
@@ -1715,6 +1726,59 @@ export default function AdminDashboardPage() {
                                 </CardContent>
                             </Card>
                         </TabsContent>
+                         <TabsContent value="certificates">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Issued Certificates</CardTitle>
+                                    <CardDescription>View and manage all auto-generated student certificates.</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    {loading ? <p>Loading certificates...</p> : (
+                                        <ScrollArea className="w-full whitespace-nowrap">
+                                            <Table>
+                                                <TableHeader>
+                                                    <TableRow>
+                                                        <TableHead>Certificate ID</TableHead>
+                                                        <TableHead>Student Name</TableHead>
+                                                        <TableHead>Course</TableHead>
+                                                        <TableHead>Issued On</TableHead>
+                                                        <TableHead className="text-right">Actions</TableHead>
+                                                    </TableRow>
+                                                </TableHeader>
+                                                <TableBody>
+                                                    {certificates.map(cert => (
+                                                        <TableRow key={cert.id}>
+                                                            <TableCell className="font-mono">{cert.certificateId}</TableCell>
+                                                            <TableCell>{cert.studentName}</TableCell>
+                                                            <TableCell>{cert.courseName}</TableCell>
+                                                            <TableCell>{cert.issueDate}</TableCell>
+                                                            <TableCell className="text-right">
+                                                                <DropdownMenu>
+                                                                    <DropdownMenuTrigger asChild>
+                                                                        <Button aria-haspopup="true" size="icon" variant="ghost"><MoreHorizontal className="h-4 w-4" /></Button>
+                                                                    </DropdownMenuTrigger>
+                                                                    <DropdownMenuContent align="end">
+                                                                        <DropdownMenuItem asChild>
+                                                                            <a href={cert.certificateUrl} target="_blank" rel="noopener noreferrer">
+                                                                                <FileText className="mr-2 h-4 w-4" /> View/Download
+                                                                            </a>
+                                                                        </DropdownMenuItem>
+                                                                        <DropdownMenuItem className="text-destructive" onClick={() => openConfirmationDialog('certificate', cert.id)}>
+                                                                            <Trash className="mr-2 h-4 w-4" />Delete
+                                                                        </DropdownMenuItem>
+                                                                    </DropdownMenuContent>
+                                                                </DropdownMenu>
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))}
+                                                </TableBody>
+                                            </Table>
+                                             <ScrollBar orientation="horizontal" />
+                                        </ScrollArea>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
                          <TabsContent value="internal-links">
                              <Card>
                                 <CardHeader>
@@ -2003,14 +2067,3 @@ export default function AdminDashboardPage() {
         </>
     );
 }
-
-
-    
-
-    
-
-    
-
-    
-
-    
