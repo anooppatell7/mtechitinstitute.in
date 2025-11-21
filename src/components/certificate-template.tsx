@@ -7,15 +7,15 @@ interface CertificateData extends Omit<ExamResult, 'id' | 'submittedAt' | 'respo
   issueDate: string;
   examDate: string;
   percentage: number;
+  logoUrl: string;
+  directorSignUrl: string;
+  controllerSignUrl: string;
 }
 
 // NOTE: This component is designed to be rendered to a static string for PDF generation.
 // It uses inline styles because Tailwind classes won't be available in the jsPDF environment.
 // Ensure all assets (images, fonts) are loaded with absolute URLs or are base64 encoded.
 export default function CertificateTemplate(data: CertificateData) {
-    const logoUrl = "https://res.cloudinary.com/dzr4xjizf/image/upload/v1757138798/mtechlogo_1_wsdhhx.png";
-    const directorSignUrl = "https://res.cloudinary.com/dzr4xjizf/image/upload/v1758117769/director-sign_kscbec.png";
-    const controllerSignUrl = "https://res.cloudinary.com/dzr4xjizf/image/upload/v1758117768/controller-sign_qfcvme.png";
 
     // Styles are defined inline for compatibility with html2canvas and jsPDF
     const styles = {
@@ -158,9 +158,9 @@ export default function CertificateTemplate(data: CertificateData) {
     return (
         <div style={styles.page}>
             <div style={styles.border}>
-                <img src={logoUrl} style={styles.watermark} alt="Watermark" />
+                <img src={data.logoUrl} style={styles.watermark} alt="Watermark" />
                 <div style={styles.content}>
-                    <img src={logoUrl} style={styles.logo} alt="MTech IT Institute Logo" />
+                    <img src={data.logoUrl} style={styles.logo} alt="MTech IT Institute Logo" />
                     <h1 style={styles.mainTitle}>Certificate of Completion</h1>
                     <h2 style={styles.subtitle}>PROUDLY PRESENTED TO</h2>
                     <div style={styles.divider}></div>
@@ -177,12 +177,12 @@ export default function CertificateTemplate(data: CertificateData) {
                  <div style={{ flexGrow: 1 }}></div> {/* Spacer */}
                 <div style={styles.signatureContainer}>
                     <div style={styles.signatureBlock}>
-                        <img src={directorSignUrl} style={styles.signatureImage} alt="Director's Signature" />
+                        <img src={data.directorSignUrl} style={styles.signatureImage} alt="Director's Signature" />
                         <div style={styles.signatureLine}></div>
                         <p style={styles.signatureTitle}>Director</p>
                     </div>
                     <div style={styles.signatureBlock}>
-                        <img src={controllerSignUrl} style={styles.signatureImage} alt="Exam Controller's Signature" />
+                        <img src={data.controllerSignUrl} style={styles.signatureImage} alt="Exam Controller's Signature" />
                         <div style={styles.signatureLine}></div>
                         <p style={styles.signatureTitle}>Exam Controller</p>
                     </div>

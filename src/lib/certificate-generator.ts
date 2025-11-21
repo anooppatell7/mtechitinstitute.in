@@ -14,7 +14,39 @@ interface CertificateData extends Omit<ExamResult, 'id' | 'submittedAt' | 'respo
   percentage: number;
 }
 
+// Function to fetch an image and convert it to a data URL
+async function imageToDataUrl(url: string): Promise<string> {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch image: ${response.status} ${response.statusText}`);
+  }
+  const blob = await response.blob();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+
 export async function generateCertificatePdf(data: CertificateData): Promise<string> {
+  
+  // Preload and convert images to data URLs to avoid CORS issues with html2canvas
+  const [logoUrl, directorSignUrl, controllerSignUrl] = await Promise.all([
+    imageToDataUrl("https://res.cloudinary.com/dzr4xjizf/image/upload/v1757138798/mtechlogo_1_wsdhhx.png"),
+    imageToDataUrl("https://res.cloudinary.com/dzr4xjizf/image/upload/v1758117769/director-sign_kscbec.png"),
+    imageToDataUrl("https://res.cloudinary.com/dzr4xjizf/image/upload/v1758117768/controller-sign_qfcvme.png"),
+  ]);
+
+  const certificateDataWithImages = {
+    ...data,
+    logoUrl,
+    directorSignUrl,
+    controllerSignUrl,
+  };
+
+
   // Create a container element to render the component into
   const container = document.createElement('div');
   // Position it off-screen
@@ -25,7 +57,7 @@ export async function generateCertificatePdf(data: CertificateData): Promise<str
   document.body.appendChild(container);
 
   // Render the React component to an HTML string
-  const staticMarkup = renderToStaticMarkup(CertificateTemplate({ ...data }));
+  const staticMarkup = renderToStaticMarkup(CertificateTemplate({ ...certificateDataWithImages }));
   container.innerHTML = staticMarkup;
   
   // Use html2canvas to capture the rendered component
