@@ -3,12 +3,12 @@
 
 import { useEffect, useState } from 'react';
 import { useUser } from '@/firebase';
-import { doc, getDoc, collection, query, where, getDocs, orderBy } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { doc, getDoc, collection, query, where, getDocs, orderBy, runTransaction, serverTimestamp } from 'firebase/firestore';
+import { db, storage } from '@/lib/firebase';
 import type { ExamRegistration, ExamResult, Certificate } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { User, Mail, Phone, Calendar, Key, UserCheck, Briefcase, FileText, BarChart, GraduationCap, Award } from 'lucide-react';
+import { User, Mail, Phone, Calendar, Key, UserCheck, Briefcase, FileText, BarChart, GraduationCap, Award, Loader2 } from 'lucide-react';
 import SectionDivider from '@/components/section-divider';
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -17,6 +17,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
+import { generateCertificatePdf } from '@/lib/certificate-generator';
+import { getDownloadURL, ref, uploadString } from 'firebase/storage';
+import { saveCertificate } from '@/lib/firebase';
 
 function ProfileSkeleton() {
     return (
@@ -74,7 +78,9 @@ export default function ProfilePage() {
     const [examHistory, setExamHistory] = useState<ExamResult[]>([]);
     const [certificates, setCertificates] = useState<Certificate[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isGeneratingCert, setIsGeneratingCert] = useState<string | null>(null); // Holds the ID of the result being processed
     const router = useRouter();
+    const { toast } = useToast();
 
     useEffect(() => {
         if (userLoading) return;
@@ -121,6 +127,76 @@ export default function ProfilePage() {
 
         fetchProfileData();
     }, [user, userLoading, router]);
+
+    const handleGenerateCertificate = async (result: ExamResult) => {
+        if (!registration) return;
+        setIsGeneratingCert(result.id);
+
+        try {
+            const counterRef = doc(db, 'counters', 'certificates');
+            const certIdNumber = await runTransaction(db, async (transaction) => {
+                const counterDoc = await transaction.get(counterRef);
+                const currentYear = new Date().getFullYear();
+                let newCount = 1;
+                if (!counterDoc.exists() || counterDoc.data().year !== currentYear) {
+                    transaction.set(counterRef, { count: newCount, year: currentYear });
+                } else {
+                    newCount = counterDoc.data().count + 1;
+                    transaction.update(counterRef, { count: newCount });
+                }
+                return `CERT-${currentYear}-${String(newCount).padStart(4, '0')}`;
+            });
+
+            const issueDate = new Date();
+            const certDataForPdf = {
+                ...result,
+                certificateId: certIdNumber,
+                issueDate: issueDate.toLocaleDateString('en-GB'),
+                examDate: (result.submittedAt.toDate() as Date).toLocaleDateString('en-GB'),
+                percentage: (result.score / result.totalMarks) * 100
+            };
+
+            const pdfString = await generateCertificatePdf(certDataForPdf);
+            const storageRef = ref(storage, `certificates/${result.registrationNumber}/${result.testName.replace(/\s+/g, '_')}_${result.id}.pdf`);
+            const uploadResult = await uploadString(storageRef, pdfString, 'data_url');
+            const downloadUrl = await getDownloadURL(uploadResult.ref);
+
+            const certificateDbRecord: Omit<Certificate, 'id'> = {
+                certificateId: certIdNumber,
+                studentName: result.studentName,
+                registrationNumber: result.registrationNumber,
+                courseName: result.testName,
+                score: result.score,
+                totalMarks: result.totalMarks,
+                percentage: certDataForPdf.percentage,
+                examDate: certDataForPdf.examDate,
+                issueDate: certDataForPdf.issueDate,
+                certificateUrl: downloadUrl,
+                examResultId: result.id
+            };
+
+            const newCertId = await saveCertificate(certificateDbRecord);
+            
+            // Add new certificate to local state to re-render UI
+            setCertificates(prevCerts => [{ ...certificateDbRecord, id: newCertId }, ...prevCerts]);
+
+            toast({
+                title: "Certificate Generated!",
+                description: "Your certificate has been successfully created and saved.",
+            });
+
+        } catch (error) {
+            console.error("Certificate generation failed:", error);
+            toast({
+                title: "Certificate Generation Failed",
+                description: "An unexpected error occurred. Please try again or contact support.",
+                variant: "destructive"
+            });
+        } finally {
+            setIsGeneratingCert(null);
+        }
+    }
+
 
     const getInitials = (name: string) => {
         return name.split(' ').map(n => n[0]).join('').toUpperCase();
@@ -231,24 +307,42 @@ export default function ProfilePage() {
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {examHistory.map(result => (
-                                                <TableRow key={result.id}>
-                                                    <TableCell className="font-medium">{result.testName}</TableCell>
-                                                    <TableCell>{format(new Date(result.submittedAt.seconds * 1000), "dd MMM, yyyy")}</TableCell>
-                                                    <TableCell>
-                                                        <Badge variant={result.score / result.totalMarks > 0.4 ? 'default' : 'destructive'} className="text-sm">
-                                                            {result.score} / {result.totalMarks}
-                                                        </Badge>
-                                                    </TableCell>
-                                                    <TableCell className="text-right">
-                                                        <Button asChild variant="outline" size="sm">
-                                                            <Link href={`/exam/result/${result.id}`}>
-                                                                <BarChart className="mr-2 h-4 w-4" /> View Result
-                                                            </Link>
-                                                        </Button>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
+                                            {examHistory.map(result => {
+                                                const hasCertificate = certificates.some(c => c.examResultId === result.id);
+                                                const certificate = certificates.find(c => c.examResultId === result.id);
+                                                const isGenerating = isGeneratingCert === result.id;
+                                                
+                                                return (
+                                                    <TableRow key={result.id}>
+                                                        <TableCell className="font-medium">{result.testName}</TableCell>
+                                                        <TableCell>{format(new Date(result.submittedAt.seconds * 1000), "dd MMM, yyyy")}</TableCell>
+                                                        <TableCell>
+                                                            <Badge variant={result.score / result.totalMarks > 0.4 ? 'default' : 'destructive'} className="text-sm">
+                                                                {result.score} / {result.totalMarks}
+                                                            </Badge>
+                                                        </TableCell>
+                                                        <TableCell className="text-right space-x-2">
+                                                            <Button asChild variant="outline" size="sm">
+                                                                <Link href={`/exam/result/${result.id}`}>
+                                                                    <BarChart className="mr-2 h-4 w-4" /> View Result
+                                                                </Link>
+                                                            </Button>
+                                                            {hasCertificate && certificate ? (
+                                                                <Button asChild size="sm">
+                                                                    <a href={certificate.certificateUrl} target="_blank" rel="noopener noreferrer">
+                                                                        <Award className="mr-2 h-4 w-4" /> View Certificate
+                                                                    </a>
+                                                                </Button>
+                                                            ) : (
+                                                                <Button onClick={() => handleGenerateCertificate(result)} disabled={isGenerating} size="sm">
+                                                                    {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GraduationCap className="mr-2 h-4 w-4" />}
+                                                                    {isGenerating ? 'Generating...' : 'Generate Certificate'}
+                                                                </Button>
+                                                            )}
+                                                        </TableCell>
+                                                    </TableRow>
+                                                );
+                                            })}
                                         </TableBody>
                                     </Table>
                                 </div>
