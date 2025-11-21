@@ -6,7 +6,7 @@ import { useLocalStorage } from './use-local-storage';
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { User } from 'firebase/auth';
 import { db } from '@/lib/firebase';
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, getDocs, query, collection, where } from "firebase/firestore";
 import type { MockTest, TestQuestion, TestResponse, TestResult, ExamResult, ExamRegistration } from '@/lib/types';
 import { saveExamResult } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
@@ -144,8 +144,8 @@ export const useMockTest = (testId: string) => {
         let finalStudentName = studentName || user.displayName || user.email || 'Anonymous';
 
         // For official exams, re-verify details from Firestore to ensure accuracy.
-        if (isOfficialExam) {
-             const regQuery = query(collection(db, "examRegistrations"), where("registrationNumber", "==", finalRegistrationNumber));
+        if (isOfficialExam && registrationNumber) {
+             const regQuery = query(collection(db, "examRegistrations"), where("registrationNumber", "==", registrationNumber));
              const regSnap = await getDocs(regQuery);
              
              if (!regSnap.empty) {
