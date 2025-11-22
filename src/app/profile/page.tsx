@@ -17,7 +17,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { generateCertificate } from '@/lib/certificate-generator';
+import { generateCertificatePdf } from '@/lib/certificate-generator';
 
 function ProfileSkeleton() {
     return (
@@ -145,7 +145,7 @@ export default function ProfilePage() {
                 percentage: (result.score / result.totalMarks) * 100
             };
             
-            const pdfBlob = await generateCertificate(certDataForPdf);
+            const pdfBlob = await generateCertificatePdf(certDataForPdf);
 
             // Create a temporary URL for the blob
             const url = window.URL.createObjectURL(pdfBlob);
