@@ -126,7 +126,8 @@ export default function ProfilePage() {
             if (result.submittedAt && typeof result.submittedAt.toDate === 'function') {
                 examDateObj = result.submittedAt.toDate();
             } else if (result.submittedAt) {
-                examDateObj = new Date(result.submittedAt);
+                // Handle cases where submittedAt might be a string or number (milliseconds)
+                examDateObj = new Date(result.submittedAt.seconds ? result.submittedAt.seconds * 1000 : result.submittedAt);
             } else {
                 examDateObj = new Date(); // Fallback
             }
@@ -159,7 +160,7 @@ export default function ProfilePage() {
             });
 
         } catch (error: any) {
-            console.error("Certificate generation failed:", error);
+            console.error("CERTIFICATE ERROR", error);
             let description = "An unexpected error occurred. Please try again or contact support.";
             if (error.message.includes("PDF")) {
                 description = "Could not generate the certificate PDF. Please try again.";
