@@ -7,181 +7,209 @@ interface CertificateData extends Omit<ExamResult, 'id' | 'submittedAt' | 'respo
   examDate: string;
   percentage: number;
   logoUrl: string;
-  directorSignUrl: string;
-  controllerSignUrl: string;
+  watermarkUrl: string;
+  goldSealUrl: string;
+  signatureUrl: string;
+  leftSealUrl: string;
+  rightSealUrl: string;
 }
 
-// NOTE: This component is designed to be rendered to a static string for PDF generation.
-// It uses inline styles because Tailwind classes won't be available in the jsPDF environment.
-// Ensure all assets (images, fonts) are loaded with absolute URLs or are base64 encoded.
 export default function CertificateTemplate(data: CertificateData) {
 
-    // Styles are defined inline for compatibility with html2canvas and jsPDF
-    const styles = {
-        page: {
-            width: '1123px',
-            height: '794px',
-            padding: '40px',
-            boxSizing: 'border-box' as 'border-box',
-            backgroundColor: '#ffffff',
-            fontFamily: 'Helvetica, Arial, sans-serif',
-            color: '#333',
-            position: 'relative' as 'relative',
-        },
-        border: {
-            position: 'absolute' as 'absolute',
-            top: '20px',
-            left: '20px',
-            right: '20px',
-            bottom: '20px',
-            border: '8px solid #30475E',
-            padding: '8px',
-            boxSizing: 'border-box' as 'border-box',
-        },
-        innerBorder: {
-            width: '100%',
-            height: '100%',
-            border: '2px solid #2E8B57',
-            boxSizing: 'border-box' as 'border-box',
-            position: 'relative' as 'relative',
-        },
-        watermark: {
-            position: 'absolute' as 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            opacity: 0.1,
-            width: '400px',
-            height: '400px',
-        },
-        content: {
-            textAlign: 'center' as 'center',
-            position: 'relative' as 'relative',
-            zIndex: 2,
-            padding: '20px',
-        },
-        logo: {
-            width: '100px',
-            height: '100px',
-            margin: '0 auto 10px',
-        },
-        mainTitle: {
-            fontFamily: '"Times New Roman", Times, serif',
-            fontSize: '32pt',
-            fontWeight: 'bold' as 'bold',
-            color: '#30475E',
-            margin: '10px 0 5px 0',
-        },
-        subtitle: {
-            fontSize: '16pt',
-            color: '#555',
-            margin: '0 0 20px 0',
-            letterSpacing: '1px',
-        },
-        bodyText: {
-            fontSize: '14pt',
-            lineHeight: 1.6,
-            color: '#444',
-            margin: '20px 0',
-        },
-        studentName: {
-            fontFamily: '"Times New Roman", Times, serif',
-            fontSize: '30pt',
-            fontWeight: 'bold' as 'bold',
-            color: '#C7A55E',
-            margin: '20px 0',
-            borderBottom: '2px solid #C7A55E',
-            display: 'inline-block' as 'inline-block',
-            paddingBottom: '5px',
-            textShadow: '0 1px 2px rgba(0,0,0,0.2)'
-        },
-        courseName: {
-            fontSize: '16pt',
-            fontWeight: 'bold' as 'bold',
-            color: '#30475E',
-        },
-        courseSubtitle: {
-             fontSize: '12pt',
-             color: '#555',
-             fontStyle: 'italic' as 'italic'
-        },
-        signatureContainer: {
-            position: 'absolute' as 'absolute',
-            bottom: '70px',
-            left: '60px',
-            right: '60px',
-            display: 'flex',
-            justifyContent: 'space-between',
-        },
-        signatureBlock: {
-            width: '200px',
-            textAlign: 'center' as 'center',
-            fontSize: '12pt',
-        },
-        signatureImage: {
-            height: '45px',
-            width: 'auto',
-            marginBottom: '5px',
-        },
-        signatureLine: {
-            borderTop: '1px solid #333',
-            margin: '0 auto',
-            width: '100%',
-        },
-        signatureTitle: {
-            marginTop: '8px',
-            fontWeight: 'bold' as 'bold',
-            color: '#30475E',
-        },
-        footerContainer: {
-            position: 'absolute' as 'absolute',
-            bottom: '30px',
-            left: '40px',
-            right: '40px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            fontSize: '10pt',
-            color: '#555',
-        }
-    };
-    
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('en-GB', {
             day: 'numeric', month: 'long', year: 'numeric'
         });
     }
 
+    const styles: { [key: string]: React.CSSProperties } = {
+        page: {
+            width: '1123px',
+            height: '794px',
+            boxSizing: 'border-box',
+            backgroundColor: '#F7F5F2', // Soft paper texture color
+            fontFamily: '"Times New Roman", Times, serif',
+            color: '#001F54', // Dark Navy Blue
+            position: 'relative',
+            padding: '25px',
+        },
+        borderOuter: {
+            position: 'absolute',
+            top: '25px', left: '25px', right: '25px', bottom: '25px',
+            border: '8px solid #001F54',
+            padding: '8px',
+            boxSizing: 'border-box',
+        },
+        borderInner: {
+            width: '100%', height: '100%',
+            border: '2px solid #C9A24B', // Gold color
+            boxSizing: 'border-box',
+            position: 'relative',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'flex-start',
+            padding: '20px',
+        },
+        watermark: {
+            position: 'absolute',
+            top: '50%', left: '50%',
+            transform: 'translate(-50%, -50%)',
+            opacity: 0.1,
+            width: '450px',
+            height: '450px',
+            zIndex: 1,
+        },
+        content: {
+            width: '100%',
+            textAlign: 'center',
+            position: 'relative',
+            zIndex: 2,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+        },
+        logo: {
+            width: '80px',
+            height: '80px',
+            margin: '20px 0 10px',
+        },
+        instituteName: {
+            fontFamily: '"Playfair Display", serif',
+            fontSize: '24pt',
+            fontWeight: 'bold',
+            color: '#001F54',
+        },
+        mainTitle: {
+            fontFamily: '"Playfair Display", serif',
+            fontSize: '34pt',
+            fontWeight: 'bold',
+            color: '#001F54',
+            letterSpacing: '1px',
+            margin: '5px 0',
+        },
+        presentedTo: {
+            fontSize: '14pt',
+            color: '#555',
+            margin: '5px 0 10px 0',
+            textTransform: 'uppercase',
+        },
+        certifyText: {
+            fontSize: '12pt',
+            color: '#333',
+            margin: '10px 0 5px 0',
+        },
+        studentName: {
+            fontFamily: '"Great Vibes", cursive',
+            fontSize: '52pt',
+            fontWeight: 'normal',
+            color: '#C9A24B',
+            margin: '5px 0',
+        },
+        bodyText: {
+            fontSize: '13pt',
+            lineHeight: 1.6,
+            color: '#333',
+            margin: '10px 0',
+        },
+        courseName: {
+            fontWeight: 'bold',
+        },
+        bottomSection: {
+            position: 'absolute',
+            bottom: '80px',
+            left: '60px',
+            right: '60px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-end',
+        },
+        signatureBlock: {
+            width: '220px',
+            textAlign: 'center',
+            fontSize: '12pt',
+            position: 'relative',
+        },
+        mainSeal: {
+             width: '110px',
+             height: '110px',
+             alignSelf: 'center',
+             marginBottom: '20px'
+        },
+        signatureImage: {
+            height: '40px',
+            width: 'auto',
+            marginBottom: '5px',
+        },
+        signatureLine: {
+            borderTop: '1px solid #555',
+            margin: '0 auto',
+            width: '80%',
+        },
+        signatureTitle: {
+            marginTop: '8px',
+            fontWeight: 'bold',
+            color: '#001F54',
+        },
+        sealOverlay: {
+            position: 'absolute',
+            bottom: '25px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '60px',
+            height: '60px',
+            opacity: 0.8,
+        },
+        footerContainer: {
+            position: 'absolute',
+            bottom: '30px',
+            left: '40px',
+            right: '40px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            fontSize: '9pt',
+            color: '#555',
+        }
+    };
+    
     return (
         <div style={styles.page}>
-            <div style={styles.border}>
-                <div style={styles.innerBorder}>
-                     <img src={data.logoUrl} style={styles.watermark} alt="Watermark" />
+            <div style={styles.borderOuter}>
+                <div style={styles.borderInner}>
+                    <img src={data.watermarkUrl} style={styles.watermark} alt="Watermark" />
                     <div style={styles.content}>
                         <img src={data.logoUrl} style={styles.logo} alt="MTech IT Institute Logo" />
-                        <h1 style={styles.mainTitle}>Certificate of Completion</h1>
-                        <h2 style={styles.subtitle}>PROUDLY PRESENTED TO</h2>
+                        <h1 style={styles.instituteName}>MTech IT Institute</h1>
+                        <h2 style={styles.mainTitle}>Certificate of Completion</h2>
+                        <p style={styles.presentedTo}>PROUDLY PRESENTED TO</p>
 
-                        <p style={styles.bodyText}>This is to certify that</p>
+                        <p style={styles.certifyText}>This is to certify that</p>
                         <p style={styles.studentName}>{data.studentName}</p>
+                        
                         <p style={styles.bodyText}>
                             has successfully completed the
                             <br />
                             <span style={styles.courseName}>{data.testName}</span>
-                            <br />
+                            <br/>
                             with a score of <strong>{data.score}/{data.totalMarks} ({data.percentage.toFixed(2)}%)</strong> on {formatDate(data.examDate)}.
                         </p>
                     </div>
 
-                    <div style={styles.signatureContainer}>
+                    <div style={styles.bottomSection}>
                         <div style={styles.signatureBlock}>
-                            <img src={data.directorSignUrl} style={styles.signatureImage} alt="Director's Signature" />
+                            <img src={data.signatureUrl} style={styles.signatureImage} alt="Director's Signature" />
                             <div style={styles.signatureLine}></div>
                             <p style={styles.signatureTitle}>Director</p>
+                            <img src={data.leftSealUrl} style={styles.sealOverlay} alt="Director Seal" />
                         </div>
+                        
+                        <img src={data.goldSealUrl} style={styles.mainSeal} alt="Golden Seal" />
+
                         <div style={styles.signatureBlock}>
-                            <img src={data.controllerSignUrl} style={styles.signatureImage} alt="Exam Controller's Signature" />
+                             <img src={data.signatureUrl} style={styles.signatureImage} alt="Controller's Signature" />
                             <div style={styles.signatureLine}></div>
                             <p style={styles.signatureTitle}>Exam Controller</p>
+                            <img src={data.rightSealUrl} style={styles.sealOverlay} alt="Controller Seal" />
                         </div>
                     </div>
 
