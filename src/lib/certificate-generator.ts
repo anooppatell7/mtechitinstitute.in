@@ -62,7 +62,7 @@ export async function generateCertificatePdf(data: CertificateData): Promise<str
   
   // Use html2canvas to capture the rendered component
   const canvas = await html2canvas(container, {
-    scale: 3, // Increase scale for better resolution
+    scale: 2, // Reduced scale for smaller file size to prevent timeouts
     useCORS: true,
     backgroundColor: null
   });
