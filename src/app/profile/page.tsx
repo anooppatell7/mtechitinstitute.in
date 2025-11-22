@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -73,7 +72,6 @@ export default function ProfilePage() {
     const { user, isLoading: userLoading } = useUser();
     const [registration, setRegistration] = useState<ExamRegistration | null>(null);
     const [examHistory, setExamHistory] = useState<ExamResult[]>([]);
-    const [certificates, setCertificates] = useState<Certificate[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isGeneratingCert, setIsGeneratingCert] = useState<string | null>(null);
     const router = useRouter();
@@ -108,16 +106,6 @@ export default function ProfilePage() {
                 } as ExamResult));
                 setExamHistory(history);
 
-                // Fetch Certificates (still useful for viewing previously generated ones)
-                const certsQuery = query(
-                    collection(db, "certificates"),
-                    where("registrationNumber", "==", regData.registrationNumber),
-                    orderBy("issueDate", "desc")
-                );
-                const certsSnapshot = await getDocs(certsQuery);
-                const certs = certsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Certificate));
-                setCertificates(certs);
-
             }
             setIsLoading(false);
         };
@@ -130,7 +118,7 @@ export default function ProfilePage() {
         setIsGeneratingCert(result.id);
 
         try {
-            // This is a placeholder for a unique ID, though it's not saved to DB anymore.
+            // This is a placeholder for a unique ID
             const certIdNumber = `MTECH-${new Date().getFullYear()}-${Math.floor(Math.random() * 9000) + 1000}`;
 
             const issueDate = new Date();
@@ -153,10 +141,6 @@ export default function ProfilePage() {
             
             const pdfBlob = await generateCertificate(certDataForPdf);
 
-            if (!pdfBlob || pdfBlob.size < 5000) {
-              throw new Error("Generated PDF is invalid or empty.");
-            }
-
             // Create a temporary URL for the blob
             const url = window.URL.createObjectURL(pdfBlob);
             const a = document.createElement('a');
@@ -171,7 +155,7 @@ export default function ProfilePage() {
 
             toast({
                 title: "Certificate Downloaded!",
-                description: "Your certificate has been downloaded to your device.",
+                description: "Your certificate should be in your downloads folder.",
             });
 
         } catch (error: any) {
@@ -247,46 +231,6 @@ export default function ProfilePage() {
                             <ProfileDetail icon={<Calendar className="h-6 w-6"/>} label="Date of Birth" value={format(new Date(registration.dob), "PPP")} />
                             <ProfileDetail icon={<UserCheck className="h-6 w-6"/>} label="Gender" value={registration.gender} />
                         </div>
-                        
-                        <div className="mt-12 pt-8 border-t">
-                            <h3 className="font-headline text-2xl text-primary mb-6 border-l-4 border-accent pl-4">My Certificates</h3>
-                             {certificates.length > 0 ? (
-                                <div className="border rounded-lg overflow-hidden bg-card">
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead>Course Name</TableHead>
-                                                <TableHead>Certificate ID</TableHead>
-                                                <TableHead>Issued On</TableHead>
-                                                <TableHead className="text-right">Action</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {certificates.map(cert => (
-                                                <TableRow key={cert.id}>
-                                                    <TableCell className="font-medium">{cert.courseName}</TableCell>
-                                                    <TableCell>{cert.certificateId}</TableCell>
-                                                    <TableCell>{cert.issueDate}</TableCell>
-                                                    <TableCell className="text-right">
-                                                        <Button asChild variant="outline" size="sm">
-                                                            <a href={cert.certificateUrl} target="_blank" rel="noopener noreferrer">
-                                                                <Award className="mr-2 h-4 w-4" /> View Certificate
-                                                            </a>
-                                                        </Button>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </div>
-                            ) : (
-                                 <div className="text-center py-10 px-4 border-2 border-dashed rounded-lg bg-card">
-                                    <Award className="mx-auto h-12 w-12 text-muted-foreground/50" />
-                                    <p className="mt-4 font-semibold text-lg text-primary/90">No Certificates Available</p>
-                                    <p className="text-muted-foreground mt-1">Downloadable certificates will appear here after you complete an exam.</p>
-                                </div>
-                            )}
-                        </div>
 
                         <div className="mt-12 pt-8 border-t">
                             <h3 className="font-headline text-2xl text-primary mb-6 border-l-4 border-accent pl-4">Exam History</h3>
@@ -349,5 +293,3 @@ export default function ProfilePage() {
         </div>
     );
 }
-
-    
