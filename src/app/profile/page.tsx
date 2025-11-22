@@ -144,12 +144,19 @@ export default function ProfilePage() {
                     newCount = counterDoc.data().count + 1;
                     transaction.update(counterRef, { count: newCount });
                 }
-                return `CERT-${currentYear}-${String(newCount).padStart(4, '0')}`;
+                return `MTECH-${currentYear}-${String(newCount).padStart(4, '0')}`;
             });
 
             const issueDate = new Date();
              // Safely get the exam date
-            const examDateObj = result.submittedAt?.toDate ? result.submittedAt.toDate() : new Date(result.submittedAt);
+            let examDateObj;
+            if (result.submittedAt && typeof result.submittedAt.toDate === 'function') {
+                examDateObj = result.submittedAt.toDate();
+            } else if (result.submittedAt) {
+                examDateObj = new Date(result.submittedAt);
+            } else {
+                examDateObj = new Date(); // Fallback to now
+            }
             
             const certDataForPdf = {
                 ...result,
