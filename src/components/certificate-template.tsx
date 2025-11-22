@@ -66,7 +66,7 @@ export default function CertificateTemplate(data: CertificateData) {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            paddingTop: '10px',
+            paddingTop: '20px',
         },
         logo: {
             width: '80px',
@@ -80,11 +80,11 @@ export default function CertificateTemplate(data: CertificateData) {
             color: '#001F54',
         },
         mainTitle: {
-            fontFamily: '"Great Vibes", cursive',
-            fontSize: '42pt',
+            fontFamily: '"UnifrakturMaguntia", cursive',
+            fontSize: '48pt',
             fontWeight: 'normal',
             color: '#001F54',
-            margin: '15px 0 5px 0',
+            margin: '20px 0 10px 0',
         },
         presentedTo: {
             fontSize: '14pt',
@@ -95,7 +95,7 @@ export default function CertificateTemplate(data: CertificateData) {
         certifyText: {
             fontSize: '12pt',
             color: '#333',
-            margin: '0 0 -5px 0',
+            margin: '0 0 0 0',
         },
         studentName: {
             fontFamily: '"Great Vibes", cursive',
@@ -108,14 +108,14 @@ export default function CertificateTemplate(data: CertificateData) {
             fontSize: '13pt',
             lineHeight: 1.6,
             color: '#333',
-            margin: '10px 0 10px 0',
+            margin: '10px 0 20px 0',
         },
         courseName: {
             fontWeight: 'bold',
         },
         bottomSection: {
             position: 'absolute',
-            bottom: '40px',
+            bottom: '25px',
             left: '60px',
             right: '60px',
             display: 'flex',

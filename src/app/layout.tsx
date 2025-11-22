@@ -1,6 +1,6 @@
 
 import type { Metadata } from "next";
-import { PT_Sans, Space_Grotesk, Great_Vibes } from "next/font/google";
+import { PT_Sans, Space_Grotesk, Great_Vibes, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import Header from "@/components/header";
@@ -114,7 +114,7 @@ export default async function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@700&family=UnifrakturMaguntia&display=swap" rel="stylesheet" />
         <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2296905809539851" crossOrigin="anonymous"></script>
       </head>
       <body
