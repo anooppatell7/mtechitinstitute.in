@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -19,7 +18,6 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { generateCertificate } from '@/lib/certificate-generator';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
-import { saveCertificate } from '@/lib/firebase';
 
 function ProfileSkeleton() {
     return (
@@ -77,7 +75,7 @@ export default function ProfilePage() {
     const [examHistory, setExamHistory] = useState<ExamResult[]>([]);
     const [certificates, setCertificates] = useState<Certificate[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [isGeneratingCert, setIsGeneratingCert] = useState<string | null>(null); // Holds the ID of the result being processed
+    const [isGeneratingCert, setIsGeneratingCert] = useState<string | null>(null);
     const router = useRouter();
     const { toast } = useToast();
 
@@ -132,7 +130,6 @@ export default function ProfilePage() {
         setIsGeneratingCert(result.id);
 
         try {
-            // Step 1: Generate a unique Certificate ID
             const counterRef = doc(db, 'counters', 'certificates');
             const certIdNumber = await runTransaction(db, async (transaction) => {
                 const counterDoc = await transaction.get(counterRef);
@@ -164,17 +161,18 @@ export default function ProfilePage() {
                 examDate: examDateObj.toLocaleDateString('en-GB'),
                 percentage: (result.score / result.totalMarks) * 100
             };
-
+            
             const pdfBlob = await generateCertificate(certDataForPdf);
 
-            if (pdfBlob.size < 5000) {
-                throw new Error("INVALID_PDF_BLOB");
+            if (!pdfBlob || pdfBlob.size < 5000) {
+              throw new Error("INVALID_PDF_BLOB");
             }
-            
+
             const storageRef = ref(storage, `certificates/${result.registrationNumber}/${result.testName.replace(/[\s/]/g, '_')}_${result.id}.pdf`);
             
             await uploadBytes(storageRef, pdfBlob, {
               contentType: "application/pdf",
+              cacheControl: "public, max-age=31536000",
             });
 
             const downloadUrl = await getDownloadURL(storageRef);
@@ -207,10 +205,10 @@ export default function ProfilePage() {
         } catch (error: any) {
             console.error("Certificate generation failed:", error);
             let description = "An unexpected error occurred. Please try again or contact support.";
-            if (error.message === "INVALID_PDF_BLOB") {
-                description = "Failed to generate a valid PDF. Please try again.";
+            if (error.message === "INVALID_PDF_BLOB" || error.message === "EMPTY_PDF_GENERATED") {
+                description = "Failed to generate a valid PDF. The generated file was empty or corrupted.";
             } else if (error.message === "PDF_GENERATION_FAILED") {
-                description = "Could not render the certificate. Please check console for details.";
+                description = "Could not render the certificate. Please check the console for details.";
             } else if (error.code?.includes("storage")) {
                 description = "Could not upload the certificate. Please check your internet connection and try again."
             }

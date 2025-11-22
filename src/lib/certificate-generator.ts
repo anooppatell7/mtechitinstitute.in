@@ -14,6 +14,10 @@ interface CertificateData extends Omit<ExamResult, 'id' | 'submittedAt' | 'respo
   percentage: number;
 }
 
+// Correct A4 landscape pixel size for html2canvas at 96 DPI
+const A4_WIDTH = 1123;
+const A4_HEIGHT = 794;
+
 async function getCertificateImages() {
   const logo = await preloadImageAsBase64(
     "https://res.cloudinary.com/dzr4xjizf/image/upload/v1757138798/mtechlogo_1_wsdhhx.png"
@@ -35,39 +39,50 @@ export async function generateCertificate(data: CertificateData): Promise<Blob> 
       controllerSignUrl: sign,
     };
 
+    // Render off-screen container
     const container = document.createElement("div");
-    container.style.position = "absolute";
-    container.style.left = "-9999px";
+    container.style.position = "fixed";
     container.style.top = "0";
-    // Define exact dimensions for A4 landscape in pixels at 96 DPI for consistency
-    container.style.width = "1123px";
-    container.style.height = "794px";
+    container.style.left = "0";
+    container.style.width = `${A4_WIDTH}px`;
+    container.style.height = `${A4_HEIGHT}px`;
+    container.style.background = "white";
+    container.style.zIndex = "-99999";
+
     container.innerHTML = renderToStaticMarkup(CertificateTemplate(finalData));
     document.body.appendChild(container);
 
+    // Render to canvas
     const canvas = await html2canvas(container, {
-      scale: 1,
+      scale: 2,
       useCORS: true,
       allowTaint: true,
       backgroundColor: "#ffffff",
       imageTimeout: 0,
     });
-    
-    const imgData = canvas.toDataURL("image/jpeg", 0.95);
-    
-    const pdf = new jsPDF("landscape", "px", "a4");
-    pdf.addImage(
-      imgData,
-      "JPEG",
-      0,
-      0,
-      pdf.internal.pageSize.getWidth(),
-      pdf.internal.pageSize.getHeight()
-    );
+
+    const imgData = canvas.toDataURL("image/png", 1.0);
 
     document.body.removeChild(container);
 
-    return pdf.output("blob");
+    // Create PDF
+    const pdf = new jsPDF({
+      orientation: "landscape",
+      unit: "px",
+      format: [A4_WIDTH, A4_HEIGHT],
+    });
+
+    pdf.addImage(imgData, "PNG", 0, 0, A4_WIDTH, A4_HEIGHT);
+
+    const blob = pdf.output("blob");
+
+    // PROTECT Firebase from uploading empty blobs
+    if (!blob || blob.size < 5000) {
+      console.error("Generated PDF is INVALID:", blob.size);
+      throw new Error("EMPTY_PDF_GENERATED");
+    }
+
+    return blob;
   } catch (err) {
     console.error("PDF ERROR:", err);
     throw new Error("PDF_GENERATION_FAILED");

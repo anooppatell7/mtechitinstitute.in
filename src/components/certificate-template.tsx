@@ -1,4 +1,3 @@
-
 import React from 'react';
 import type { ExamResult } from '@/lib/types';
 
@@ -20,9 +19,9 @@ export default function CertificateTemplate(data: CertificateData) {
     // Styles are defined inline for compatibility with html2canvas and jsPDF
     const styles = {
         page: {
-            width: '297mm',
-            height: '210mm',
-            padding: '20mm',
+            width: '1123px',
+            height: '794px',
+            padding: '75px',
             boxSizing: 'border-box' as 'border-box',
             backgroundColor: '#ffffff',
             fontFamily: 'Helvetica, Arial, sans-serif',
@@ -30,7 +29,6 @@ export default function CertificateTemplate(data: CertificateData) {
             position: 'relative' as 'relative',
             display: 'flex',
             flexDirection: 'column' as 'column',
-            justifyContent: 'space-between',
         },
         watermark: {
             position: 'absolute' as 'absolute',
@@ -38,31 +36,35 @@ export default function CertificateTemplate(data: CertificateData) {
             left: '50%',
             transform: 'translate(-50%, -50%)',
             opacity: 0.08,
-            width: '120mm',
-            height: '120mm',
+            width: '450px',
+            height: '450px',
             zIndex: 1,
         },
         content: {
             position: 'relative' as 'relative',
             zIndex: 2,
             textAlign: 'center' as 'center',
+            display: 'flex',
+            flexDirection: 'column' as 'column',
+            justifyContent: 'center',
+            height: '100%',
         },
         border: {
             position: 'absolute' as 'absolute',
-            top: '10mm',
-            left: '10mm',
-            right: '10mm',
-            bottom: '10mm',
+            top: '38px',
+            left: '38px',
+            right: '38px',
+            bottom: '38px',
             border: '2px solid #30475E',
             boxSizing: 'border-box' as 'border-box',
-            padding: '5mm',
+            padding: '19px',
             borderStyle: 'double' as 'double',
             borderColor: '#30475E',
             borderWidth: '5px',
         },
         logo: {
-            width: '35mm',
-            height: '35mm',
+            width: '132px',
+            height: '132px',
             margin: '0 auto 10px',
         },
         mainTitle: {
@@ -107,7 +109,8 @@ export default function CertificateTemplate(data: CertificateData) {
             justifyContent: 'space-between',
             alignItems: 'flex-end',
             width: '100%',
-            marginTop: '40px',
+            marginTop: 'auto',
+            paddingTop: '40px',
             position: 'relative' as 'relative',
             zIndex: 2,
         },
@@ -117,7 +120,7 @@ export default function CertificateTemplate(data: CertificateData) {
             fontSize: '10pt',
         },
         signatureImage: {
-            height: '18mm',
+            height: '68px',
             width: 'auto',
             marginBottom: '5px',
         },
@@ -138,17 +141,18 @@ export default function CertificateTemplate(data: CertificateData) {
             marginTop: '20px',
             position: 'relative' as 'relative',
             zIndex: 2,
+            width: '100%',
         },
         certId: {
             position: 'absolute' as 'absolute',
-            bottom: '5px',
+            bottom: '-25px',
             left: '5px',
             fontSize: '8pt',
             color: '#999',
         },
         issueDate: {
-             position: 'absolute' as 'absolute',
-            bottom: '5px',
+            position: 'absolute' as 'absolute',
+            bottom: '-25px',
             right: '5px',
             fontSize: '8pt',
             color: '#999',
@@ -160,22 +164,23 @@ export default function CertificateTemplate(data: CertificateData) {
             <div style={styles.border}>
                 <img src={data.logoUrl} style={styles.watermark} alt="Watermark" />
                 <div style={styles.content}>
-                    <img src={data.logoUrl} style={styles.logo} alt="MTech IT Institute Logo" />
-                    <h1 style={styles.mainTitle}>Certificate of Completion</h1>
-                    <h2 style={styles.subtitle}>PROUDLY PRESENTED TO</h2>
-                    <div style={styles.divider}></div>
-                    <p style={styles.bodyText}>This is to certify that</p>
-                    <p style={styles.studentName}>{data.studentName}</p>
-                    <p style={styles.bodyText}>
-                        has successfully completed the course
-                        <br />
-                        <span style={styles.courseName}>{data.testName}</span>
-                        <br />
-                        with a score of <strong>{data.score} / {data.totalMarks} ({data.percentage.toFixed(2)}%)</strong> on {data.examDate}.
-                    </p>
+                    <div>
+                        <img src={data.logoUrl} style={styles.logo} alt="MTech IT Institute Logo" />
+                        <h1 style={styles.mainTitle}>Certificate of Completion</h1>
+                        <h2 style={styles.subtitle}>PROUDLY PRESENTED TO</h2>
+                        <div style={styles.divider}></div>
+                        <p style={styles.bodyText}>This is to certify that</p>
+                        <p style={styles.studentName}>{data.studentName}</p>
+                        <p style={styles.bodyText}>
+                            has successfully completed the course
+                            <br />
+                            <span style={styles.courseName}>{data.testName}</span>
+                            <br />
+                            with a score of <strong>{data.score} / {data.totalMarks} ({data.percentage.toFixed(2)}%)</strong> on {data.examDate}.
+                        </p>
+                    </div>
                 </div>
-                 <div style={{ flexGrow: 1 }}></div> {/* Spacer */}
-                <div style={styles.signatureContainer}>
+                 <div style={styles.signatureContainer}>
                     <div style={styles.signatureBlock}>
                         <img src={data.directorSignUrl} style={styles.signatureImage} alt="Director's Signature" />
                         <div style={styles.signatureLine}></div>
