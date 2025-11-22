@@ -66,11 +66,12 @@ export default function CertificateTemplate(data: CertificateData) {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
+            paddingTop: '10px',
         },
         logo: {
             width: '80px',
             height: '80px',
-            margin: '20px 0 10px',
+            marginBottom: '10px',
         },
         instituteName: {
             fontFamily: '"Playfair Display", serif',
@@ -89,13 +90,13 @@ export default function CertificateTemplate(data: CertificateData) {
         presentedTo: {
             fontSize: '14pt',
             color: '#555',
-            margin: '5px 0 10px 0',
+            margin: '15px 0 5px 0',
             textTransform: 'uppercase',
         },
         certifyText: {
             fontSize: '12pt',
             color: '#333',
-            margin: '10px 0 0 0',
+            margin: '0 0 5px 0',
         },
         studentName: {
             fontFamily: '"Great Vibes", cursive',
@@ -108,14 +109,14 @@ export default function CertificateTemplate(data: CertificateData) {
             fontSize: '13pt',
             lineHeight: 1.6,
             color: '#333',
-            margin: '0 0 10px 0',
+            margin: '15px 0 10px 0',
         },
         courseName: {
             fontWeight: 'bold',
         },
         bottomSection: {
             position: 'absolute',
-            bottom: '60px',
+            bottom: '40px',
             left: '60px',
             right: '60px',
             display: 'flex',
