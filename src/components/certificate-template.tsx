@@ -96,20 +96,20 @@ export default function CertificateTemplate(data: CertificateData) {
         certifyText: {
             fontSize: '12pt',
             color: '#333',
-            margin: '0 0 5px 0',
+            margin: '0 0 -5px 0',
         },
         studentName: {
             fontFamily: '"Great Vibes", cursive',
             fontSize: '52pt',
             fontWeight: 'normal',
             color: '#C9A24B',
-            margin: '-5px 0 5px 0',
+            margin: '0',
         },
         bodyText: {
             fontSize: '13pt',
             lineHeight: 1.6,
             color: '#333',
-            margin: '15px 0 10px 0',
+            margin: '10px 0 10px 0',
         },
         courseName: {
             fontWeight: 'bold',
@@ -159,6 +159,14 @@ export default function CertificateTemplate(data: CertificateData) {
             justifyContent: 'space-between',
             fontSize: '9pt',
             color: '#555',
+        },
+        registrationNumber: {
+            position: 'absolute',
+            top: '20px',
+            right: '40px',
+            fontSize: '10pt',
+            color: '#555',
+            zIndex: 2,
         }
     };
     
@@ -166,6 +174,7 @@ export default function CertificateTemplate(data: CertificateData) {
         <div style={styles.page}>
             <div style={styles.borderOuter}>
                 <div style={styles.borderInner}>
+                    <span style={styles.registrationNumber}>Registration No: {data.registrationNumber}</span>
                     <img src={data.watermarkUrl} style={styles.watermark} alt="Watermark" />
                     <div style={styles.content}>
                         <img src={data.logoUrl} style={styles.logo} alt="MTech IT Institute Logo" />
@@ -203,7 +212,6 @@ export default function CertificateTemplate(data: CertificateData) {
 
                      <div style={styles.footerContainer}>
                         <span>Certificate ID: {data.certificateId}</span>
-                        <span>Registration No: {data.registrationNumber}</span>
                         <span>Issued on: {formatDate(data.issueDate)}</span>
                     </div>
                 </div>
