@@ -1,4 +1,3 @@
-
 'use client';
 
 import jsPDF from 'jspdf';
@@ -14,84 +13,62 @@ interface CertificateData extends Omit<ExamResult, 'id' | 'submittedAt' | 'respo
   percentage: number;
 }
 
-// Function to fetch an image and convert it to a data URL
-async function imageToDataUrl(url: string): Promise<string> {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch image: ${response.status} ${response.statusText}`);
-  }
-  const blob = await response.blob();
-  return new Promise((resolve, reject) => {
+// Convert image URL → Base64
+async function toBase64(url: string): Promise<string> {
+  const res = await fetch(url, { mode: 'cors' });
+  const blob = await res.blob();
+  return new Promise(resolve => {
     const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result as string);
-    reader.onerror = reject;
+    reader.onloadend = () => resolve(String(reader.result));
     reader.readAsDataURL(blob);
   });
 }
 
-
 export async function generateCertificatePdf(data: CertificateData): Promise<Blob> {
-  return new Promise(async (resolve, reject) => {
-    try {
-      // Preload and convert images to data URLs to avoid CORS issues with html2canvas
-      const [logoUrl, directorSignUrl, controllerSignUrl] = await Promise.all([
-        imageToDataUrl("https://res.cloudinary.com/dzr4xjizf/image/upload/v1757138798/mtechlogo_1_wsdhhx.png"),
-        imageToDataUrl("https://res.cloudinary.com/dqycipmr0/image/upload/v1763721267/signature_kfj27k.png"),
-        imageToDataUrl("https://res.cloudinary.com/dqycipmr0/image/upload/v1763721267/signature_kfj27k.png"),
-      ]);
+  try {
+    // PRELOAD IMAGES SAFELY
+    const logoBase64 = await toBase64("https://res.cloudinary.com/dzr4xjizf/image/upload/v1757138798/mtechlogo_1_wsdhhx.png");
+    const signBase64 = await toBase64("https://res.cloudinary.com/dqycipmr0/image/upload/v1763721267/signature_kfj27k.png");
 
-      const certificateDataWithImages = {
-        ...data,
-        logoUrl,
-        directorSignUrl,
-        controllerSignUrl,
-      };
+    const finalData = {
+      ...data,
+      logoUrl: logoBase64,
+      directorSignUrl: signBase64,
+      controllerSignUrl: signBase64,
+    };
 
-      // Create a container element to render the component into
-      const container = document.createElement('div');
-      // Position it off-screen
-      container.style.position = 'absolute';
-      container.style.left = '-9999px';
-      container.style.width = '297mm'; // A4 width
-      container.style.height = '210mm'; // A4 height
-      document.body.appendChild(container);
+    // Create off-screen container
+    const container = document.createElement('div');
+    container.style.position = 'fixed';
+    container.style.left = '0';
+    container.style.top = '0';
+    container.style.width = '1120px';
+    container.style.height = '790px';
+    container.style.opacity = '0';
+    container.style.pointerEvents = 'none';
+    document.body.appendChild(container);
 
-      // Render the React component to an HTML string
-      const staticMarkup = renderToStaticMarkup(CertificateTemplate({ ...certificateDataWithImages }));
-      container.innerHTML = staticMarkup;
-      
-      // Use html2canvas to capture the rendered component
-      const canvas = await html2canvas(container, {
-        scale: 2, // Use scale: 2 for a good balance of quality and file size
-        useCORS: true,
-        backgroundColor: null
-      });
+    container.innerHTML = renderToStaticMarkup(
+      CertificateTemplate({ ...finalData })
+    );
 
-      // Clean up the off-screen container
-      document.body.removeChild(container);
+    // RENDER (SAFE SETTINGS)
+    const canvas = await html2canvas(container, {
+      scale: 1.4,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: '#ffffff'
+    });
 
-      const imgData = canvas.toDataURL('image/png');
-      
-      // Create a new jsPDF instance
-      const pdf = new jsPDF({
-        orientation: 'landscape',
-        unit: 'mm',
-        format: 'a4',
-      });
-      
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
+    document.body.removeChild(container);
 
-      // Add the captured image to the PDF
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      
-      // Return the PDF as a Blob
-      const pdfBlob = pdf.output('blob');
-      resolve(pdfBlob);
+    const img = canvas.toDataURL('image/jpeg', 0.95);
+    const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: 'a4' });
+    pdf.addImage(img, 'JPEG', 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight());
+    return pdf.output('blob');
 
-    } catch (error) {
-      console.error("Error in PDF generation process: ", error);
-      reject(error);
-    }
-  });
+  } catch (err) {
+    console.error("PDF Generation Error:", err);
+    throw err;
+  }
 }
