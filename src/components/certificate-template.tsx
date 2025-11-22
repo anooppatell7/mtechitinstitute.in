@@ -53,7 +53,7 @@ export default function CertificateTemplate(data: CertificateData) {
             position: 'absolute',
             top: '50%', left: '50%',
             transform: 'translate(-50%, -50%)',
-            opacity: 0.1,
+            opacity: 0.15,
             width: '450px',
             height: '450px',
             zIndex: 1,
