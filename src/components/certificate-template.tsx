@@ -102,7 +102,7 @@ export default function CertificateTemplate(data: CertificateData) {
             fontSize: '52pt',
             fontWeight: 'normal',
             color: '#C9A24B',
-            margin: '5px 0',
+            margin: '-5px 0 5px 0',
         },
         bodyText: {
             fontSize: '13pt',
