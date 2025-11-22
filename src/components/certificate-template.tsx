@@ -95,7 +95,7 @@ export default function CertificateTemplate(data: CertificateData) {
         certifyText: {
             fontSize: '12pt',
             color: '#333',
-            margin: '0 0 0 0',
+            margin: '0',
         },
         studentName: {
             fontFamily: '"Great Vibes", cursive',
