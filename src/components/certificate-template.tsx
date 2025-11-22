@@ -54,8 +54,8 @@ export default function CertificateTemplate(data: CertificateData) {
             top: '50%', left: '50%',
             transform: 'translate(-50%, -50%)',
             opacity: 0.15,
-            width: '450px',
-            height: '450px',
+            width: '500px',
+            height: '500px',
             zIndex: 1,
         },
         content: {
@@ -85,12 +85,12 @@ export default function CertificateTemplate(data: CertificateData) {
             fontSize: '48pt',
             fontWeight: 'normal',
             color: '#001F54',
-            margin: '0 0 15px 0',
+            margin: '10px 0',
         },
         presentedTo: {
             fontSize: '14pt',
             color: '#555',
-            margin: '0',
+            margin: '10px 0 0 0',
             textTransform: 'uppercase',
         },
         certifyText: {
@@ -103,7 +103,7 @@ export default function CertificateTemplate(data: CertificateData) {
             fontSize: '52pt',
             fontWeight: 'normal',
             color: '#C9A24B',
-            margin: '0 0 5px 0',
+            margin: '10px 0 15px 0',
         },
         bodyText: {
             fontSize: '13pt',
