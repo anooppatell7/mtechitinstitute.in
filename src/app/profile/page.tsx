@@ -3,13 +3,12 @@
 
 import { useEffect, useState } from 'react';
 import { useUser } from '@/firebase';
-import { doc, getDoc, collection, query, where, getDocs, orderBy, runTransaction, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs, orderBy, runTransaction, serverTimestamp, setDoc } from 'firebase/firestore';
 import { db, storage } from '@/lib/firebase';
 import type { ExamRegistration, ExamResult, Certificate } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { User, Mail, Phone, Calendar, Key, UserCheck, Briefcase, FileText, BarChart, GraduationCap, Award, Loader2 } from 'lucide-react';
-import SectionDivider from '@/components/section-divider';
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { format } from 'date-fns';
@@ -18,7 +17,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { generateCertificatePdf } from '@/lib/certificate-generator';
+import { generateCertificate } from '@/lib/certificate-generator';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { saveCertificate } from '@/lib/firebase';
 
@@ -158,7 +157,6 @@ export default function ProfilePage() {
                 examDateObj = new Date(); // Fallback
             }
             
-            // Step 2: Prepare data for the PDF template
             const certDataForPdf = {
                 ...result,
                 certificateId: certIdNumber,
@@ -167,15 +165,20 @@ export default function ProfilePage() {
                 percentage: (result.score / result.totalMarks) * 100
             };
 
-            // Step 3: Generate the PDF as a Blob
-            const pdfBlob = await generateCertificatePdf(certDataForPdf);
+            const pdfBlob = await generateCertificate(certDataForPdf);
 
-            // Step 4: Upload the Blob to Firebase Storage
-            const storageRef = ref(storage, `certificates/${result.registrationNumber}/${result.testName.replace(/\s+/g, '_')}_${result.id}.pdf`);
-            await uploadBytes(storageRef, pdfBlob);
+            if (pdfBlob.size < 5000) {
+                throw new Error("INVALID_PDF_BLOB");
+            }
+            
+            const storageRef = ref(storage, `certificates/${result.registrationNumber}/${result.testName.replace(/[\s/]/g, '_')}_${result.id}.pdf`);
+            
+            await uploadBytes(storageRef, pdfBlob, {
+              contentType: "application/pdf",
+            });
+
             const downloadUrl = await getDownloadURL(storageRef);
 
-            // Step 5: Save certificate metadata to Firestore
             const certificateDbRecord: Omit<Certificate, 'id'> = {
                 certificateId: certIdNumber,
                 studentName: result.studentName,
@@ -190,9 +193,10 @@ export default function ProfilePage() {
                 examResultId: result.id
             };
 
-            const newCertId = await saveCertificate(certificateDbRecord);
+            const newCertDocRef = doc(collection(db, "certificates"));
+            await setDoc(newCertDocRef, certificateDbRecord);
+            const newCertId = newCertDocRef.id;
             
-            // Step 6: Update local state to show the new certificate in the UI
             setCertificates(prevCerts => [{ ...certificateDbRecord, id: newCertId }, ...prevCerts]);
 
             toast({
@@ -200,21 +204,30 @@ export default function ProfilePage() {
                 description: "Your certificate has been successfully created and saved.",
             });
 
-        } catch (error) {
+        } catch (error: any) {
             console.error("Certificate generation failed:", error);
+            let description = "An unexpected error occurred. Please try again or contact support.";
+            if (error.message === "INVALID_PDF_BLOB") {
+                description = "Failed to generate a valid PDF. Please try again.";
+            } else if (error.message === "PDF_GENERATION_FAILED") {
+                description = "Could not render the certificate. Please check console for details.";
+            } else if (error.code?.includes("storage")) {
+                description = "Could not upload the certificate. Please check your internet connection and try again."
+            }
+
             toast({
                 title: "Certificate Generation Failed",
-                description: "An unexpected error occurred. Please try again or contact support.",
+                description: description,
                 variant: "destructive"
             });
         } finally {
-            // Step 7: Always reset the loading state
             setIsGeneratingCert(null);
         }
     }
 
 
     const getInitials = (name: string) => {
+        if (!name) return 'U';
         return name.split(' ').map(n => n[0]).join('').toUpperCase();
     }
 

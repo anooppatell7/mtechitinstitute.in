@@ -5,6 +5,7 @@ import html2canvas from 'html2canvas';
 import { renderToStaticMarkup } from 'react-dom/server';
 import CertificateTemplate from '@/components/certificate-template';
 import type { ExamResult } from './types';
+import { preloadImageAsBase64 } from './base64-preloader';
 
 interface CertificateData extends Omit<ExamResult, 'id' | 'submittedAt' | 'responses' | 'timeTaken'> {
   certificateId: string;
@@ -13,62 +14,62 @@ interface CertificateData extends Omit<ExamResult, 'id' | 'submittedAt' | 'respo
   percentage: number;
 }
 
-// Convert image URL → Base64
-async function toBase64(url: string): Promise<string> {
-  const res = await fetch(url, { mode: 'cors' });
-  const blob = await res.blob();
-  return new Promise(resolve => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(String(reader.result));
-    reader.readAsDataURL(blob);
-  });
+async function getCertificateImages() {
+  const logo = await preloadImageAsBase64(
+    "https://res.cloudinary.com/dzr4xjizf/image/upload/v1757138798/mtechlogo_1_wsdhhx.png"
+  );
+  const sign = await preloadImageAsBase64(
+    "https://res.cloudinary.com/dqycipmr0/image/upload/v1763721267/signature_kfj27k.png"
+  );
+  return { logo, sign };
 }
 
-export async function generateCertificatePdf(data: CertificateData): Promise<Blob> {
+export async function generateCertificate(data: CertificateData): Promise<Blob> {
   try {
-    // PRELOAD IMAGES SAFELY
-    const logoBase64 = await toBase64("https://res.cloudinary.com/dzr4xjizf/image/upload/v1757138798/mtechlogo_1_wsdhhx.png");
-    const signBase64 = await toBase64("https://res.cloudinary.com/dqycipmr0/image/upload/v1763721267/signature_kfj27k.png");
+    const { logo, sign } = await getCertificateImages();
 
     const finalData = {
       ...data,
-      logoUrl: logoBase64,
-      directorSignUrl: signBase64,
-      controllerSignUrl: signBase64,
+      logoUrl: logo,
+      directorSignUrl: sign,
+      controllerSignUrl: sign,
     };
 
-    // Create off-screen container
-    const container = document.createElement('div');
-    container.style.position = 'fixed';
-    container.style.left = '0';
-    container.style.top = '0';
-    container.style.width = '1120px';
-    container.style.height = '790px';
-    container.style.opacity = '0';
-    container.style.pointerEvents = 'none';
+    const container = document.createElement("div");
+    container.style.position = "absolute";
+    container.style.left = "-9999px";
+    container.style.top = "0";
+    // Define exact dimensions for A4 landscape in pixels at 96 DPI for consistency
+    container.style.width = "1123px";
+    container.style.height = "794px";
+    container.innerHTML = renderToStaticMarkup(CertificateTemplate(finalData));
     document.body.appendChild(container);
 
-    container.innerHTML = renderToStaticMarkup(
-      CertificateTemplate({ ...finalData })
-    );
-
-    // RENDER (SAFE SETTINGS)
     const canvas = await html2canvas(container, {
-      scale: 1.4,
+      scale: 1,
       useCORS: true,
       allowTaint: true,
-      backgroundColor: '#ffffff'
+      backgroundColor: "#ffffff",
+      imageTimeout: 0,
     });
+    
+    const imgData = canvas.toDataURL("image/jpeg", 0.95);
+    
+    const pdf = new jsPDF("landscape", "px", "a4");
+    pdf.addImage(
+      imgData,
+      "JPEG",
+      0,
+      0,
+      pdf.internal.pageSize.getWidth(),
+      pdf.internal.pageSize.getHeight()
+    );
 
     document.body.removeChild(container);
 
-    const img = canvas.toDataURL('image/jpeg', 0.95);
-    const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: 'a4' });
-    pdf.addImage(img, 'JPEG', 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight());
-    return pdf.output('blob');
-
+    return pdf.output("blob");
   } catch (err) {
-    console.error("PDF Generation Error:", err);
-    throw err;
+    console.error("PDF ERROR:", err);
+    throw new Error("PDF_GENERATION_FAILED");
   }
 }
