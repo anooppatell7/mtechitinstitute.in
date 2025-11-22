@@ -1,9 +1,10 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
 import { useUser } from '@/firebase';
 import { doc, getDoc, collection, query, where, getDocs, orderBy, runTransaction, serverTimestamp, setDoc } from 'firebase/firestore';
-import { db, storage } from '@/lib/firebase';
+import { db } from '@/lib/firebase';
 import type { ExamRegistration, ExamResult, Certificate } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -17,7 +18,6 @@ import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { generateCertificate } from '@/lib/certificate-generator';
-import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 
 function ProfileSkeleton() {
     return (
@@ -108,7 +108,7 @@ export default function ProfilePage() {
                 } as ExamResult));
                 setExamHistory(history);
 
-                // Fetch Certificates
+                // Fetch Certificates (still useful for viewing previously generated ones)
                 const certsQuery = query(
                     collection(db, "certificates"),
                     where("registrationNumber", "==", regData.registrationNumber),
@@ -130,19 +130,8 @@ export default function ProfilePage() {
         setIsGeneratingCert(result.id);
 
         try {
-            const counterRef = doc(db, 'counters', 'certificates');
-            const certIdNumber = await runTransaction(db, async (transaction) => {
-                const counterDoc = await transaction.get(counterRef);
-                const currentYear = new Date().getFullYear();
-                let newCount = 1;
-                if (!counterDoc.exists() || counterDoc.data().year !== currentYear) {
-                    transaction.set(counterRef, { count: newCount, year: currentYear });
-                } else {
-                    newCount = counterDoc.data().count + 1;
-                    transaction.update(counterRef, { count: newCount });
-                }
-                return `MTECH-${currentYear}-${String(newCount).padStart(4, '0')}`;
-            });
+            // This is a placeholder for a unique ID, though it's not saved to DB anymore.
+            const certIdNumber = `MTECH-${new Date().getFullYear()}-${Math.floor(Math.random() * 9000) + 1000}`;
 
             const issueDate = new Date();
             let examDateObj;
@@ -165,52 +154,31 @@ export default function ProfilePage() {
             const pdfBlob = await generateCertificate(certDataForPdf);
 
             if (!pdfBlob || pdfBlob.size < 5000) {
-              throw new Error("INVALID_PDF_BLOB");
+              throw new Error("Generated PDF is invalid or empty.");
             }
 
-            const storageRef = ref(storage, `certificates/${result.registrationNumber}/${result.testName.replace(/[\s/]/g, '_')}_${result.id}.pdf`);
+            // Create a temporary URL for the blob
+            const url = window.URL.createObjectURL(pdfBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Certificate-${result.studentName}-${result.testName.replace(/ /g, '_')}.pdf`;
+            document.body.appendChild(a);
+            a.click();
             
-            await uploadBytes(storageRef, pdfBlob, {
-              contentType: "application/pdf",
-              cacheControl: "public, max-age=31536000",
-            });
-
-            const downloadUrl = await getDownloadURL(storageRef);
-
-            const certificateDbRecord: Omit<Certificate, 'id'> = {
-                certificateId: certIdNumber,
-                studentName: result.studentName,
-                registrationNumber: result.registrationNumber,
-                courseName: result.testName,
-                score: result.score,
-                totalMarks: result.totalMarks,
-                percentage: certDataForPdf.percentage,
-                examDate: certDataForPdf.examDate,
-                issueDate: certDataForPdf.issueDate,
-                certificateUrl: downloadUrl,
-                examResultId: result.id
-            };
-
-            const newCertDocRef = doc(collection(db, "certificates"));
-            await setDoc(newCertDocRef, certificateDbRecord);
-            const newCertId = newCertDocRef.id;
-            
-            setCertificates(prevCerts => [{ ...certificateDbRecord, id: newCertId }, ...prevCerts]);
+            // Clean up
+            a.remove();
+            window.URL.revokeObjectURL(url);
 
             toast({
-                title: "Certificate Generated!",
-                description: "Your certificate has been successfully created and saved.",
+                title: "Certificate Downloaded!",
+                description: "Your certificate has been downloaded to your device.",
             });
 
         } catch (error: any) {
             console.error("Certificate generation failed:", error);
             let description = "An unexpected error occurred. Please try again or contact support.";
-            if (error.message === "INVALID_PDF_BLOB" || error.message === "EMPTY_PDF_GENERATED") {
-                description = "Failed to generate a valid PDF. The generated file was empty or corrupted.";
-            } else if (error.message === "PDF_GENERATION_FAILED") {
-                description = "Could not render the certificate. Please check the console for details.";
-            } else if (error.code?.includes("storage")) {
-                description = "Could not upload the certificate. Please check your internet connection and try again."
+            if (error.message.includes("PDF")) {
+                description = "Could not generate the certificate PDF. Please try again.";
             }
 
             toast({
@@ -314,8 +282,8 @@ export default function ProfilePage() {
                             ) : (
                                  <div className="text-center py-10 px-4 border-2 border-dashed rounded-lg bg-card">
                                     <Award className="mx-auto h-12 w-12 text-muted-foreground/50" />
-                                    <p className="mt-4 font-semibold text-lg text-primary/90">No Certificates Issued Yet</p>
-                                    <p className="text-muted-foreground mt-1">Your certificates will appear here after you successfully complete an exam.</p>
+                                    <p className="mt-4 font-semibold text-lg text-primary/90">No Certificates Available</p>
+                                    <p className="text-muted-foreground mt-1">Downloadable certificates will appear here after you complete an exam.</p>
                                 </div>
                             )}
                         </div>
@@ -335,8 +303,6 @@ export default function ProfilePage() {
                                         </TableHeader>
                                         <TableBody>
                                             {examHistory.map(result => {
-                                                const hasCertificate = certificates.some(c => c.examResultId === result.id);
-                                                const certificate = certificates.find(c => c.examResultId === result.id);
                                                 const isGenerating = isGeneratingCert === result.id;
                                                 
                                                 return (
@@ -354,18 +320,11 @@ export default function ProfilePage() {
                                                                     <BarChart className="mr-2 h-4 w-4" /> View Result
                                                                 </Link>
                                                             </Button>
-                                                            {hasCertificate && certificate ? (
-                                                                <Button asChild size="sm">
-                                                                    <a href={certificate.certificateUrl} target="_blank" rel="noopener noreferrer">
-                                                                        <Award className="mr-2 h-4 w-4" /> View Certificate
-                                                                    </a>
-                                                                </Button>
-                                                            ) : (
-                                                                <Button onClick={() => handleGenerateCertificate(result)} disabled={isGenerating} size="sm">
-                                                                    {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GraduationCap className="mr-2 h-4 w-4" />}
-                                                                    {isGenerating ? 'Generating...' : 'Generate Certificate'}
-                                                                </Button>
-                                                            )}
+                                                            
+                                                            <Button onClick={() => handleGenerateCertificate(result)} disabled={isGenerating} size="sm">
+                                                                {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GraduationCap className="mr-2 h-4 w-4" />}
+                                                                {isGenerating ? 'Generating...' : 'Download Certificate'}
+                                                            </Button>
                                                         </TableCell>
                                                     </TableRow>
                                                 );
@@ -390,3 +349,5 @@ export default function ProfilePage() {
         </div>
     );
 }
+
+    
