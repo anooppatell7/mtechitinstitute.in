@@ -68,6 +68,7 @@ export default function Header() {
     { title: "Blog", href: "/blog" },
     { title: "Career", href: "/career" },
     { title: "Resources", href: "/resources" },
+    { title: "Verify Certificate", href: "/verify-certificate" },
     { title: "Contact", href: "/contact" },
   ];
 
