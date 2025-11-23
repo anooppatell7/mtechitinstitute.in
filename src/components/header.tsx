@@ -180,17 +180,13 @@ export default function Header() {
         <NavigationMenu className="hidden md:flex">
             <NavigationMenuList>
                 <NavigationMenuItem>
-                    <Link href="/" legacyBehavior passHref>
-                      <NavigationMenuLink asChild>
-                        <a className={navigationMenuTriggerStyle()}>Home</a>
-                      </NavigationMenuLink>
+                    <Link href="/" passHref asChild>
+                      <NavigationMenuLink className={navigationMenuTriggerStyle()}>Home</NavigationMenuLink>
                     </Link>
                 </NavigationMenuItem>
                 <NavigationMenuItem>
-                     <Link href="/about" legacyBehavior passHref>
-                        <NavigationMenuLink asChild>
-                          <a className={navigationMenuTriggerStyle()}>About</a>
-                        </NavigationMenuLink>
+                     <Link href="/about" passHref asChild>
+                        <NavigationMenuLink className={navigationMenuTriggerStyle()}>About</NavigationMenuLink>
                     </Link>
                 </NavigationMenuItem>
                  <NavigationMenuItem>
@@ -223,24 +219,18 @@ export default function Header() {
                     </NavigationMenuContent>
                 </NavigationMenuItem>
                 <NavigationMenuItem>
-                    <Link href="/blog" legacyBehavior passHref>
-                      <NavigationMenuLink asChild>
-                        <a className={navigationMenuTriggerStyle()}>Blog</a>
-                      </NavigationMenuLink>
+                    <Link href="/blog" passHref asChild>
+                      <NavigationMenuLink className={navigationMenuTriggerStyle()}>Blog</NavigationMenuLink>
                     </Link>
                 </NavigationMenuItem>
                 <NavigationMenuItem>
-                    <Link href="/verify-certificate" legacyBehavior passHref>
-                      <NavigationMenuLink asChild>
-                         <a className={navigationMenuTriggerStyle()}>Verify Certificate</a>
-                      </NavigationMenuLink>
+                    <Link href="/verify-certificate" passHref asChild>
+                         <NavigationMenuLink className={navigationMenuTriggerStyle()}>Verify Certificate</NavigationMenuLink>
                     </Link>
                 </NavigationMenuItem>
                 <NavigationMenuItem>
-                    <Link href="/contact" legacyBehavior passHref>
-                      <NavigationMenuLink asChild>
-                        <a className={navigationMenuTriggerStyle()}>Contact</a>
-                      </NavigationMenuLink>
+                    <Link href="/contact" passHref asChild>
+                      <NavigationMenuLink className={navigationMenuTriggerStyle()}>Contact</NavigationMenuLink>
                     </Link>
                 </NavigationMenuItem>
             </NavigationMenuList>
