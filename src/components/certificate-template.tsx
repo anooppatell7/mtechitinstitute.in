@@ -90,7 +90,7 @@ export default function CertificateTemplate(data: CertificateData) {
         presentedTo: {
             fontSize: '14pt',
             color: '#555',
-            margin: '5px 0 0 0',
+            margin: '20px 0 0 0',
             textTransform: 'uppercase',
         },
         certifyText: {
@@ -109,7 +109,7 @@ export default function CertificateTemplate(data: CertificateData) {
             fontSize: '13pt',
             lineHeight: 1.6,
             color: '#333',
-            margin: '0',
+            margin: '10px 0 0 0',
         },
         courseName: {
             fontWeight: 'bold',
