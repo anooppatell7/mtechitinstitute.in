@@ -195,6 +195,11 @@ export const useMockTest = (testId: string) => {
             if (isNaN(timeTaken) || timeTaken < 0) {
                 timeTaken = 0;
             }
+
+            // Generate Certificate ID
+            const currentYear = new Date().getFullYear();
+            const randomSuffix = Math.floor(100000 + Math.random() * 900000);
+            const certificateId = `CERT-${currentYear}-${randomSuffix}`;
             
             const cleanData = (obj: any): any => {
                 if (Array.isArray(obj)) {
@@ -217,6 +222,7 @@ export const useMockTest = (testId: string) => {
                 accuracy: parseFloat(accuracy.toFixed(2)) || 0,
                 timeTaken: timeTaken,
                 responses,
+                certificateId: certificateId,
             };
             
             const finalResultData = cleanData(resultData);

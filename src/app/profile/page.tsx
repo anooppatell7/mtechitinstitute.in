@@ -115,12 +115,17 @@ export default function ProfilePage() {
     }, [user, userLoading, router]);
 
     const handleGenerateCertificate = async (result: ExamResult) => {
-        if (!registration) return;
+        if (!registration || !result.certificateId) {
+             toast({
+                title: "Certificate ID Missing",
+                description: "The certificate ID for this result is missing. Please contact support.",
+                variant: "destructive"
+            });
+            return;
+        }
         setIsGeneratingCert(result.id);
 
         try {
-            const certIdNumber = `MTECH-${new Date().getFullYear()}-${Math.floor(Math.random() * 9000) + 1000}`;
-
             const issueDate = new Date();
             let examDateObj;
             if (result.submittedAt && typeof result.submittedAt.toDate === 'function') {
@@ -139,7 +144,7 @@ export default function ProfilePage() {
 
             const certDataForPdf = {
                 ...result,
-                certificateId: certIdNumber,
+                certificateId: result.certificateId, // Use the stored ID
                 issueDate: issueDate.toISOString(),
                 examDate: examDateObj.toISOString(),
                 percentage: (result.score / result.totalMarks) * 100

@@ -202,6 +202,7 @@ export type ExamResult = {
   timeTaken: number; // in seconds
   responses: TestResponse[];
   submittedAt: any; // Firestore Timestamp
+  certificateId?: string; // Stored, unique certificate ID
 };
 
 export type Certificate = {
