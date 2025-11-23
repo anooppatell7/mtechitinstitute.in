@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { Menu, X, User as UserIcon, LogOut, LayoutDashboard, UserCircle } from "lucide-react";
+import { Menu, X, User as UserIcon, LogOut, LayoutDashboard, UserCircle, ChevronDown, BookOpen, GraduationCap, FileText, ListTodo, Edit } from "lucide-react";
 import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useUser, useAuth } from "@/firebase";
@@ -22,11 +22,48 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import type { NavItem } from "@/lib/types";
+import React from "react";
 
 
 const ADMIN_EMAILS = ["mtechitinstitute@gmail.com", "anooppbh8@gmail.com"];
+
+const ListItem = React.forwardRef<
+  React.ElementRef<"a">,
+  React.ComponentPropsWithoutRef<"a">
+>(({ className, title, children, ...props }, ref) => {
+  return (
+    <li>
+      <NavigationMenuLink asChild>
+        <a
+          ref={ref}
+          className={cn(
+            "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+            className
+          )}
+          {...props}
+        >
+          <div className="text-sm font-medium leading-none">{title}</div>
+          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+            {children}
+          </p>
+        </a>
+      </NavigationMenuLink>
+    </li>
+  );
+});
+ListItem.displayName = "ListItem";
+
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
@@ -35,6 +72,11 @@ export default function Header() {
   const { user, isLoading } = useUser();
   const router = useRouter();
   const [isRegistered, setIsRegistered] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const isLearnPage = pathname.startsWith('/learn');
   const courseSlug = isLearnPage && pathname.split('/')[2] ? pathname.split('/')[2] : '';
@@ -50,27 +92,11 @@ export default function Header() {
       };
       checkRegistration();
     } else if (isAdmin) {
-      // Admins should see all links, so we can treat them as "registered" for nav purposes
       setIsRegistered(true);
     } else {
       setIsRegistered(false);
     }
   }, [user, isAdmin]);
-
-  const navItems: NavItem[] = [
-    { title: "Home", href: "/" },
-    { title: "About", href: "/about" },
-    { title: "Courses", href: "/courses" },
-    { title: "Learn", href: "/learn", auth: true },
-    { title: "Exam", href: "/exam", auth: true, registeredOnly: true },
-    { title: "Tests", href: "/mock-tests" },
-    { title: "Registration", href: "/exam/register", auth: true, hideWhenRegistered: true },
-    { title: "Blog", href: "/blog" },
-    { title: "Career", href: "/career" },
-    { title: "Resources", href: "/resources" },
-    { title: "Verify Certificate", href: "/verify-certificate" },
-    { title: "Contact", href: "/contact" },
-  ];
 
   const handleLogout = async () => {
     if (auth) {
@@ -78,34 +104,121 @@ export default function Header() {
         router.push('/');
     }
   }
+  
+  const academicsComponents: { title: string; href: string; description: string }[] = [
+    {
+      title: "Our Courses",
+      href: "/courses",
+      description: "Explore job-oriented courses in web development, marketing, and more.",
+    },
+    {
+      title: "Interactive Learning",
+      href: "/learn",
+      description: "Learn at your own pace with hands-on, interactive lessons and quizzes.",
+    },
+    {
+      title: "Free Resources",
+      href: "/resources",
+      description: "Access free PDF notes, worksheets, and study materials to aid your learning.",
+    },
+     {
+      title: "Career Guidance",
+      href: "/career",
+      description: "Get expert advice on navigating your career path in the tech industry.",
+    },
+  ];
+
+  const examsComponents: { title: string; href: string; description: string, auth: boolean, registeredOnly: boolean, hideWhenRegistered: boolean }[] = [
+    {
+      title: "Exam Portal",
+      href: "/exam",
+      description: "Access official exams for registered students to get certified.",
+      auth: true,
+      registeredOnly: true,
+      hideWhenRegistered: false,
+    },
+    {
+      title: "Mock Tests",
+      href: "/mock-tests",
+      description: "Practice with our collection of mock tests to prepare for your exams.",
+      auth: false,
+      registeredOnly: false,
+      hideWhenRegistered: false,
+    },
+    {
+      title: "Exam Registration",
+      href: "/exam/register",
+      description: "Register here to become an official student and take certification exams.",
+      auth: true,
+      registeredOnly: false,
+      hideWhenRegistered: true,
+    },
+  ];
+
+
+  if (!isMounted) {
+    return (
+      <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-16 max-w-screen-2xl items-center justify-between">
+          <Logo />
+        </div>
+      </header>
+    );
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 max-w-screen-2xl items-center justify-between">
         <Logo />
 
-        <nav className="hidden md:flex md:items-center md:gap-6">
-          {navItems.map((item) => {
-            if (item.auth && !user && !isLoading) return null;
-            if (item.registeredOnly && !isRegistered) return null;
-            if (item.hideWhenRegistered && isRegistered && !isAdmin) return null;
-
-            return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "text-sm font-medium transition-colors hover:text-accent",
-                    pathname === item.href
-                      ? "text-accent"
-                      : "text-foreground/70"
-                  )}
-                >
-                  {item.title}
-                </Link>
-            )
-          })}
-        </nav>
+        <NavigationMenu className="hidden md:flex">
+            <NavigationMenuList>
+                <NavigationMenuItem>
+                    <Link href="/" legacyBehavior passHref><NavigationMenuLink className={navigationMenuTriggerStyle()}>Home</NavigationMenuLink></Link>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                    <Link href="/about" legacyBehavior passHref><NavigationMenuLink className={navigationMenuTriggerStyle()}>About</NavigationMenuLink></Link>
+                </NavigationMenuItem>
+                 <NavigationMenuItem>
+                    <NavigationMenuTrigger>Academics</NavigationMenuTrigger>
+                    <NavigationMenuContent>
+                      <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
+                        {academicsComponents.map((component) => (
+                          <ListItem key={component.title} title={component.title} href={component.href}>
+                            {component.description}
+                          </ListItem>
+                        ))}
+                      </ul>
+                    </NavigationMenuContent>
+                </NavigationMenuItem>
+                 <NavigationMenuItem>
+                    <NavigationMenuTrigger>Exams</NavigationMenuTrigger>
+                    <NavigationMenuContent>
+                      <ul className="grid w-[400px] gap-3 p-4 md:w-[500px]">
+                        {examsComponents.map((component) => {
+                           if (component.auth && !user) return null;
+                           if (component.registeredOnly && !isRegistered) return null;
+                           if (component.hideWhenRegistered && isRegistered && !isAdmin) return null;
+                           return (
+                              <ListItem key={component.title} title={component.title} href={component.href}>
+                                {component.description}
+                              </ListItem>
+                           )
+                        })}
+                      </ul>
+                    </NavigationMenuContent>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                    <Link href="/blog" legacyBehavior passHref><NavigationMenuLink className={navigationMenuTriggerStyle()}>Blog</NavigationMenuLink></Link>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                    <Link href="/verify-certificate" legacyBehavior passHref><NavigationMenuLink className={navigationMenuTriggerStyle()}>Verify Certificate</NavigationMenuLink></Link>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                    <Link href="/contact" legacyBehavior passHref><NavigationMenuLink className={navigationMenuTriggerStyle()}>Contact</NavigationMenuLink></Link>
+                </NavigationMenuItem>
+            </NavigationMenuList>
+        </NavigationMenu>
 
         <div className="flex items-center gap-2">
             {!isLoading && (
@@ -179,38 +292,41 @@ export default function Header() {
         <div className="md:hidden">
           <div className="fixed inset-0 top-16 z-50 grid h-[calc(100vh-4rem)] grid-flow-row auto-rows-max overflow-auto p-6 pb-32 shadow-md animate-in slide-in-from-bottom-80">
             <div className="relative z-20 grid gap-6 rounded-md bg-popover p-4 text-popover-foreground shadow-md">
-              {isLearnPage && courseSlug ? (
-                <LearnSidebar courseSlug={courseSlug} isMobile onLinkClick={() => setIsOpen(false)} />
-              ) : (
-                <>
-                  <nav className="grid grid-flow-row auto-rows-max text-sm">
-                    {navItems.map((item) => {
-                      if (item.auth && !user) return null;
-                      if (item.registeredOnly && !isRegistered) return null;
-                      if (item.hideWhenRegistered && isRegistered && !isAdmin) return null;
-                      return (
-                        <Link
-                          key={item.href}
-                          href={item.href}
-                          className={cn(
-                            "flex w-full items-center rounded-md p-2 text-sm font-medium hover:underline",
-                            pathname === item.href ? "text-accent" : "text-foreground/70"
-                          )}
-                          onClick={() => setIsOpen(false)}
-                        >
-                          {item.title}
-                        </Link>
-                      )
-                    })}
-                  </nav>
-                  {!user && (
-                    <div className="flex flex-col gap-2">
-                        <Button className="w-full" asChild onClick={() => setIsOpen(false)}><Link href="/login">Log In</Link></Button>
-                        <Button className="w-full" variant="outline" asChild onClick={() => setIsOpen(false)}><Link href="/signup">Sign Up</Link></Button>
-                    </div>
-                  )}
-                </>
-              )}
+                <nav className="grid grid-flow-row auto-rows-max text-sm">
+                    <Link href="/" className="flex w-full items-center rounded-md p-2 text-sm font-medium hover:underline" onClick={() => setIsOpen(false)}>Home</Link>
+                    <Link href="/about" className="flex w-full items-center rounded-md p-2 text-sm font-medium hover:underline" onClick={() => setIsOpen(false)}>About</Link>
+                    
+                    <Accordion type="multiple" className="w-full">
+                        <AccordionItem value="academics">
+                             <AccordionTrigger className="p-2 text-sm font-medium hover:underline">Academics</AccordionTrigger>
+                             <AccordionContent className="pl-4">
+                                {academicsComponents.map(item => (
+                                    <Link key={item.href} href={item.href} className="flex w-full items-center rounded-md p-2 text-sm font-medium hover:underline" onClick={() => setIsOpen(false)}>{item.title}</Link>
+                                ))}
+                             </AccordionContent>
+                        </AccordionItem>
+                         <AccordionItem value="exams">
+                             <AccordionTrigger className="p-2 text-sm font-medium hover:underline">Exams</AccordionTrigger>
+                             <AccordionContent className="pl-4">
+                                {examsComponents.map(item => {
+                                    if (item.auth && !user) return null;
+                                    if (item.registeredOnly && !isRegistered) return null;
+                                    if (item.hideWhenRegistered && isRegistered && !isAdmin) return null;
+                                    return (<Link key={item.href} href={item.href} className="flex w-full items-center rounded-md p-2 text-sm font-medium hover:underline" onClick={() => setIsOpen(false)}>{item.title}</Link>)
+                                })}
+                             </AccordionContent>
+                        </AccordionItem>
+                    </Accordion>
+                     <Link href="/blog" className="flex w-full items-center rounded-md p-2 text-sm font-medium hover:underline" onClick={() => setIsOpen(false)}>Blog</Link>
+                     <Link href="/verify-certificate" className="flex w-full items-center rounded-md p-2 text-sm font-medium hover:underline" onClick={() => setIsOpen(false)}>Verify Certificate</Link>
+                     <Link href="/contact" className="flex w-full items-center rounded-md p-2 text-sm font-medium hover:underline" onClick={() => setIsOpen(false)}>Contact</Link>
+                </nav>
+                {!user && (
+                  <div className="flex flex-col gap-2">
+                      <Button className="w-full" asChild onClick={() => setIsOpen(false)}><Link href="/login">Log In</Link></Button>
+                      <Button className="w-full" variant="outline" asChild onClick={() => setIsOpen(false)}><Link href="/signup">Sign Up</Link></Button>
+                  </div>
+                )}
             </div>
           </div>
         </div>
@@ -218,3 +334,4 @@ export default function Header() {
     </header>
   );
 }
+
