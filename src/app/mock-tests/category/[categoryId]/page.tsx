@@ -7,7 +7,7 @@ import { useParams, notFound } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ListChecks, Clock, ArrowRight, BarChart, ChevronLeft } from "lucide-react";
-import type { MockTest, TestResult, TestCategory } from "@/lib/types";
+import type { MockTest, TestResult, TestCategory, ExamResult } from "@/lib/types";
 import { useUser, useFirestore } from "@/firebase";
 import { collection, query, where, getDocs, doc, getDoc } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -44,7 +44,7 @@ export default function MockTestsByCategoryPage() {
 
     const [category, setCategory] = useState<TestCategory | null>(null);
     const [mockTests, setMockTests] = useState<MockTest[]>([]);
-    const [userResults, setUserResults] = useState<TestResult[]>([]);
+    const [userResults, setUserResults] = useState<ExamResult[]>([]);
     
     const [isLoading, setIsLoading] = useState(true);
 
@@ -106,7 +106,7 @@ export default function MockTestsByCategoryPage() {
                 let results = resultsSnapshot.docs.map(doc => {
                     const data = doc.data();
                     const submittedAt = data.submittedAt?.toDate ? data.submittedAt.toDate() : new Date(0);
-                    return { id: doc.id, ...data, submittedAt } as TestResult
+                    return { id: doc.id, ...data, submittedAt } as ExamResult
                 });
 
                 results.sort((a, b) => b.submittedAt.getTime() - a.submittedAt.getTime());
@@ -121,7 +121,7 @@ export default function MockTestsByCategoryPage() {
         }
     }, [user, userLoading, firestore, isLoading, mockTests]);
     
-    const latestResultsMap = new Map<string, TestResult>();
+    const latestResultsMap = new Map<string, ExamResult>();
     userResults.forEach(result => {
         if (!latestResultsMap.has(result.testId)) {
             latestResultsMap.set(result.testId, result);

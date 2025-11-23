@@ -80,14 +80,19 @@ export default function ExamResultPage() {
                 const isAdmin = user.email && ["mtechitinstitute@gmail.com", "anooppbh8@gmail.com"].includes(user.email);
                 let isOwner = false;
                 
-                // A user is the owner if their UID matches the UID on the registration document associated with this result.
-                const registrationQuery = query(collection(db, "examRegistrations"), where("registrationNumber", "==", resultData.registrationNumber), limit(1));
-                const registrationSnapshot = await getDocs(registrationQuery);
+                // For non-official tests (practice), the registrationNumber is the user's UID.
+                if (resultData.registrationNumber === user.uid) {
+                    isOwner = true;
+                } else {
+                    // For official exams, check if user's UID matches the ID of the registration document.
+                    const registrationQuery = query(collection(db, "examRegistrations"), where("registrationNumber", "==", resultData.registrationNumber), limit(1));
+                    const registrationSnapshot = await getDocs(registrationQuery);
 
-                if (!registrationSnapshot.empty) {
-                    const registrationDoc = registrationSnapshot.docs[0];
-                    if(registrationDoc.id === user.uid) {
-                        isOwner = true;
+                    if (!registrationSnapshot.empty) {
+                        const registrationDoc = registrationSnapshot.docs[0];
+                        if(registrationDoc.id === user.uid) {
+                            isOwner = true;
+                        }
                     }
                 }
 
@@ -332,9 +337,3 @@ export default function ExamResultPage() {
         </div>
     );
 }
-
-    
-
-    
-
-    
