@@ -13,6 +13,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import SectionDivider from '@/components/section-divider';
+import { Button } from '@/components/ui/button';
 
 const COLORS = {
   correct: 'hsl(var(--chart-2))',
