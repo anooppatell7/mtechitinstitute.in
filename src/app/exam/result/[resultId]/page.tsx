@@ -59,6 +59,7 @@ export default function ExamResultPage() {
     const [isRankLoading, setIsRankLoading] = useState(true);
     const [isLoading, setIsLoading] = useState(true);
     const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
+    const [isOfficialExam, setIsOfficialExam] = useState(false);
 
     useEffect(() => {
         if (!resultId) return;
@@ -75,15 +76,21 @@ export default function ExamResultPage() {
 
             const resultData = { id: resultSnap.id, ...resultSnap.data() } as ExamResultType;
             
+            // Check if it's an official exam or a practice test.
+            // Official exams have a registration number like 'MTECH-YYYY-NNNN'.
+            // Practice tests use the user's UID as the registrationNumber.
+            const officialExam = resultData.registrationNumber.startsWith('MTECH-');
+            setIsOfficialExam(officialExam);
+
             // Authorization Check
             if (user) {
                 const isAdmin = user.email && ["mtechitinstitute@gmail.com", "anooppbh8@gmail.com"].includes(user.email);
                 let isOwner = false;
                 
-                // For non-official tests (practice), the registrationNumber is the user's UID.
-                if (resultData.registrationNumber === user.uid) {
+                // For practice tests, the registrationNumber is the user's UID.
+                if (!officialExam && resultData.registrationNumber === user.uid) {
                     isOwner = true;
-                } else {
+                } else if (officialExam) {
                     // For official exams, check if user's UID matches the ID of the registration document.
                     const registrationQuery = query(collection(db, "examRegistrations"), where("registrationNumber", "==", resultData.registrationNumber), limit(1));
                     const registrationSnapshot = await getDocs(registrationQuery);
@@ -102,7 +109,6 @@ export default function ExamResultPage() {
                     setIsAuthorized(false);
                 }
             } else {
-                 // Public link sharing is allowed for now, can be restricted by setting to false
                  setIsAuthorized(true);
             }
 
@@ -158,8 +164,10 @@ export default function ExamResultPage() {
             }
         };
 
-        fetchResultAndTest();
-    }, [resultId, user]);
+        if (!userLoading) {
+             fetchResultAndTest();
+        }
+    }, [resultId, user, userLoading]);
 
     if (isLoading || userLoading) {
         return <ResultSkeleton />;
@@ -192,6 +200,8 @@ export default function ExamResultPage() {
     ];
 
     const getQuestionById = (id: string) => test.questions.find(q => q.id === id);
+    
+    const pageTitle = isOfficialExam ? 'Exam Result' : 'Test Result';
 
     return (
         <div className="bg-background">
@@ -199,7 +209,7 @@ export default function ExamResultPage() {
                 <SectionDivider style="wave" className="text-background" position="top"/>
                 <div className="container py-8 sm:py-12">
                     <div className="mb-8">
-                        <h1 className="text-3xl sm:text-4xl font-bold text-primary font-headline">Exam Result</h1>
+                        <h1 className="text-3xl sm:text-4xl font-bold text-primary font-headline">{pageTitle}</h1>
                         <p className="text-muted-foreground mt-1">Analysis for <span className="font-semibold text-foreground">{result.studentName}</span> in "{result.testName}"</p>
                     </div>
 
