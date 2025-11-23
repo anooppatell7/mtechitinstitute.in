@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useEffect, useState, use, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -142,7 +142,7 @@ function LessonPageSkeleton() {
 }
 
 export default function LessonPage({ params }: { params: { slug: string; lessonSlug: string } }) {
-    const { slug, lessonSlug } = use(params);
+    const { slug, lessonSlug } = params;
     const { user, isLoading: userLoading } = useUser();
     const router = useRouter();
     const { updateLastVisitedLesson } = useLearnProgress();

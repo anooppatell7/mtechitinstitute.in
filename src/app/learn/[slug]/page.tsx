@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Layers, ArrowRight, BookOpen } from 'lucide-react';
 import type { LearningCourse, LearningModule } from '@/lib/types';
 import { getCourseData } from '@/lib/learn-helpers';
-import { useEffect, useState, use, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { Progress } from '@/components/ui/progress';
 import { useLearnProgress } from '@/hooks/use-learn-progress';
 import { useUser } from '@/firebase';
@@ -52,7 +52,7 @@ function CoursePageSkeleton() {
 }
 
 export default function LearnModulePage({ params }: { params: { slug: string } }) {
-  const { slug } = use(params);
+  const { slug } = params;
   const [course, setCourse] = useState<LearningCourse | null>(null);
   const { getCourseProgress } = useLearnProgress();
   const { user, isLoading: isUserLoading } = useUser();

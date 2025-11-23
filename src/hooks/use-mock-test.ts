@@ -25,6 +25,12 @@ export const useMockTest = (testId: string) => {
         return `test-${testId}-${base}`;
     }, [testId]);
 
+    const cleanupLocalStorage = useCallback((regNo?: string | null) => {
+        window.localStorage.removeItem(getStorageKey('answers', regNo));
+        window.localStorage.removeItem(getStorageKey('review', regNo));
+        window.localStorage.removeItem(getStorageKey('time', regNo));
+    }, [getStorageKey]);
+
     const [selectedAnswers, setSelectedAnswers] = useLocalStorage<(number | null)[]>(
         getStorageKey('answers'), 
         []
@@ -43,34 +49,19 @@ export const useMockTest = (testId: string) => {
     
     const initializeTest = useCallback((questionCount: number, durationMinutes: number, regNo?: string | null) => {
         if (isInitialized) return;
+        
+        // Clear any previous state for this test before initializing
+        cleanupLocalStorage(regNo);
 
         initialDurationRef.current = durationMinutes * 60;
         
-        const storageKeyTime = getStorageKey('time', regNo);
-        const storedTimeItem = typeof window !== 'undefined' ? localStorage.getItem(storageKeyTime) : null;
-        const storedTime = storedTimeItem ? Number(JSON.parse(storedTimeItem)) : NaN;
-        
-        if (isNaN(storedTime) || storedTime <= 0) {
-            setTimeLeft(initialDurationRef.current);
-        }
-
-        const storageKeyAnswers = getStorageKey('answers', regNo);
-        const storedAnswersItem = typeof window !== 'undefined' ? localStorage.getItem(storageKeyAnswers) : null;
-        if (storedAnswersItem === null) {
-            setSelectedAnswers(Array(questionCount).fill(null));
-        } else {
-            try {
-                const parsedAnswers = JSON.parse(storedAnswersItem);
-                if (parsedAnswers.length !== questionCount) {
-                    setSelectedAnswers(Array(questionCount).fill(null));
-                }
-            } catch {
-                setSelectedAnswers(Array(questionCount).fill(null));
-            }
-        }
+        setTimeLeft(initialDurationRef.current);
+        setSelectedAnswers(Array(questionCount).fill(null));
+        setMarkedForReview([]);
+        setCurrentQuestionIndex(0);
         
         setIsInitialized(true);
-    }, [isInitialized, getStorageKey, setTimeLeft, setSelectedAnswers]);
+    }, [isInitialized, cleanupLocalStorage, setTimeLeft, setSelectedAnswers, setMarkedForReview]);
 
 
     // Timer effect
@@ -117,12 +108,6 @@ export const useMockTest = (testId: string) => {
             }
         });
     }, [setMarkedForReview]);
-
-    const cleanupLocalStorage = useCallback((regNo?: string | null) => {
-        window.localStorage.removeItem(getStorageKey('answers', regNo));
-        window.localStorage.removeItem(getStorageKey('review', regNo));
-        window.localStorage.removeItem(getStorageKey('time', regNo));
-    }, [testId, getStorageKey]);
 
     const handleSubmit = useCallback(async (
         isAutoSubmit: boolean, 
