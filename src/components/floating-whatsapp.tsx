@@ -2,6 +2,7 @@
 "use client";
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 // WhatsApp SVG Icon Component
 const WhatsAppIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -25,7 +26,18 @@ const WhatsAppIcon = (props: React.SVGProps<SVGSVGElement>) => (
 
 
 export default function FloatingWhatsApp() {
+  const pathname = usePathname();
   const whatsAppUrl = `https://wa.me/918299809562?text=${encodeURIComponent("Hello! I'm interested in the courses at MTech IT Institute.")}`;
+
+  // Define the paths where the icon should be hidden
+  const hiddenPaths = ['/mock-tests/', '/exam/'];
+
+  // Check if the current path starts with any of the hidden paths
+  const isHidden = hiddenPaths.some(path => pathname.startsWith(path));
+
+  if (isHidden) {
+    return null;
+  }
 
   return (
     <Link
