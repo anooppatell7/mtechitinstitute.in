@@ -68,7 +68,7 @@ export default function VerifyCertificatePage() {
     <>
       <div className="bg-gradient-to-br from-indigo-600 via-blue-500 to-cyan-400 text-white">
         <div className="container py-16 sm:py-24 text-center">
-          <h1 className="font-headline text-4xl font-bold sm:text-5xl">Verify Certificate</h1>
+          <h1 className="font-headline text-4xl font-bold sm:text-5xl">Verify Certificate<span className="text-green-300">.</span></h1>
           <p className="mt-4 max-w-2xl mx-auto text-lg text-blue-50">
             Enter the Certificate ID found on the certificate to verify its authenticity.
           </p>
