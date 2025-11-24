@@ -32,10 +32,10 @@ export default function FloatingWhatsApp() {
       href={whatsAppUrl}
       target="_blank"
       rel="noopener noreferrer"
-      className="fixed bottom-6 right-6 z-50 flex h-16 w-16 items-center justify-center rounded-full bg-transparent text-white shadow-lg transition-transform duration-300 hover:scale-110"
+      className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-transparent text-white shadow-lg transition-transform duration-300 hover:scale-110"
       aria-label="Chat on WhatsApp"
     >
-      <WhatsAppIcon className="h-16 w-16" />
+      <WhatsAppIcon className="h-14 w-14" />
     </Link>
   );
 }
