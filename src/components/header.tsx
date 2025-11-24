@@ -59,7 +59,7 @@ const ListItem = React.forwardRef<
           )}
           {...props}
         >
-          <div className="text-sm font-medium leading-none">{title}</div>
+          <div className="text-sm font-medium leading-none group-hover:text-card">{title}</div>
           <p className="line-clamp-2 text-sm leading-snug text-muted-foreground group-hover:text-accent-foreground">
             {children}
           </p>
@@ -236,7 +236,7 @@ export default function Header() {
                 <NavigationMenuItem>
                     <Link href="/verify-certificate" legacyBehavior passHref>
                          <NavigationMenuLink asChild>
-                            <a className={navigationMenuTriggerStyle()}>Verify Certificate</a>
+                            <a className={navigationMenuTriggerStyle()}>Verify Certificate<span className="text-accent">.</span></a>
                           </NavigationMenuLink>
                     </Link>
                 </NavigationMenuItem>
