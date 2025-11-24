@@ -116,7 +116,7 @@ export default function CertificateTemplate(data: CertificateData) {
         },
         bottomSection: {
             position: 'absolute',
-            bottom: '25px',
+            bottom: '40px',
             left: '60px',
             right: '60px',
             display: 'flex',
@@ -152,12 +152,12 @@ export default function CertificateTemplate(data: CertificateData) {
         },
         footerContainer: {
             position: 'absolute',
-            bottom: '30px',
+            bottom: '15px',
             left: '40px',
             right: '40px',
             display: 'flex',
-            justifyContent: 'space-between',
-            fontSize: '9pt',
+            justifyContent: 'center',
+            fontSize: '10pt',
             color: '#555',
         },
         registrationNumber: {
