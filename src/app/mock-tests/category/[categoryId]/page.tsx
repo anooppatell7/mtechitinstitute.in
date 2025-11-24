@@ -182,15 +182,15 @@ export default function MockTestsByCategoryPage() {
                                                 </div>
                                             </div>
                                         </CardContent>
-                                        <CardFooter className="flex flex-col sm:flex-row gap-2">
+                                        <CardFooter className="flex flex-wrap gap-2">
                                             {user && hasAttempted && result ? (
                                                 <>
-                                                    <Button asChild variant="outline" className="w-full">
+                                                    <Button asChild variant="outline" className="w-full flex-1">
                                                         <Link href={`/exam/result/${result.id}`}>
                                                             <BarChart className="mr-2 h-4 w-4" /> View Result
                                                         </Link>
                                                     </Button>
-                                                    <Button asChild className="w-full">
+                                                    <Button asChild className="w-full flex-1">
                                                         <Link href={`/mock-tests/${test.id}`}>
                                                             Re-attempt Test <ArrowRight className="ml-2 h-4 w-4" />
                                                         </Link>
