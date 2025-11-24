@@ -1,3 +1,4 @@
+
 import Link from "next/link";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
@@ -17,7 +18,7 @@ export default function Logo({ className, textClassName }: LogoProps) {
       )}
     >
       <Image
-        src="https://res.cloudinary.com/dzr4xjizf/image/upload/v1757138798/mtechlogo_1_wsdhhx.png" // apne logo ka path yaha do (public folder me rakho)
+        src="https://res.cloudinary.com/dzr4xjizf/image/upload/v1763979689/MTECHITINSTITUTE_logo.png"
         alt="MTech IT Institute Logo"
         width={40}
         height={40}
