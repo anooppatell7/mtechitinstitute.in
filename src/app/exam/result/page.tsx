@@ -67,16 +67,16 @@ export default function CheckResultPage() {
 
   return (
     <>
-      <div className="bg-background">
+      <div className="bg-gradient-to-br from-indigo-600 via-blue-500 to-cyan-400 text-white">
         <div className="container py-16 sm:py-24 text-center">
-          <h1 className="font-headline text-4xl font-bold text-primary sm:text-5xl">Check Your Exam Result</h1>
-          <p className="mt-4 max-w-2xl mx-auto text-lg text-primary/80">
+          <h1 className="font-headline text-4xl font-bold sm:text-5xl">Check Your Exam Result</h1>
+          <p className="mt-4 max-w-2xl mx-auto text-lg text-blue-50">
             Enter your registration number to view your detailed performance report.
           </p>
         </div>
       </div>
       <div className="bg-secondary relative">
-        <SectionDivider style="wave" className="text-background" position="top"/>
+        <SectionDivider style="wave" className="text-gradient-to-br from-indigo-600 via-blue-500 to-cyan-400" position="top"/>
         <div className="container py-16 sm:py-24 flex justify-center">
           <Card className="w-full max-w-md shadow-lg">
             <CardHeader>

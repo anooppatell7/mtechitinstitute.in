@@ -49,11 +49,11 @@ export default async function ReviewsPage() {
   
   return (
     <>
-      <div className="bg-background">
+      <div className="bg-gradient-to-br from-indigo-600 via-blue-500 to-cyan-400">
         <ReviewPageClient reviews={reviews} />
       </div>
       <div className="relative bg-secondary">
-          <SectionDivider style="wave" className="text-background" position="top"/>
+          <SectionDivider style="wave" className="text-gradient-to-br from-indigo-600 via-blue-500 to-cyan-400" position="top"/>
           <div className="h-24"></div>
       </div>
     </>

@@ -127,7 +127,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     <>
       <JsonLd data={postSchema} />
       <JsonLd data={breadcrumbSchema(breadcrumbs)} />
-      <div className="bg-secondary relative">
+      <div className="bg-gradient-to-br from-indigo-600 via-blue-500 to-cyan-400 relative">
         <SectionDivider style="wave" className="text-background" position="top"/>
         <div className="container py-16 sm:py-24">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">

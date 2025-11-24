@@ -66,11 +66,11 @@ export default function AboutPage() {
   return (
     <>
       {/* Hero Section */}
-      <div className="bg-secondary relative">
+      <div className="bg-gradient-to-br from-indigo-600 via-blue-500 to-cyan-400 relative text-white">
          <SectionDivider style="wave" className="text-background" position="top"/>
         <div className="container py-16 sm:py-24 text-center">
-          <h1 className="font-headline text-4xl font-bold text-primary sm:text-5xl">Welcome to MTech IT Institute</h1>
-          <p className="mt-4 max-w-3xl mx-auto text-lg text-primary/80">
+          <h1 className="font-headline text-4xl font-bold sm:text-5xl">Welcome to MTech IT Institute</h1>
+          <p className="mt-4 max-w-3xl mx-auto text-lg text-blue-50">
             One of Patti’s most trusted and fastest-growing computer training institutes, empowering students for a successful career in today’s digital world.
           </p>
         </div>
@@ -78,7 +78,7 @@ export default function AboutPage() {
       
       {/* Mission & Vision */}
       <div className="bg-background relative">
-         <SectionDivider style="wave" className="text-secondary" position="top"/>
+         <SectionDivider style="wave" className="text-gradient-to-br from-indigo-600 via-blue-500 to-cyan-400" position="top"/>
          <div className="container py-16 sm:py-24">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                 <div className="space-y-8">
