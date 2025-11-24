@@ -60,7 +60,7 @@ const ListItem = React.forwardRef<
           {...props}
         >
           <div className="text-sm font-medium leading-none">{title}</div>
-          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground group-hover:text-accent-foreground">
             {children}
           </p>
         </a>
@@ -198,7 +198,7 @@ export default function Header() {
                     <NavigationMenuContent>
                       <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
                         {academicsComponents.map((component) => (
-                          <Link href={component.href} key={component.title}>
+                          <Link href={component.href} key={component.title} className="group">
                             <ListItem title={component.title}>
                                 {component.description}
                             </ListItem>
@@ -216,7 +216,7 @@ export default function Header() {
                            if (component.registeredOnly && !isRegistered) return null;
                            if (component.hideWhenRegistered && isRegistered && !isAdmin) return null;
                            return (
-                              <Link href={component.href} key={component.title}>
+                              <Link href={component.href} key={component.title} className="group">
                                 <ListItem title={component.title}>
                                     {component.description}
                                 </ListItem>
