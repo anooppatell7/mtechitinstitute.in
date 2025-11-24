@@ -21,7 +21,7 @@ const A4_HEIGHT = 794;
 
 async function getCertificateImages() {
   const [logo, watermark, goldSeal, signature, leftSeal, rightSeal] = await Promise.all([
-    preloadImageAsBase64("https://res.cloudinary.com/dzr4xjizf/image/upload/v1763979689/Gemini_Generated_Image_g9x5g1g9x5g1g9x5-removebg-preview_udmzeh.png"),
+    preloadImageAsBase64("https://res.cloudinary.com/dzr4xjizf/image/upload/v1763979689/MTECHITINSTITUTE_logo.png"),
     preloadImageAsBase64("https://res.cloudinary.com/dzr4xjizf/image/upload/v1763804040/watermark_png.png"),
     preloadImageAsBase64("https://res.cloudinary.com/dzr4xjizf/image/upload/v1763803007/seal_png.png"),
     preloadImageAsBase64("https://res.cloudinary.com/dqycipmr0/image/upload/v1763721267/signature_kfj27k.png"),
