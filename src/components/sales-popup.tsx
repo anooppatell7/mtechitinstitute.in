@@ -63,15 +63,15 @@ export default function SalesPopup({ settings }: { settings: PopupSettings }) {
         <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 items-center">
             {/* Image section */}
             <div className={cn(
-                "relative flex items-center justify-center p-8 min-h-[200px] md:min-h-full",
-                settings.imageUrl ? "h-full" : "md:rounded-l-2xl"
+                "relative hidden md:flex items-center justify-center p-8 min-h-full",
+                settings.imageUrl ? "h-full" : "rounded-l-2xl"
             )}>
                  {settings.imageUrl ? (
                     <Image 
                         src={settings.imageUrl} 
                         alt={settings.title} 
                         fill
-                        className="object-cover md:rounded-l-2xl"
+                        className="object-cover rounded-l-2xl"
                     />
                  ) : (
                     <Image
