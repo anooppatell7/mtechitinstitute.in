@@ -60,7 +60,23 @@ export default function SalesPopup({ settings }: { settings: PopupSettings }) {
         </div>
 
         <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 items-center">
-            <div className="p-8 text-center md:text-left order-2 md:order-1">
+            {/* Image section */}
+            <div className={cn(
+                "relative w-full md:h-full",
+                settings.imageUrl ? "h-64 md:h-full" : "h-0" // Collapse if no image
+            )}>
+                 {settings.imageUrl && (
+                    <Image 
+                        src={settings.imageUrl} 
+                        alt={settings.title} 
+                        fill
+                        className="object-cover md:rounded-l-2xl"
+                    />
+                 )}
+            </div>
+            
+             {/* Text content section */}
+            <div className="p-8 text-center md:text-left">
                 <DialogHeader>
                     <div className="flex justify-center md:justify-start mb-4">
                         <Sparkles className="h-10 w-10 text-purple-300" />
@@ -78,18 +94,6 @@ export default function SalesPopup({ settings }: { settings: PopupSettings }) {
                     </Button>
                 </DialogFooter>
             </div>
-            
-             <div className="relative w-full h-64 md:h-full order-1 md:order-2">
-                 {settings.imageUrl && (
-                    <Image 
-                        src={settings.imageUrl} 
-                        alt={settings.title} 
-                        fill
-                        className="object-cover md:rounded-r-2xl"
-                    />
-                 )}
-            </div>
-
         </div>
 
          <DialogClose asChild>
