@@ -11,7 +11,7 @@ import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import Logo from './logo';
 
-const POPUP_DISMISSED_KEY = 'salesPopupDismissed_v2'; // Version updated to show new design
+const POPUP_DISMISSED_KEY = 'salesPopupDismissed_v2';
 
 const TechIcon = ({ icon, className }: { icon: React.ReactNode, className?: string }) => (
     <div className={cn("absolute rounded-full bg-white/10 backdrop-blur-sm p-2 text-purple-300 animate-float", className)}>
@@ -75,8 +75,13 @@ export default function SalesPopup({ settings }: { settings: PopupSettings }) {
                     />
                  ) : (
                     <div className="flex flex-col items-center justify-center gap-4 opacity-80">
-                      <Logo className="flex-col gap-4" textClassName="text-2xl text-white" />
-                      <div className="w-24 h-px bg-purple-300/50 mt-2"></div>
+                      <Image
+                        src="https://res.cloudinary.com/dzr4xjizf/image/upload/v1763980341/trasparent_logo_ok6afb.png"
+                        alt="MTech IT Institute Logo"
+                        width={150}
+                        height={150}
+                        className="h-40 w-40 object-contain"
+                      />
                     </div>
                  )}
             </div>
