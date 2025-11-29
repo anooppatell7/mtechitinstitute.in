@@ -1,10 +1,11 @@
 
 
+
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore, collection, query, where, getDocs, orderBy, doc, getDoc, setDoc, addDoc, serverTimestamp } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { getAuth } from "firebase/auth";
-import type { BlogPost, SiteSettings, UserProgress, TestResult, ExamResult, Certificate } from "./types";
+import type { BlogPost, SiteSettings, UserProgress, TestResult, ExamResult, Certificate, PopupSettings } from "./types";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -74,6 +75,21 @@ export async function getSiteSettings(): Promise<SiteSettings | null> {
         return null;
     }
 }
+
+export async function getPopupSettings(): Promise<PopupSettings | null> {
+    try {
+        const docRef = doc(db, 'site_settings', 'salesPopup');
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            return docSnap.data() as PopupSettings;
+        }
+        return null;
+    } catch (error) {
+        console.error("Error fetching popup settings:", error);
+        return null;
+    }
+}
+
 
 export async function getUserProgress(userId: string): Promise<UserProgress | null> {
     if (!userId) return null;

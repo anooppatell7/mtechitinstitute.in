@@ -6,10 +6,15 @@ import ContactPreview from "@/components/homepage/contact-preview";
 import FeaturedCourses from "@/components/homepage/featured-courses";
 import Testimonials from "@/components/homepage/testimonials";
 import SectionDivider from "@/components/section-divider";
+import { getPopupSettings } from "@/lib/firebase";
+import SalesPopup from "@/components/sales-popup";
 
-export default function Home() {
+export default async function Home() {
+  const popupSettings = await getPopupSettings();
+
   return (
     <>
+      {popupSettings?.isVisible && <SalesPopup settings={popupSettings} />}
       <Hero />
       <div className="relative">
         <About />

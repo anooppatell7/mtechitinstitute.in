@@ -1,4 +1,5 @@
 
+
 import type { HowTo, FAQPage } from 'schema-dts';
 
 export type InternalLink = {
@@ -81,6 +82,17 @@ export type SiteSettings = {
     link: string;
     isVisible: boolean;
 }
+
+export type PopupSettings = {
+    id: 'salesPopup';
+    isVisible: boolean;
+    title: string;
+    description: string;
+    imageUrl: string;
+    ctaText: string;
+    ctaLink: string;
+};
+
 
 export type QuizQuestion = {
   question: string;

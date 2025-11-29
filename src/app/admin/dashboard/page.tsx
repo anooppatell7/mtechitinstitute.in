@@ -1,11 +1,12 @@
 
 
+
 "use client";
 
 import Link from "next/link";
 import React, { useState, useEffect, use } from "react";
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { PlusCircle, MoreHorizontal, LogOut, Trash, Edit, Settings, FileText, MessageSquare, Briefcase, Link2, Megaphone, Star, Upload, BookOpen, Layers, ChevronDown, ListTodo, BookCopy, UserCheck, Award } from "lucide-react";
+import { PlusCircle, MoreHorizontal, LogOut, Trash, Edit, Settings, FileText, MessageSquare, Briefcase, Link2, Megaphone, Star, Upload, BookOpen, Layers, ChevronDown, ListTodo, BookCopy, UserCheck, Award, Tv } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -69,7 +70,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import Logo from "@/components/logo";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import type { Course, BlogPost, Resource, Enrollment, ContactSubmission, InternalLink, SiteSettings, Review, LearningCourse, LearningModule, Lesson, MockTest, TestQuestion, TestCategory, ExamRegistration, ExamResult, Certificate } from "@/lib/types";
+import type { Course, BlogPost, Resource, Enrollment, ContactSubmission, InternalLink, SiteSettings, Review, LearningCourse, LearningModule, Lesson, MockTest, TestQuestion, TestCategory, ExamRegistration, ExamResult, Certificate, PopupSettings } from "@/lib/types";
 import { auth, db } from "@/lib/firebase";
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, setDoc, Timestamp, where, arrayUnion, arrayRemove, getDoc, writeBatch } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
@@ -104,6 +105,8 @@ export default function AdminDashboardPage() {
 
     // Site settings state
     const [siteSettings, setSiteSettings] = useState<SiteSettings>({ id: 'announcement', text: '', link: '', isVisible: false });
+    const [popupSettings, setPopupSettings] = useState<PopupSettings>({ id: 'salesPopup', isVisible: false, title: '', description: '', imageUrl: '', ctaText: '', ctaLink: '' });
+
 
     // Internal linking state
     const [allBlogPostsForLinks, setAllBlogPostsForLinks] = useState<BlogPost[]>([]);
@@ -244,6 +247,11 @@ export default function AdminDashboardPage() {
             if (announcementDoc.exists()) {
                 setSiteSettings(announcementDoc.data() as SiteSettings);
             }
+            const popupDoc = await getDoc(doc(db, "site_settings", "salesPopup"));
+            if (popupDoc.exists()) {
+                setPopupSettings(popupDoc.data() as PopupSettings);
+            }
+
 
         } catch (error) {
             console.error("Error fetching data: ", error);
@@ -625,9 +633,18 @@ export default function AdminDashboardPage() {
         const { name, value } = e.target;
         setSiteSettings({ ...siteSettings, [name]: value });
     };
+    
+    const handlePopupSettingsChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+        setPopupSettings({ ...popupSettings, [name]: value });
+    };
 
     const handleSiteSettingsSwitchChange = (checked: boolean) => {
         setSiteSettings({ ...siteSettings, isVisible: checked });
+    };
+
+    const handlePopupSwitchChange = (checked: boolean) => {
+        setPopupSettings({ ...popupSettings, isVisible: checked });
     };
     
     const handleApprovalChange = async (reviewId: string, isApproved: boolean) => {
@@ -653,6 +670,18 @@ export default function AdminDashboardPage() {
         } catch (error) {
             console.error("Error updating site settings:", error);
             toast({ title: "Error", description: "Could not update site settings.", variant: "destructive" });
+        }
+    };
+    
+    const handlePopupSettingsSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!db) return;
+        try {
+            await setDoc(doc(db, "site_settings", "salesPopup"), popupSettings, { merge: true });
+            toast({ title: "Success", description: "Popup settings updated successfully." });
+        } catch (error) {
+            console.error("Error updating popup settings:", error);
+            toast({ title: "Error", description: "Could not update popup settings.", variant: "destructive" });
         }
     };
 
@@ -1139,13 +1168,14 @@ export default function AdminDashboardPage() {
                                     <TabsTrigger value="internal-links"><Link2 className="mr-2 h-4 w-4"/>Internal Links</TabsTrigger>
                                     <TabsTrigger value="enrollments"><FileText className="mr-2 h-4 w-4"/>Enrollments</TabsTrigger>
                                     <TabsTrigger value="contacts"><MessageSquare className="mr-2 h-4 w-4"/>Contacts</TabsTrigger>
-                                    <TabsTrigger value="site-settings"><Megaphone className="mr-2 h-4 w-4"/>Site Settings</TabsTrigger>
+                                    <TabsTrigger value="site-settings"><Megaphone className="mr-2 h-4 w-4"/>Announcements</TabsTrigger>
+                                    <TabsTrigger value="popup-settings"><Tv className="mr-2 h-4 w-4"/>Popup</TabsTrigger>
                                     <TabsTrigger value="settings"><Settings className="mr-2 h-4 w-4"/>Settings</TabsTrigger>
                                 </TabsList>
                                 <ScrollBar orientation="horizontal" />
                             </ScrollArea>
                              <div className="ml-auto flex items-center gap-2 pl-4">
-                                {activeTab !== 'settings' && activeTab !== 'site-settings' && activeTab !== 'enrollments' && activeTab !== 'contacts' && activeTab !== 'internal-links' && activeTab !== 'reviews' && activeTab !== 'exam-registrations' && activeTab !== 'exam-results' && activeTab !== 'certificates' && (
+                                {activeTab !== 'settings' && activeTab !== 'site-settings' && activeTab !== 'popup-settings' && activeTab !== 'enrollments' && activeTab !== 'contacts' && activeTab !== 'internal-links' && activeTab !== 'reviews' && activeTab !== 'exam-registrations' && activeTab !== 'exam-results' && activeTab !== 'certificates' && (
                                 <Button size="sm" className="h-8 gap-1" onClick={() => handleAddNew()}>
                                     <PlusCircle className="h-3.5 w-3.5" />
                                     <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
@@ -1969,15 +1999,11 @@ export default function AdminDashboardPage() {
                         <TabsContent value="site-settings">
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Site Settings</CardTitle>
-                                    <CardDescription>Manage global settings for your website, like the announcement bar.</CardDescription>
+                                    <CardTitle>Announcement Bar</CardTitle>
+                                    <CardDescription>Manage the announcement bar that appears at the top of your site.</CardDescription>
                                 </CardHeader>
                                 <CardContent>
                                     <form onSubmit={handleSiteSettingsSubmit} className="space-y-6 max-w-lg">
-                                        <div>
-                                            <h3 className="text-lg font-medium">Announcement Bar</h3>
-                                            <p className="text-sm text-muted-foreground">This bar will appear at the top of your site.</p>
-                                        </div>
                                         <div className="grid gap-2">
                                             <Label htmlFor="announcementText">Announcement Text</Label>
                                             <Textarea id="announcementText" name="text" value={siteSettings.text} onChange={handleSiteSettingsChange} placeholder="E.g., ✨ New batches starting soon! 20% off on all courses." />
@@ -1991,7 +2017,44 @@ export default function AdminDashboardPage() {
                                             <Label htmlFor="announcementVisibility">Show Announcement Bar</Label>
                                         </div>
 
-                                        <Button type="submit">Save Site Settings</Button>
+                                        <Button type="submit">Save Settings</Button>
+                                    </form>
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+                        <TabsContent value="popup-settings">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Sales & Event Popup</CardTitle>
+                                    <CardDescription>Manage the promotional popup on the homepage. It appears once per session for visitors.</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <form onSubmit={handlePopupSettingsSubmit} className="space-y-6 max-w-lg">
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="popupTitle">Popup Title</Label>
+                                            <Input id="popupTitle" name="title" value={popupSettings.title} onChange={handlePopupSettingsChange} placeholder="e.g., Black Friday Sale!" />
+                                        </div>
+                                         <div className="grid gap-2">
+                                            <Label htmlFor="popupDescription">Description</Label>
+                                            <Textarea id="popupDescription" name="description" value={popupSettings.description} onChange={handlePopupSettingsChange} placeholder="Get 50% off on all courses. Limited time offer!" />
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="popupImageUrl">Background Image URL</Label>
+                                            <Input id="popupImageUrl" name="imageUrl" value={popupSettings.imageUrl} onChange={handlePopupSettingsChange} placeholder="https://example.com/sale-image.png" />
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="popupCtaText">Button Text</Label>
+                                            <Input id="popupCtaText" name="ctaText" value={popupSettings.ctaText} onChange={handlePopupSettingsChange} placeholder="e.g., View Courses" />
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="popupCtaLink">Button Link</Label>
+                                            <Input id="popupCtaLink" name="ctaLink" value={popupSettings.ctaLink} onChange={handlePopupSettingsChange} placeholder="e.g., /courses" />
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <Switch id="popupVisibility" name="isVisible" checked={popupSettings.isVisible} onCheckedChange={handlePopupSwitchChange} />
+                                            <Label htmlFor="popupVisibility">Show Popup on Homepage</Label>
+                                        </div>
+                                        <Button type="submit">Save Popup Settings</Button>
                                     </form>
                                 </CardContent>
                             </Card>
