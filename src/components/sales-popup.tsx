@@ -4,12 +4,13 @@
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { X, Rocket, BrainCircuit } from 'lucide-react';
+import { X, Rocket, BrainCircuit, Sparkles, Database } from 'lucide-react';
 import Link from 'next/link';
 import type { PopupSettings } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import Image from 'next/image';
 
-const POPUP_DISMISSED_KEY = 'salesPopupDismissed_v4'; // Update key to re-show for all users
+const POPUP_DISMISSED_KEY = 'salesPopupDismissed_v4';
 
 const CircuitLine = ({ className }: { className?: string }) => (
     <svg className={cn("absolute w-full h-auto text-blue-400/20 pointer-events-none", className)} viewBox="0 0 400 100" preserveAspectRatio="none">
@@ -49,7 +50,6 @@ export default function SalesPopup({ settings }: { settings: PopupSettings }) {
       <DialogContent 
         className="sm:max-w-md w-[95%] p-0 overflow-hidden text-white border-2 border-blue-500/20 shadow-2xl rounded-2xl bg-[#0d1a3a]"
         onInteractOutside={handleClose}
-        hideCloseButton // We use a custom close button
       >
         <div className="relative isolate overflow-hidden p-8 pt-10 text-center bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/40 via-[#0d1a3a] to-[#0d1a3a]">
             {/* Custom Close Button */}
@@ -65,13 +65,18 @@ export default function SalesPopup({ settings }: { settings: PopupSettings }) {
             <CircuitLine className="top-0 left-0 opacity-50" />
             <CircuitLine className="bottom-0 left-0 transform scale-y-[-1] opacity-50" />
             
+            {/* Floating Icons */}
+            <Sparkles className="absolute top-8 left-8 h-8 w-8 text-blue-400/50 animate-pulse" />
+            <code className="absolute top-12 right-8 text-2xl font-mono text-purple-400/40 opacity-50">&lt;/&gt;</code>
+            <Database className="absolute bottom-8 left-12 h-8 w-8 text-green-400/30 animate-pulse" />
+            
             {/* Content */}
             <div className="flex flex-col items-center">
-                 <div className="relative mb-4">
+                <div className="relative mb-4">
                     <div className="absolute -inset-4 bg-blue-500/30 rounded-full blur-2xl animate-pulse"></div>
-                    <BrainCircuit className="h-20 w-20 text-blue-300 drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]" />
+                    <Image src="https://res.cloudinary.com/dzr4xjizf/image/upload/v1757138798/mtechlogo_1_wsdhhx.png" alt="MTech IT Institute Logo" width={80} height={80} className="drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]" />
                 </div>
-
+                
                 <h2 className="font-headline text-3xl font-bold uppercase tracking-wider drop-shadow-sm">
                   <span className="block">{settings.title || 'BLACK FRIDAY SALE!'} is</span>
                   <span className="block text-5xl text-blue-300 mt-1">LIVE</span>
