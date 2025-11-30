@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { X, Rocket, BrainCircuit, Sparkles, Database } from 'lucide-react';
+import { X, Rocket, Sparkles, Database } from 'lucide-react';
 import Link from 'next/link';
 import type { PopupSettings } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -70,8 +70,7 @@ export default function SalesPopup({ settings }: { settings: PopupSettings }) {
                 </div>
                 
                 <h2 className="font-headline text-3xl font-bold uppercase tracking-wider drop-shadow-sm">
-                  <span className="block">{settings.title || 'BLACK FRIDAY SALE!'} is</span>
-                  <span className="block text-5xl text-blue-300 mt-1">LIVE</span>
+                  {settings.title || 'BLACK FRIDAY SALE!'}
                 </h2>
                 
                 <p className="mt-4 text-base text-blue-200/80">
