@@ -52,14 +52,6 @@ export default function SalesPopup({ settings }: { settings: PopupSettings }) {
         onInteractOutside={handleClose}
       >
         <div className="relative isolate overflow-hidden p-8 pt-10 text-center bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/40 via-[#0d1a3a] to-[#0d1a3a]">
-            {/* Custom Close Button */}
-             <button
-                onClick={handleClose}
-                className="absolute top-3 right-3 h-7 w-7 rounded-md bg-white/10 flex items-center justify-center text-blue-300 hover:bg-white/20 transition-colors z-20"
-                aria-label="Close"
-            >
-                <X className="h-5 w-5" />
-            </button>
             
             {/* Background Decorations */}
             <CircuitLine className="top-0 left-0 opacity-50" />
@@ -74,7 +66,7 @@ export default function SalesPopup({ settings }: { settings: PopupSettings }) {
             <div className="flex flex-col items-center">
                 <div className="relative mb-4">
                     <div className="absolute -inset-4 bg-blue-500/30 rounded-full blur-2xl animate-pulse"></div>
-                    <Image src="https://res.cloudinary.com/dzr4xjizf/image/upload/v1757138798/mtechlogo_1_wsdhhx.png" alt="MTech IT Institute Logo" width={80} height={80} className="drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]" />
+                    <Image src={settings.imageUrl || "https://res.cloudinary.com/dzr4xjizf/image/upload/v1757138798/mtechlogo_1_wsdhhx.png"} alt="MTech IT Institute" width={80} height={80} className="drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]" />
                 </div>
                 
                 <h2 className="font-headline text-3xl font-bold uppercase tracking-wider drop-shadow-sm">
