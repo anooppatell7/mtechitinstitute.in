@@ -20,7 +20,7 @@ export default function Hero() {
           <Button
             asChild
             size="lg"
-            className="bg-gradient-to-r from-purple-600 to-blue-500 text-white hover:opacity-90 transition-all transform hover:scale-105 rounded-full px-8 py-6 text-base font-semibold shadow-lg shadow-blue-500/30"
+            className="h-auto bg-gradient-to-r from-purple-600 to-blue-500 text-white hover:opacity-90 transition-all transform hover:scale-105 rounded-full px-8 py-4 text-base font-semibold shadow-lg shadow-blue-500/30"
           >
             <Link href="/learn">
                 Start Learning
@@ -31,13 +31,13 @@ export default function Hero() {
             asChild
             size="lg"
             variant="outline"
-            className="rounded-full border-2 border-white bg-transparent text-white shadow-lg backdrop-blur-sm transition-colors hover:bg-white/20 hover:text-white px-8 py-6 text-base font-semibold"
+            className="h-auto rounded-full border-2 border-white bg-transparent text-white shadow-lg backdrop-blur-sm transition-colors hover:bg-white/20 hover:text-white px-8 py-4 text-base font-semibold"
           >
             <Link href="/courses">View Courses</Link>
           </Button>
         </div>
 
-        <div className="mt-10 flex flex-wrap justify-center gap-6">
+        <div className="mt-10 flex flex-wrap justify-center gap-x-6 gap-y-2">
             <div className="flex items-center gap-2 text-sm font-medium text-white">
                 <Award className="h-5 w-5 text-green-300" />
                 <span>20+ Years Of Experience</span>
