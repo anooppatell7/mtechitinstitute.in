@@ -1,7 +1,7 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Award, Users, Briefcase } from "lucide-react";
+import { Award, Users, Briefcase, Rocket } from "lucide-react";
 import SectionDivider from "../section-divider";
 
 export default function Hero() {
@@ -20,9 +20,12 @@ export default function Hero() {
           <Button
             asChild
             size="lg"
-            className="rounded-xl bg-white text-indigo-600 shadow-lg transition-transform hover:scale-105 hover:bg-indigo-100"
+            className="bg-gradient-to-r from-purple-600 to-blue-500 text-white hover:opacity-90 transition-all transform hover:scale-105 rounded-full px-8 py-6 text-base font-semibold shadow-lg shadow-blue-500/30"
           >
-            <Link href="/learn">Start Learning</Link>
+            <Link href="/learn">
+                Start Learning
+                <Rocket className="ml-2 h-5 w-5" />
+            </Link>
           </Button>
           <Button
             asChild
@@ -54,4 +57,3 @@ export default function Hero() {
     </section>
   );
 }
-
