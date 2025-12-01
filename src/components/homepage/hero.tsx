@@ -31,7 +31,7 @@ export default function Hero() {
             asChild
             size="lg"
             variant="outline"
-            className="rounded-xl border-2 border-white bg-transparent text-white shadow-lg backdrop-blur-sm transition-colors hover:bg-white/20 hover:text-white"
+            className="rounded-full border-2 border-white bg-transparent text-white shadow-lg backdrop-blur-sm transition-colors hover:bg-white/20 hover:text-white px-8 py-6 text-base font-semibold"
           >
             <Link href="/courses">View Courses</Link>
           </Button>
