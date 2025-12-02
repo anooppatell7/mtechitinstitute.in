@@ -3,6 +3,7 @@
 
 
 
+
 "use client";
 
 import Link from "next/link";
@@ -73,7 +74,7 @@ import Logo from "@/components/logo";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import type { Course, BlogPost, Resource, Enrollment, ContactSubmission, InternalLink, SiteSettings, Review, LearningCourse, LearningModule, Lesson, MockTest, TestQuestion, TestCategory, ExamRegistration, ExamResult, Certificate, PopupSettings } from "@/lib/types";
-import { auth, db } from "@/lib/firebase";
+import { db } from "@/lib/firebase";
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, setDoc, Timestamp, where, arrayUnion, arrayRemove, getDoc, writeBatch } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { signOut, updateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
@@ -82,12 +83,14 @@ import { cn } from "@/lib/utils";
 import coursesData from "@/lib/data/courses.json";
 import marketingCoursesData from "@/lib/data/marketing-courses.json";
 import type { Metadata } from 'next';
+import { useAuth } from "@/firebase";
 
 
 type ItemType = 'courses' | 'blog' | 'guidance' | 'resources' | 'settings' | 'enrollments' | 'contacts' | 'internal-links' | 'site-settings' | 'reviews' | 'learningCourse' | 'learningModule' | 'learningLesson' | 'mockTest' | 'testQuestion' | 'testCategory' | 'examRegistration' | 'examResult' | 'certificate';
 
 export default function AdminDashboardPage() {
-    const [user, authLoading, authError] = useAuthState(auth);
+    const auth = useAuth();
+    const [user, authLoading, authError] = useAuthState(auth!);
     const router = useRouter();
     const [courses, setCourses] = useState<Course[]>([]);
     const [learningCourses, setLearningCourses] = useState<LearningCourse[]>([]);
@@ -290,16 +293,15 @@ export default function AdminDashboardPage() {
         setDialogOpen(true);
     }
     
-    const handleMarkAsRead = async (type: 'enrollments' | 'examRegistration', id: string) => {
+    const handleMarkAsRead = async (type: 'enrollments' | 'examRegistrations', id: string) => {
         if (!db) return;
         try {
             const docRef = doc(db, type, id);
             await updateDoc(docRef, { isRead: true });
             
-            // Optimistically update the UI
             if (type === 'enrollments') {
                 setEnrollments(prev => prev.map(item => item.id === id ? { ...item, isRead: true } : item));
-            } else if (type === 'examRegistration') {
+            } else if (type === 'examRegistrations') {
                 setExamRegistrations(prev => prev.map(item => item.id === id ? { ...item, isRead: true } : item));
             }
         } catch (error) {
@@ -777,14 +779,14 @@ export default function AdminDashboardPage() {
             toast({ title: "Error", description: "Database not initialized.", variant: "destructive" });
             return;
         }
-        if (!confirm("Are you sure you want to upload all static content to Firestore? This will overwrite existing courses with the same IDs.")) {
+        if (!confirm("Are you sure you want to upload all static content to Firestore? This will overwrite existing data with the same IDs.")) {
             return;
         }
         
         try {
             const batch = writeBatch(db);
 
-            // Upload Learning Courses
+            // Upload Learning Courses from courses.json
             for (const course of coursesData) {
                 const courseRef = doc(db, "learningCourses", course.id);
                 const courseDocData = { ...course };
@@ -804,9 +806,8 @@ export default function AdminDashboardPage() {
                 }
             }
             
-            // Upload Marketing Courses
+            // Upload Marketing Courses from marketing-courses.json
             for (const course of marketingCoursesData) {
-                // Use addDoc to get an auto-generated ID from Firestore
                 const courseRef = doc(collection(db, "courses"));
                 batch.set(courseRef, course);
             }
@@ -816,7 +817,7 @@ export default function AdminDashboardPage() {
             await fetchData(); // Refresh data in the dashboard
 
         } catch (error) {
-            console.error("Error uploading learning content:", error);
+            console.error("Error uploading content:", error);
             toast({ title: "Error", description: "Could not upload content.", variant: "destructive" });
         }
     };
@@ -1514,6 +1515,11 @@ export default function AdminDashboardPage() {
                                         </div>
                                     )}
                                 </CardContent>
+                                 <CardFooter>
+                                    <Button onClick={handleUploadLearnContent} variant="outline">
+                                        <Upload className="mr-2 h-4 w-4"/> Upload All Static Content
+                                    </Button>
+                                </CardFooter>
                             </Card>
                         </TabsContent>
                          <TabsContent value="test-categories">
@@ -1705,7 +1711,7 @@ export default function AdminDashboardPage() {
                                             </TableHeader>
                                             <TableBody>
                                                 {examRegistrations.map(reg => (
-                                                    <TableRow key={reg.id} onClick={() => !reg.isRead && handleMarkAsRead('examRegistration', reg.id)} className={cn(!reg.isRead && "bg-blue-50 hover:bg-blue-100/80")}>
+                                                    <TableRow key={reg.id} onClick={() => !reg.isRead && handleMarkAsRead('examRegistrations', reg.id)} className={cn(!reg.isRead && "bg-blue-50 hover:bg-blue-100/80")}>
                                                         <TableCell className="font-mono">{reg.registrationNumber}</TableCell>
                                                         <TableCell className="font-medium flex items-center gap-2">
                                                             {!reg.isRead && <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse"></span>}
