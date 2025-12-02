@@ -57,6 +57,7 @@ export type Enrollment = {
   phone: string;
   message: string;
   submittedAt: string;
+  isRead: boolean;
 };
 
 export type ContactSubmission = {
@@ -200,6 +201,7 @@ export type ExamRegistration = {
   state: string;
   pinCode: string;
   registeredAt: any; // Firestore Timestamp
+  isRead: boolean;
 };
 
 export type ExamResult = {

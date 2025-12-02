@@ -153,6 +153,7 @@ export default function ExamRegistrationPage() {
                 dob: format(data.dob, 'yyyy-MM-dd'),
                 registrationNumber: newRegNumber,
                 registeredAt: serverTimestamp(),
+                isRead: false,
             };
 
             await setDoc(doc(db, "examRegistrations", user.uid), registrationData);

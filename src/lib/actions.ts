@@ -1,4 +1,5 @@
 
+
 "use server";
 
 import { z } from "zod";
@@ -82,6 +83,7 @@ export async function submitEnrollmentForm(
     const enrollmentData = {
       ...parsed.data,
       submittedAt: serverTimestamp(),
+      isRead: false,
     };
     await addDoc(collection(db, "enrollments"), enrollmentData);
     

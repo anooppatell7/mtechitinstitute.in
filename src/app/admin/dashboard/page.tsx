@@ -1,6 +1,8 @@
 
 
 
+
+
 "use client";
 
 import Link from "next/link";
@@ -286,6 +288,24 @@ export default function AdminDashboardPage() {
     const openLinkDeleteDialog = (postSlug: string, link: InternalLink) => {
         setLinkToDelete({ postSlug, link });
         setDialogOpen(true);
+    }
+    
+    const handleMarkAsRead = async (type: 'enrollments' | 'examRegistration', id: string) => {
+        if (!db) return;
+        try {
+            const docRef = doc(db, type, id);
+            await updateDoc(docRef, { isRead: true });
+            
+            // Optimistically update the UI
+            if (type === 'enrollments') {
+                setEnrollments(prev => prev.map(item => item.id === id ? { ...item, isRead: true } : item));
+            } else if (type === 'examRegistration') {
+                setExamRegistrations(prev => prev.map(item => item.id === id ? { ...item, isRead: true } : item));
+            }
+        } catch (error) {
+            console.error(`Error marking ${type} as read:`, error);
+            toast({ title: "Error", description: "Could not update status.", variant: "destructive" });
+        }
     }
 
 
@@ -1137,6 +1157,10 @@ export default function AdminDashboardPage() {
     }
 
 
+    const unreadEnrollments = enrollments.filter(e => !e.isRead).length;
+    const unreadRegistrations = examRegistrations.filter(r => !r.isRead).length;
+
+
     return (
         <>
             <div className="flex min-h-screen w-full flex-col bg-muted/40">
@@ -1162,11 +1186,17 @@ export default function AdminDashboardPage() {
                                     <TabsTrigger value="test-categories"><BookCopy className="mr-2 h-4 w-4"/>Test Categories</TabsTrigger>
                                     <TabsTrigger value="mock-tests"><ListTodo className="mr-2 h-4 w-4" />Mock Tests</TabsTrigger>
                                     <TabsTrigger value="reviews"><Star className="mr-2 h-4 w-4" />Reviews</TabsTrigger>
-                                    <TabsTrigger value="exam-registrations"><UserCheck className="mr-2 h-4 w-4"/>Exam Registrations</TabsTrigger>
+                                    <TabsTrigger value="exam-registrations" className="relative">
+                                        <UserCheck className="mr-2 h-4 w-4"/>Exam Registrations
+                                        {unreadRegistrations > 0 && <Badge className="absolute -top-2 -right-2 h-5 w-5 justify-center p-0">{unreadRegistrations}</Badge>}
+                                    </TabsTrigger>
                                     <TabsTrigger value="exam-results"><FileText className="mr-2 h-4 w-4"/>Exam Results</TabsTrigger>
                                     <TabsTrigger value="certificates"><Award className="mr-2 h-4 w-4" />Certificates</TabsTrigger>
                                     <TabsTrigger value="internal-links"><Link2 className="mr-2 h-4 w-4"/>Internal Links</TabsTrigger>
-                                    <TabsTrigger value="enrollments"><FileText className="mr-2 h-4 w-4"/>Enrollments</TabsTrigger>
+                                    <TabsTrigger value="enrollments" className="relative">
+                                        <FileText className="mr-2 h-4 w-4"/>Enrollments
+                                        {unreadEnrollments > 0 && <Badge className="absolute -top-2 -right-2 h-5 w-5 justify-center p-0">{unreadEnrollments}</Badge>}
+                                    </TabsTrigger>
                                     <TabsTrigger value="contacts"><MessageSquare className="mr-2 h-4 w-4"/>Contacts</TabsTrigger>
                                     <TabsTrigger value="site-settings"><Megaphone className="mr-2 h-4 w-4"/>Announcements</TabsTrigger>
                                     <TabsTrigger value="popup-settings"><Tv className="mr-2 h-4 w-4"/>Popup</TabsTrigger>
@@ -1675,9 +1705,12 @@ export default function AdminDashboardPage() {
                                             </TableHeader>
                                             <TableBody>
                                                 {examRegistrations.map(reg => (
-                                                    <TableRow key={reg.id}>
+                                                    <TableRow key={reg.id} onClick={() => !reg.isRead && handleMarkAsRead('examRegistration', reg.id)} className={cn(!reg.isRead && "bg-blue-50 hover:bg-blue-100/80")}>
                                                         <TableCell className="font-mono">{reg.registrationNumber}</TableCell>
-                                                        <TableCell className="font-medium">{reg.fullName}</TableCell>
+                                                        <TableCell className="font-medium flex items-center gap-2">
+                                                            {!reg.isRead && <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse"></span>}
+                                                            {reg.fullName}
+                                                        </TableCell>
                                                         <TableCell>{reg.course}</TableCell>
                                                         <TableCell className="hidden md:table-cell">{reg.phone}</TableCell>
                                                         <TableCell className="hidden md:table-cell">{reg.registeredAt}</TableCell>
@@ -1802,8 +1835,8 @@ export default function AdminDashboardPage() {
                                                         </TableRow>
                                                     ))}
                                                 </TableBody>
-                                            </Table>
-                                             <ScrollBar orientation="horizontal" />
+                                             </Table>
+                                            <ScrollBar orientation="horizontal" />
                                         </ScrollArea>
                                     )}
                                 </CardContent>
@@ -1907,8 +1940,11 @@ export default function AdminDashboardPage() {
                                             </TableHeader>
                                             <TableBody>
                                                 {enrollments.map(enrollment => (
-                                                    <TableRow key={enrollment.id}>
-                                                        <TableCell className="font-medium">{enrollment.name}</TableCell>
+                                                    <TableRow key={enrollment.id} onClick={() => !enrollment.isRead && handleMarkAsRead('enrollments', enrollment.id)} className={cn(!enrollment.isRead && "bg-blue-50 hover:bg-blue-100/80")}>
+                                                        <TableCell className="font-medium flex items-center gap-2">
+                                                          {!enrollment.isRead && <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse"></span>}
+                                                          {enrollment.name}
+                                                        </TableCell>
                                                         <TableCell className="hidden sm:table-cell">{enrollment.email}</TableCell>
                                                          <TableCell className="hidden md:table-cell">{enrollment.phone}</TableCell>
                                                         <TableCell>{enrollment.submittedAt}</TableCell>
