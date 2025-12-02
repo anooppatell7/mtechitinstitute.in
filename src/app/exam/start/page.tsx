@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -15,23 +15,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, User } from 'lucide-react';
+import { Loader2, User, BookOpen } from 'lucide-react';
 import SectionDivider from '@/components/section-divider';
 
 const validationSchema = z.object({
   registrationNumber: z.string().min(5, "Please enter a valid registration number."),
 });
 
-const testSelectionSchema = z.object({
-  testId: z.string().min(1, "Please select a test to start.")
-});
-
 export default function StartExamPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [studentDetails, setStudentDetails] = useState<ExamRegistration | null>(null);
-  const [availableTests, setAvailableTests] = useState<MockTest[]>([]);
-  const [selectedTestId, setSelectedTestId] = useState<string>('');
+  const [availableTest, setAvailableTest] = useState<MockTest | null>(null);
   
   const { toast } = useToast();
   const router = useRouter();
@@ -43,7 +37,7 @@ export default function StartExamPage() {
   const onVerify: (data: { registrationNumber: string }) => void = async ({ registrationNumber }) => {
     setIsLoading(true);
     setStudentDetails(null);
-    setAvailableTests([]);
+    setAvailableTest(null);
 
     try {
       const q = query(
@@ -63,13 +57,23 @@ export default function StartExamPage() {
         const studentData = { id: querySnapshot.docs[0].id, ...querySnapshot.docs[0].data() } as ExamRegistration;
         setStudentDetails(studentData);
         
-        // Fetch available tests
-        const testsQuery = query(collection(db, "mockTests"), where("isPublished", "==", true), where("categoryName", "==", "Student Exam"));
+        // Fetch the specific test available for the student's course
+        const testsQuery = query(
+            collection(db, "mockTests"), 
+            where("isPublished", "==", true), 
+            where("categoryName", "==", "Student Exam"),
+            where("title", "==", studentData.course),
+            limit(1)
+        );
         const testsSnapshot = await getDocs(testsQuery);
-        const tests = testsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as MockTest));
-        setAvailableTests(tests);
         
-        toast({ title: "Verification Successful", description: "Please confirm your details and select a test." });
+        if (testsSnapshot.empty) {
+            toast({ title: "No Exam Found", description: "There is no exam available for your registered course at the moment.", variant: "destructive" });
+        } else {
+            const test = { id: testsSnapshot.docs[0].id, ...testsSnapshot.docs[0].data() } as MockTest;
+            setAvailableTest(test);
+            toast({ title: "Verification Successful", description: "Please confirm your details and start the exam." });
+        }
       }
     } catch (error) {
       console.error("Verification failed:", error);
@@ -80,8 +84,8 @@ export default function StartExamPage() {
   };
 
   const handleStartTest = () => {
-    if (!selectedTestId) {
-        toast({ title: "No Test Selected", description: "Please select a test from the dropdown.", variant: "destructive"});
+    if (!availableTest) {
+        toast({ title: "No Exam Available", description: "There is no exam for you to start.", variant: "destructive"});
         return;
     }
     if (!studentDetails) {
@@ -93,7 +97,7 @@ export default function StartExamPage() {
         regNo: studentDetails.registrationNumber,
         studentName: studentDetails.fullName
     });
-    router.push(`/mock-tests/${selectedTestId}?${params.toString()}`);
+    router.push(`/mock-tests/${availableTest.id}?${params.toString()}`);
   };
 
   return (
@@ -152,24 +156,24 @@ export default function StartExamPage() {
                                         </div>
                                     </CardContent>
                                 </Card>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="testSelection">Select Test</Label>
-                                     <Select onValueChange={setSelectedTestId} value={selectedTestId}>
-                                        <SelectTrigger id="testSelection">
-                                            <SelectValue placeholder="Choose a test to start" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {availableTests.map(test => (
-                                                <SelectItem key={test.id} value={test.id}>{test.title}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
+                                
+                                {availableTest ? (
+                                    <div className="space-y-4">
+                                         <Label>Selected Exam</Label>
+                                         <div className="flex items-center gap-3 rounded-md border bg-background p-4">
+                                             <BookOpen className="h-5 w-5 text-accent" />
+                                             <span className="font-semibold text-primary">{availableTest.title}</span>
+                                         </div>
+                                    </div>
+                                ) : (
+                                    <div className="text-center text-muted-foreground p-4 border border-dashed rounded-md">
+                                        No exam is currently available for your registered course.
+                                    </div>
+                                )}
                                 
                                 <div className="flex flex-col sm:flex-row gap-4">
                                      <Button variant="outline" className="w-full" onClick={() => setStudentDetails(null)}>Back</Button>
-                                     <Button className="w-full" onClick={handleStartTest}>Start Exam</Button>
+                                     <Button className="w-full" onClick={handleStartTest} disabled={!availableTest}>Start Exam</Button>
                                 </div>
                             </div>
                         )}
