@@ -1,3 +1,4 @@
+
 import Image from "next/image";
 import Link from "next/link";
 import { Phone, Mail, MapPin } from "lucide-react";
@@ -48,15 +49,17 @@ export default function ContactPreview() {
                 </Button>
             </div>
           </div>
-          <div className="rounded-lg overflow-hidden shadow-lg">
-            <Image
-              src="https://res.cloudinary.com/dzr4xjizf/image/upload/v1757137831/map1_gah3hr.png"
-              alt="Map showing location of MTech IT Institute"
-              data-ai-hint="map location"
-              width={800}
-              height={600}
-              className="w-full h-auto"
-            />
+          <div className="rounded-lg overflow-hidden shadow-lg border">
+            <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3591.319152288344!2d82.2033033750868!3d25.826207477313364!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x399a6015560731a5%3A0x8e83b6b3c668615!2sMTech%20IT%20Institute%20-%20Best%20Computer%20Institute%20in%20Patti%2C%20Pratapgarh!5e0!3m2!1sen!2sin!4v1758500057404!5m2!1sen!2sin"
+                width="100%"
+                height="450"
+                style={{ border: 0 }}
+                allowFullScreen={true}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                title="MTech IT Institute Location Map"
+            ></iframe>
           </div>
         </div>
       </div>
