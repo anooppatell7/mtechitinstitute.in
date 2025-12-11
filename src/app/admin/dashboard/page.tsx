@@ -7,6 +7,7 @@
 
 
 
+
 "use client";
 
 import Link from "next/link";
@@ -588,11 +589,11 @@ export default function AdminDashboardPage() {
                 }
             } else if (activeTab === 'test-categories') {
                  collectionRef = collection(db, "testCategories");
-                 docId = (editingItem as any)?.id;
-                 if (!docId) { // For new categories
+                 docId = (editingItem as any)?.id || dataToSave.id; // Use existing id or form id
+                 if (!docId) { // For new categories, generate from title
                      docId = createSlug(dataToSave.title);
                      if (!docId) throw new Error("Category must have a title to generate an ID.");
-                     dataToSave.id = docId;
+                     dataToSave.id = docId; // Ensure the ID is saved with the document
                  }
             } else if (activeTab === 'mock-tests') {
                 if(formParentIds?.testId) { // It's a question
@@ -625,17 +626,20 @@ export default function AdminDashboardPage() {
             if (activeTab !== 'mock-tests' || !formParentIds?.testId) {
                 if (editingItem && docId) {
                     // For test-categories, we use setDoc because the ID (slug) might change
-                    if (activeTab === 'blog' || activeTab === 'guidance' || activeTab === 'test-categories' || (activeTab === 'learn-content' && !formParentIds?.courseId)) {
+                    if (activeTab === 'blog' || activeTab === 'guidance' || (activeTab === 'learn-content' && !formParentIds?.courseId)) {
                          await setDoc(doc(collectionRef, docId), dataToSave);
-                    } else {
+                    } else if (activeTab === 'test-categories') {
+                        // The `id` field is the source of truth, `docId` is the firestore document ID
+                        await setDoc(doc(collectionRef, docId), { ...dataToSave, id: docId });
+                    }
+                    else {
                         await updateDoc(doc(collectionRef, docId), dataToSave);
                     }
                 } else {
                     // For test-categories, the docId is the slug we generate
                     if (activeTab === 'blog' || activeTab === 'guidance' || activeTab === 'learn-content' || activeTab === 'test-categories') {
-                        docId = dataToSave.id || createSlug(dataToSave.title);
                         if (!docId) throw new Error("Slug/ID could not be created for new item.");
-                        dataToSave.id = docId;
+                        dataToSave.id = docId; // Make sure the ID is part of the saved data
                         await setDoc(doc(collectionRef, docId), dataToSave);
                     } else {
                         await addDoc(collectionRef, dataToSave);
@@ -2233,4 +2237,5 @@ export default function AdminDashboardPage() {
         </>
     );
 }
+
 
