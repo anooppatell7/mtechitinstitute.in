@@ -5,6 +5,7 @@
 
 
 
+
 "use client";
 
 import Link from "next/link";
@@ -84,13 +85,17 @@ import { cn } from "@/lib/utils";
 import coursesData from "@/lib/data/courses.json";
 import marketingCoursesData from "@/lib/data/marketing-courses.json";
 import type { Metadata } from 'next';
-import { useAuth } from "@/firebase";
+import { useAuth, useFirestore } from "@/firebase";
+import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
+import { errorEmitter } from '@/firebase/error-emitter';
+
 
 
 type ItemType = 'courses' | 'blog' | 'guidance' | 'resources' | 'settings' | 'enrollments' | 'contacts' | 'internal-links' | 'site-settings' | 'reviews' | 'learningCourse' | 'learningModule' | 'learningLesson' | 'mockTest' | 'testQuestion' | 'testCategory' | 'examRegistration' | 'examResult' | 'certificate';
 
 export default function AdminDashboardPage() {
     const auth = useAuth();
+    const firestore = useFirestore();
     const [user, authLoading, authError] = useAuthState(auth!);
     const router = useRouter();
     const [courses, setCourses] = useState<Course[]>([]);
@@ -709,17 +714,29 @@ export default function AdminDashboardPage() {
         }
     };
 
-    const handleFeatureToggle = async (courseId: string, isFeatured: boolean) => {
-        if (!db) return;
-        try {
-            const courseRef = doc(db, "courses", courseId);
-            await updateDoc(courseRef, { isFeatured });
-            setCourses(courses.map(c => c.id === courseId ? { ...c, isFeatured } : c));
-            toast({ title: "Success", description: `Course feature status updated.` });
-        } catch (error) {
-            console.error("Error updating course feature status:", error);
-            toast({ title: "Error", description: "Could not update course status.", variant: "destructive" });
-        }
+    const handleFeatureToggle = (courseId: string, isFeatured: boolean) => {
+      if (!firestore) return;
+      const courseRef = doc(firestore, 'courses', courseId);
+      const data = { isFeatured };
+  
+      updateDoc(courseRef, data)
+        .then(() => {
+          setCourses((prevCourses) =>
+            prevCourses.map((c) => (c.id === courseId ? { ...c, isFeatured } : c))
+          );
+          toast({
+            title: 'Success',
+            description: `Course feature status updated.`,
+          });
+        })
+        .catch(async (serverError) => {
+          const permissionError = new FirestorePermissionError({
+            path: courseRef.path,
+            operation: 'update',
+            requestResourceData: data,
+          } satisfies SecurityRuleContext);
+          errorEmitter.emit('permission-error', permissionError);
+        });
     };
 
 
