@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useState, useMemo } from "react";
@@ -7,7 +8,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { ArrowRight, FileText, Search, X } from "lucide-react";
 import type { TestCategory } from "@/lib/types";
 import { collection, query, getDocs } from "firebase/firestore";
-import { db } from "@/firebase";
+import { useFirestore } from "@/firebase";
 import { Skeleton } from "@/components/ui/skeleton";
 import SectionDivider from "@/components/section-divider";
 import { Input } from "@/components/ui/input";
@@ -35,12 +36,14 @@ function CategoryLoadingSkeleton() {
 }
 
 export default function MockTestCategoriesPage() {
+    const db = useFirestore();
     const [categories, setCategories] = useState<TestCategory[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
         const fetchCategories = async () => {
+            if (!db) return;
             setIsLoading(true);
             try {
                 const categoriesQuery = query(collection(db, "testCategories"));
@@ -57,7 +60,7 @@ export default function MockTestCategoriesPage() {
         };
 
         fetchCategories();
-    }, []);
+    }, [db]);
     
     const filteredCategories = useMemo(() => {
         if (!searchTerm) {

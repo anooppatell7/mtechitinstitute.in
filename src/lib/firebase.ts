@@ -5,26 +5,14 @@ import { getFirestore, collection, query, where, getDocs, orderBy, doc, getDoc, 
 import { getStorage } from "firebase/storage";
 import { getAuth } from "firebase/auth";
 import type { BlogPost, SiteSettings, UserProgress, TestResult, ExamResult, Certificate, PopupSettings } from "./types";
+import { initializeFirebase } from "@/firebase/index";
+
 
 // NOTE: This file is now deprecated in favor of the new src/firebase/index.ts setup.
 // It is kept for reference but new imports should point to the new structure.
 // The core logic has been moved to src/firebase/index.ts and related provider files.
 
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-};
-
-
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-const db = getFirestore(app);
-const auth = getAuth(app);
-const storage = getStorage(app);
+const { db, auth, storage } = initializeFirebase();
 
 
 export async function getBlogPostsByCategory(category: string): Promise<BlogPost[]> {
@@ -128,4 +116,4 @@ export async function saveCertificate(certificateData: Omit<Certificate, 'id'>):
   return docRef.id;
 }
 
-export { app, db, auth, storage };
+export { db, auth, storage };

@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
@@ -45,7 +46,7 @@ export const useLearnProgress = () => {
 
             // Cleanup listener on component unmount or user change
             return () => unsubscribe();
-        } else {
+        } else if (!user) {
             // If user is logged out, clear progress and loading state
             setProgress({});
             setIsLoading(false);
@@ -55,9 +56,9 @@ export const useLearnProgress = () => {
     // This function now ONLY writes to the database.
     // The local state will be updated by the onSnapshot listener.
     const saveProgress = useCallback(async (newProgress: UserProgress) => {
-        if (!user) return;
+        if (!user || !db) return;
         await updateUserProgress(user.uid, newProgress);
-    }, [user]);
+    }, [user, db]);
     
     const isLessonCompleted = useCallback((courseId: string, lessonId: string): boolean => {
         return !!progress[courseId]?.completedLessons?.includes(lessonId);

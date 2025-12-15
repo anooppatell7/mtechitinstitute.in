@@ -1,12 +1,13 @@
 
 
+
 "use client";
 
 import { useState, useEffect } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { db } from '@/firebase';
+import { useFirestore } from '@/firebase';
 import { collection, addDoc, doc, runTransaction, serverTimestamp, getDocs, query, orderBy, getDoc, setDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import type { Course, ExamRegistration } from '@/lib/types';
@@ -51,6 +52,7 @@ type FormData = z.infer<typeof formSchema>;
 
 export default function ExamRegistrationPage() {
     const { user, isLoading: userLoading } = useUser();
+    const db = useFirestore();
     const router = useRouter();
 
     const [isLoading, setIsLoading] = useState(false);
@@ -74,6 +76,7 @@ export default function ExamRegistrationPage() {
         }
 
         const checkRegistration = async () => {
+            if (!db) return;
             const docRef = doc(db, 'examRegistrations', user.uid);
             const docSnap = await getDoc(docRef);
             if (docSnap.exists()) {
@@ -82,10 +85,11 @@ export default function ExamRegistrationPage() {
         };
 
         checkRegistration();
-    }, [user, userLoading, router]);
+    }, [user, userLoading, router, db]);
 
     useEffect(() => {
         const fetchCourses = async () => {
+            if (!db) return;
             setCoursesLoading(true);
             try {
                 const coursesQuery = query(collection(db, "courses"), orderBy("title"));
@@ -104,7 +108,7 @@ export default function ExamRegistrationPage() {
             }
         };
         fetchCourses();
-    }, [toast]);
+    }, [toast, db]);
 
 
     const form = useForm<FormData>({
@@ -123,7 +127,7 @@ export default function ExamRegistrationPage() {
     });
 
     const onSubmit: SubmitHandler<FormData> = async (data) => {
-        if (!user) {
+        if (!user || !db) {
             toast({ title: "Error", description: "You must be logged in to register.", variant: "destructive" });
             return;
         }
@@ -420,3 +424,4 @@ export default function ExamRegistrationPage() {
     
 
     
+

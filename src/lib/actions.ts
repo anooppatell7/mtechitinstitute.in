@@ -34,6 +34,10 @@ export async function submitContactForm(
       issues,
     };
   }
+    
+  if (!db) {
+    return { message: "Database not initialized. Please try again later." };
+  }
 
   try {
     const contactData = {
@@ -78,6 +82,13 @@ export async function submitEnrollmentForm(
       fields: formData as Record<string, string>,
       issues,
       isSuccess: false,
+    };
+  }
+
+  if (!db) {
+    return { 
+        message: "Database not initialized. Please try again later or contact us directly on WhatsApp.",
+        isSuccess: false,
     };
   }
 
@@ -136,6 +147,13 @@ export async function submitReviewForm(
       issues,
       isSuccess: false,
     };
+  }
+
+  if (!db) {
+    return {
+      message: "Database not initialized. Please try again later.",
+      isSuccess: false,
+    }
   }
   
   try {

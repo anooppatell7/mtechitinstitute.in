@@ -1,4 +1,5 @@
 
+
 import { initializeFirebase } from '@/firebase';
 import { collection, doc, getDoc, getDocs, query, orderBy } from 'firebase/firestore';
 import type { LearningCourse, LearningModule, Lesson } from './types';
@@ -12,6 +13,11 @@ export async function getAllCourses(): Promise<LearningCourse[]> {
     if (courseCache.size > 0) {
         // This is a simple cache, for production you might want a more sophisticated strategy
         // return Array.from(courseCache.values());
+    }
+    
+    if (!db) {
+        console.error("Firestore not initialized in getAllCourses");
+        return [];
     }
 
     const coursesQuery = query(collection(db, "learningCourses"), orderBy("order"));

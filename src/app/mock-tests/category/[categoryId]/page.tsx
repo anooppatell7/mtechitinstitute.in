@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useState } from "react";
@@ -11,7 +12,6 @@ import type { MockTest, TestResult, TestCategory, ExamResult } from "@/lib/types
 import { useUser, useFirestore } from "@/firebase";
 import { collection, query, where, getDocs, doc, getDoc } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
-import { db } from "@/firebase";
 import SectionDivider from "@/components/section-divider";
 
 function TestsLoadingSkeleton() {
@@ -52,10 +52,11 @@ export default function MockTestsByCategoryPage() {
         if (!categoryId) return;
 
         const fetchData = async () => {
+            if (!firestore) return;
             setIsLoading(true);
             try {
                 // Fetch category details
-                const categoryRef = doc(db, "testCategories", categoryId);
+                const categoryRef = doc(firestore, "testCategories", categoryId);
                 const categorySnap = await getDoc(categoryRef);
                 if (categorySnap.exists()) {
                     const categoryData = { id: categorySnap.id, ...categorySnap.data() } as TestCategory
@@ -68,7 +69,7 @@ export default function MockTestsByCategoryPage() {
 
                 // Fetch tests for this category
                 const testsQuery = query(
-                    collection(db, "mockTests"),
+                    collection(firestore, "mockTests"),
                     where("categoryId", "==", categoryId),
                     where("isPublished", "==", true)
                 );
@@ -84,7 +85,7 @@ export default function MockTestsByCategoryPage() {
         };
         
         fetchData();
-    }, [categoryId]);
+    }, [categoryId, firestore]);
 
     // Fetch results for the current user
     useEffect(() => {

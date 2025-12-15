@@ -1,30 +1,21 @@
 
+
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useLocalStorage } from './use-local-storage';
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { User } from 'firebase/auth';
-import { db, storage } from '@/firebase';
+import { useFirestore } from '@/firebase';
 import { doc, getDocs, query, collection, where, runTransaction, serverTimestamp, getDoc, addDoc } from "firebase/firestore";
 import type { MockTest, TestQuestion, TestResponse, TestResult, ExamResult, ExamRegistration, Certificate } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { getDownloadURL, ref, uploadString } from "firebase/storage";
+import { getStorage, ref, uploadString, getDownloadURL } from "firebase/storage";
 import { generateCertificatePdf } from '@/lib/certificate-generator';
-
-
-const saveExamResult = async (result: Omit<ExamResult, 'id' | 'submittedAt'>): Promise<string> => {
-    const resultWithTimestamp = {
-        ...result,
-        submittedAt: serverTimestamp(),
-    };
-    const docRef = await addDoc(collection(db, 'examResults'), resultWithTimestamp);
-    return docRef.id;
-};
-
 
 export const useMockTest = (testId: string) => {
     const { toast } = useToast();
+    const db = useFirestore();
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [isInitialized, setIsInitialized] = useState(false);
 
@@ -118,6 +109,16 @@ export const useMockTest = (testId: string) => {
         });
     }, [setMarkedForReview]);
 
+    const saveExamResult = async (result: Omit<ExamResult, 'id' | 'submittedAt'>): Promise<string> => {
+        if (!db) throw new Error("Firestore is not initialized.");
+        const resultWithTimestamp = {
+            ...result,
+            submittedAt: serverTimestamp(),
+        };
+        const docRef = await addDoc(collection(db, 'examResults'), resultWithTimestamp);
+        return docRef.id;
+    };
+
     const handleSubmit = useCallback(async (
         isAutoSubmit: boolean, 
         router: AppRouterInstance, 
@@ -127,7 +128,7 @@ export const useMockTest = (testId: string) => {
         studentName: string | null
         ) => {
         
-        if (isSubmitting) return;
+        if (isSubmitting || !db) return;
         
         setIsSubmitting(true);
 
@@ -243,7 +244,7 @@ export const useMockTest = (testId: string) => {
              setIsSubmitting(false); // Reset submitting state on error
         }
 
-    }, [selectedAnswers, timeLeft, cleanupLocalStorage, isSubmitting, toast, getStorageKey]);
+    }, [selectedAnswers, timeLeft, cleanupLocalStorage, isSubmitting, toast, getStorageKey, db]);
 
     return {
         isInitialized,

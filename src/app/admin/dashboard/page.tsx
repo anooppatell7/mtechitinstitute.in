@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import Link from "next/link";
@@ -122,10 +123,10 @@ export default function AdminDashboardPage() {
         if (authLoading) return; // Wait until auth state is loaded
         if (!user) {
             router.push('/login'); // Redirect if not logged in
-        } else {
+        } else if (firestore) { // Ensure firestore is available
             fetchData();
         }
-    }, [user, authLoading, router]);
+    }, [user, authLoading, router, firestore]);
 
     const fetchData = async () => {
         if (!firestore) return;
