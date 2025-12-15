@@ -22,17 +22,6 @@ type BlogPostPageProps = {
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://mtechitinstitute.in";
 
-// This forces the page to be dynamically rendered, ensuring data is always fresh
-export const revalidate = 0;
-
-// This allows Next.js to know which slugs are available at build time
-export async function generateStaticParams() {
-  const blogSnapshot = await getDocs(collection(db, "blog"));
-  return blogSnapshot.docs.map((doc) => ({
-    slug: doc.id,
-  }));
-}
-
 async function getPost(slug: string): Promise<BlogPost | null> {
     const docRef = doc(db, "blog", slug);
     const docSnap = await getDoc(docRef);
