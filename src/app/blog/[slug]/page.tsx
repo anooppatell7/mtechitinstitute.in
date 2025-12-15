@@ -16,6 +16,7 @@ import { generatePostSchema, breadcrumbSchema } from "@/lib/schema-generator";
 import ShareButtons from "@/components/share-buttons";
 import SectionDivider from "@/components/section-divider";
 import { useEffect, useState } from "react";
+import Head from 'next/head';
 
 type BlogPostPageProps = {
   params: {
@@ -130,11 +131,11 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
 
   return (
     <>
-      <head>
+      <Head>
         <title>{metadata.title as string}</title>
         {metadata.description && <meta name="description" content={metadata.description} />}
         {metadata.keywords && <meta name="keywords" content={(metadata.keywords as string[]).join(', ')} />}
-      </head>
+      </Head>
       <JsonLd data={postSchema} />
       <JsonLd data={breadcrumbSchema(breadcrumbs)} />
       <div className="bg-gradient-to-br from-indigo-600 via-blue-500 to-cyan-400 relative">
@@ -177,5 +178,3 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
     </>
   );
 }
-
-    

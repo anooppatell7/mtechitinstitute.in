@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   Accordion,
   AccordionContent,
@@ -17,9 +17,49 @@ import type { Course } from "@/lib/types";
 import { EnrollModal } from "@/components/enroll-modal";
 import { courseSchema } from "@/lib/schema";
 import { JsonLd } from "@/components/json-ld";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "@/firebase";
+import { Skeleton } from "./ui/skeleton";
 
-export default function CoursesClient({ courses }: { courses: Course[] }) {
+function CoursesSkeleton() {
+    return (
+        <div className="space-y-12">
+            {Array.from({ length: 2 }).map((_, i) => (
+                <Card key={i} className="overflow-hidden shadow-lg grid grid-cols-1 md:grid-cols-2">
+                    <Skeleton className="h-64 md:h-full w-full" />
+                    <div className="p-6 md:p-8 flex flex-col">
+                        <Skeleton className="h-8 w-3/4 mb-2" />
+                        <Skeleton className="h-12 w-full" />
+                        <div className="mt-4 flex-grow space-y-4">
+                            <Skeleton className="h-6 w-1/2" />
+                            <Skeleton className="h-10 w-full" />
+                        </div>
+                        <div className="mt-6">
+                            <Skeleton className="h-12 w-full" />
+                        </div>
+                    </div>
+                </Card>
+            ))}
+        </div>
+    );
+}
+
+export default function CoursesClient() {
+    const [courses, setCourses] = useState<Course[]>([]);
+    const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
+
+    useEffect(() => {
+        async function getCourses() {
+          if (!db) return;
+          const coursesCollection = collection(db, "courses");
+          const courseSnapshot = await getDocs(coursesCollection);
+          const courseList = courseSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
+          setCourses(courseList);
+          setLoading(false);
+        }
+        getCourses();
+      }, []);
 
     const filteredCourses = useMemo(() => {
         if (!searchTerm) {
@@ -50,7 +90,8 @@ export default function CoursesClient({ courses }: { courses: Course[] }) {
             )}
         </div>
         
-        {filteredCourses.length > 0 ? (
+        {loading ? <CoursesSkeleton /> :
+         filteredCourses.length > 0 ? (
             <div className="space-y-12">
             {filteredCourses.map((course) => (
                 <React.Fragment key={course.id}>

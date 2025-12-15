@@ -1,17 +1,12 @@
 
-"use client";
-
-import React, { useEffect, useState } from "react";
-import { db } from "@/firebase";
-import { collection, getDocs } from "firebase/firestore";
-import type { Course } from "@/lib/types";
+import React from "react";
 import type { Metadata } from "next";
 import CoursesClient from "@/components/courses-client";
 import SectionDivider from "@/components/section-divider";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://mtechitinstitute.in";
 
-const metadata: Metadata = {
+export const metadata: Metadata = {
   title: "IT & Computer Courses in Patti, Pratapgarh - MTech IT Institute",
   description: "Explore top IT & computer courses like Web Development, Digital Marketing, Tally, CCC, O-Level in Patti. Get expert training at MTech IT Institute.",
   keywords: ["computer courses patti", "IT courses pratapgarh", "web development course", "digital marketing course", "Tally course", "CCC course", "O-Level course", "job oriented courses after 12th"],
@@ -33,27 +28,9 @@ const metadata: Metadata = {
 
 
 export default function CoursesPage() {
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [loading, setLoading] = useState(true);
-  
-  useEffect(() => {
-    async function getCourses() {
-      if (!db) return;
-      const coursesCollection = collection(db, "courses");
-      const courseSnapshot = await getDocs(coursesCollection);
-      const courseList = courseSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
-      setCourses(courseList);
-      setLoading(false);
-    }
-    getCourses();
-  }, []);
 
   return (
     <>
-      <head>
-        <title>{metadata.title as string}</title>
-        <meta name="description" content={metadata.description as string} />
-      </head>
       <div className="bg-gradient-to-br from-indigo-600 via-blue-500 to-cyan-400 text-white">
         <div className="container py-16 sm:py-24 text-center">
           <h1 className="font-headline text-4xl font-bold sm:text-5xl">Our Professional IT Courses<span className="text-green-300">.</span></h1>
@@ -66,11 +43,9 @@ export default function CoursesPage() {
       <div className="bg-secondary relative">
         <SectionDivider style="wave" className="text-gradient-to-br from-indigo-600 via-blue-500 to-cyan-400" position="top"/>
         <div className="container py-16 sm:py-24">
-          {loading ? <div>Loading courses...</div> : <CoursesClient courses={courses} />}
+          <CoursesClient />
         </div>
       </div>
     </>
   );
 }
-
-    

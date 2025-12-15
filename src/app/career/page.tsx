@@ -1,6 +1,4 @@
 
-"use client";
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Briefcase, Lightbulb, TrendingUp } from "lucide-react";
 import Link from "next/link";
@@ -9,7 +7,7 @@ import { db } from "@/firebase";
 import type { BlogPost } from "@/lib/types";
 import type { Metadata } from "next";
 import SectionDivider from "@/components/section-divider";
-import { useEffect, useState } from "react";
+import CareerPageClient from "@/components/career-page-client";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://mtechitinstitute.in";
 
@@ -35,21 +33,6 @@ export const metadata: Metadata = {
 
 
 export default function CareerPage() {
-  const [guidanceArticles, setGuidanceArticles] = useState<BlogPost[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function getBlogPostsByCategory(category: string) {
-        if (!db) return;
-        const blogQuery = query(collection(db, "blog"), where("category", "==", category));
-        const blogSnapshot = await getDocs(blogQuery);
-        let posts = blogSnapshot.docs.map(doc => ({ slug: doc.id, ...doc.data() } as BlogPost));
-        posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-        setGuidanceArticles(posts);
-        setLoading(false);
-    }
-    getBlogPostsByCategory("Career Guidance");
-  }, []);
 
   return (
     <>
@@ -91,33 +74,10 @@ export default function CareerPage() {
 
           <div>
               <h2 className="font-headline text-3xl font-bold text-primary mb-8 text-center">Guidance Articles</h2>
-              <div className="space-y-6">
-                  {loading ? <p>Loading articles...</p> : guidanceArticles.length > 0 ? (
-                      guidanceArticles.map((article) => (
-                          <Card key={article.slug} className="shadow-sm hover:shadow-md transition-shadow bg-background border-t-4 border-t-accent">
-                              <CardContent className="p-6">
-                                  <h3 className="font-headline text-xl text-primary mb-2">
-                                      <Link href={`/blog/${article.slug}`} className="hover:text-accent transition-colors">
-                                          {article.title}
-                                      </Link>
-                                  </h3>
-                                  <p className="text-foreground/80 line-clamp-2">{article.content.replace(/<[^>]+>/g, '')}</p>
-                              </CardContent>
-                          </Card>
-                      ))
-                  ) : (
-                      <Card className="bg-background">
-                          <CardContent className="p-6 text-center text-muted-foreground">
-                              <p>No guidance articles have been added yet. Check back soon!</p>
-                          </CardContent>
-                      </Card>
-                  )}
-              </div>
+              <CareerPageClient />
           </div>
         </div>
       </div>
     </>
   );
 }
-
-    
