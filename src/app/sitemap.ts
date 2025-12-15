@@ -3,7 +3,7 @@ import { MetadataRoute } from 'next';
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://mtechitinstitute.in';
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+export default function sitemap(): MetadataRoute.Sitemap {
   const staticRoutes = [
     '',
     '/about',
@@ -30,10 +30,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: route === '' ? 1.0 : (route.includes('privacy') || route.includes('terms') ? 0.3 : 0.8),
   }));
 
-  // NOTE: Dynamic routes (courses, blog posts) have been removed from here.
-  // This is to prevent Firestore access during the build process on platforms like Vercel,
-  // which causes permission errors. Search engines will discover these pages
-  // through links on the site itself.
+  // NOTE: Dynamic routes (courses, blog posts) are not included here to prevent
+  // database access during the build process on platforms like Vercel.
+  // Search engines will discover these pages through links on the site itself.
 
   return staticUrls;
 }
