@@ -16,9 +16,7 @@ export async function getAllCourses(): Promise<LearningCourse[]> {
         return [];
     }
     
-    if (courseCache.size > 0) {
-        return Array.from(courseCache.values());
-    }
+    // We don't cache here anymore to ensure we get fresh data, but a more advanced caching could be used.
     
     const coursesQuery = query(collection(db, "learningCourses"), orderBy("order"));
     const coursesSnapshot = await getDocs(coursesQuery);
@@ -43,17 +41,19 @@ export async function getAllCourses(): Promise<LearningCourse[]> {
     }));
 
     // Update cache
+    courseCache.clear(); // Clear old cache
     courseList.forEach(course => courseCache.set(course.id, course));
     return courseList;
 }
 
 
 export async function getCourseData(slug: string): Promise<LearningCourse | null> {
+    if (!db) return null;
     if (courseCache.has(slug)) {
         return courseCache.get(slug)!;
     }
     
-    await getAllCourses();
+    await getAllCourses(); // This will populate the cache
     
     if (courseCache.has(slug)) {
         return courseCache.get(slug)!;
@@ -109,5 +109,3 @@ export async function getNextPrevLessons(courseSlug: string, moduleSlug: string,
 
     return { prevLesson, nextLesson };
 }
-
-    

@@ -98,11 +98,6 @@ export async function submitEnrollmentForm(
     };
     await addDoc(collection(db, "enrollments"), enrollmentData);
     
-    console.log("New enrollment received:", parsed.data);
-    // In a real application, you would trigger emails here.
-    // e.g., sendConfirmationEmail(parsed.data);
-    // e.g., sendAdminNotificationEmail(parsed.data);
-    
     return { 
         message: "Thank you for your application! We have received your details and will contact you shortly.",
         isSuccess: true,
@@ -173,5 +168,3 @@ export async function submitReviewForm(
     }
   }
 }
-
-    

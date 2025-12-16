@@ -36,10 +36,30 @@ service cloud.firestore {
         allow read: if true;
         allow write: if isAuth(); 
     }
+     match /courses/{courseId} {
+      allow read: if true;
+      allow write: if isAuth();
+    }
+    match /learningCourses/{courseId}/{document=**} {
+        allow read: if true;
+        allow write: if isAuth();
+    }
+    match /site_settings/{settingId} {
+       allow read: if true;
+       allow write: if isAuth();
+    }
+
 
     // USER-SPECIFIC COLLECTIONS
     match /userProgress/{userId} {
         allow read, write: if isOwner(userId);
+    }
+    match /examRegistrations/{userId} {
+        allow read, write: if isOwner(userId) || isAuth(); // Allow admin read
+    }
+     match /certificates/{certId} {
+      allow read: if true;
+      allow write: if isAuth();
     }
     
     // CONTACT & ENROLLMENT (write-only for users)
@@ -54,36 +74,13 @@ service cloud.firestore {
         allow update: if isAuth();
         allow delete: if isAuth();
     }
-    match /examRegistrations/{userId} {
-        allow read, write: if isOwner(userId) || isAuth(); // Allow admin read
-    }
     match /examResults/{resultId} {
         allow read: if true; // Results can be public if link is known
         allow create: if true; 
         allow delete: if isAuth();
     }
-     match /certificates/{certId} {
-      allow read: if true;
-      allow write: if isAuth();
-    }
      match /counters/{counterId} {
         allow read, write: if isAuth();
-    }
-
-    // ADMIN-MANAGED COLLECTIONS (read for all, write only for admin)
-    // For simplicity in this context, we allow any authenticated user to write.
-    // In a production app, you'd check for an admin custom claim.
-    match /courses/{courseId} {
-      allow read: if true;
-      allow write: if isAuth();
-    }
-    match /learningCourses/{courseId}/{document=**} {
-        allow read: if true;
-        allow write: if isAuth();
-    }
-    match /site_settings/{settingId} {
-       allow read: if true;
-       allow write: if isAuth();
     }
     
     // Default deny
