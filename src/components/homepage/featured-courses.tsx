@@ -7,7 +7,6 @@ import CourseCard from "@/components/course-card";
 import { db } from "@/firebase";
 import { collection, getDocs, limit, query, where } from "firebase/firestore";
 import type { Course } from "@/lib/types";
-import marketingCourses from '@/lib/data/marketing-courses.json';
 import { useEffect, useState } from "react";
 
 
@@ -19,8 +18,7 @@ export default function FeaturedCourses() {
     async function getFeaturedCourses() {
         try {
             if (!db) {
-                console.log('DB not ready, using fallback');
-                setFeaturedCourses(marketingCourses.slice(0, 3) as Course[]);
+                console.error('DB not ready.');
                 setLoading(false);
                 return;
             }
@@ -32,15 +30,15 @@ export default function FeaturedCourses() {
             const courseSnapshot = await getDocs(coursesQuery);
             
             if (courseSnapshot.empty) {
-                console.log('No featured courses found in Firestore, falling back to local data.');
-                setFeaturedCourses(marketingCourses.slice(0, 3) as Course[]);
+                console.log('No featured courses found in Firestore.');
+                setFeaturedCourses([]);
             } else {
                 const courseList = courseSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
                 setFeaturedCourses(courseList);
             }
         } catch (error) {
             console.error("Error fetching featured courses:", error);
-            setFeaturedCourses(marketingCourses.slice(0, 3) as Course[]);
+            setFeaturedCourses([]);
         } finally {
             setLoading(false);
         }
@@ -62,6 +60,11 @@ export default function FeaturedCourses() {
           </section>
       )
   }
+  
+  if (featuredCourses.length === 0) {
+      return null; // Don't render the section if there are no featured courses
+  }
+
 
   return (
     <section className="py-16 sm:py-24 bg-secondary/50">
@@ -86,5 +89,3 @@ export default function FeaturedCourses() {
     </section>
   );
 }
-
-    

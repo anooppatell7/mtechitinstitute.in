@@ -74,7 +74,6 @@ import { signOut, updateEmail, updatePassword, reauthenticateWithCredential, Ema
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import coursesData from "@/lib/data/courses.json";
-import marketingCoursesData from "@/lib/data/marketing-courses.json";
 import type { Metadata } from 'next';
 import { useAuth, useFirestore, useUser } from "@/firebase";
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, setDoc, Timestamp, where, arrayUnion, arrayRemove, getDoc, writeBatch } from "firebase/firestore";
@@ -834,7 +833,7 @@ export default function AdminDashboardPage() {
             toast({ title: "Error", description: "Database not initialized.", variant: "destructive" });
             return;
         }
-        if (!confirm("Are you sure you want to upload all static course content? This will overwrite existing data in 'learningCourses' and 'courses' collections based on their IDs.")) {
+        if (!confirm("Are you sure you want to upload all learning course content? This will overwrite existing data in the 'learningCourses' collection based on their IDs.")) {
             return;
         }
         
@@ -860,15 +859,9 @@ export default function AdminDashboardPage() {
                     }
                 }
             }
-            
-            // Upload Marketing Courses from marketing-courses.json
-            for (const course of marketingCoursesData) {
-                const courseRef = doc(firestore, "courses", course.id);
-                batch.set(courseRef, course);
-            }
 
             await batch.commit();
-            toast({ title: "Success", description: "All static course content has been uploaded to Firestore." });
+            toast({ title: "Success", description: "All learning course content has been uploaded to Firestore." });
             await fetchData(); // Refresh data in the dashboard
 
         } catch (error) {
@@ -2111,12 +2104,12 @@ export default function AdminDashboardPage() {
                                 <CardContent>
                                     <div className="space-y-4 max-w-md">
                                         <div className="rounded-lg border p-4">
-                                            <h3 className="font-semibold">Upload All Static Course Content</h3>
+                                            <h3 className="font-semibold">Upload All Learning Content</h3>
                                             <p className="text-sm text-muted-foreground mt-1">
-                                                This will upload content from your local JSON files (`courses.json` & `marketing-courses.json`) to Firestore. This will overwrite any existing courses with the same IDs.
+                                                This will upload content from your local `courses.json` file to the "learningCourses" collection in Firestore. This will overwrite any existing courses with the same IDs.
                                             </p>
                                             <Button onClick={handleUploadAllContent} variant="outline" className="mt-4">
-                                                <Upload className="mr-2 h-4 w-4"/> Upload All Content
+                                                <Upload className="mr-2 h-4 w-4"/> Upload Learning Content
                                             </Button>
                                         </div>
                                     </div>
