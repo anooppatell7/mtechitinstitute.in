@@ -88,7 +88,7 @@ type ItemType = 'courses' | 'blog' | 'guidance' | 'resources' | 'settings' | 'en
 export default function AdminDashboardPage() {
     const auth = useAuth();
     const firestore = useFirestore();
-    const { user } = useUser();
+    const { user, isLoading: isUserLoading } = useUser();
     const router = useRouter();
     const [courses, setCourses] = useState<Course[]>([]);
     const [learningCourses, setLearningCourses] = useState<LearningCourse[]>([]);
@@ -119,12 +119,17 @@ export default function AdminDashboardPage() {
     const [isLinkSaving, setIsLinkSaving] = useState(false);
 
     useEffect(() => {
-        if (!user) {
-            router.push('/login');
-        } else if (firestore) {
-            fetchData();
+        // Wait until user loading is finished
+        if (!isUserLoading) {
+            if (!user) {
+                // If no user, redirect to login
+                router.push('/login');
+            } else if (firestore) {
+                // If there is a user and firestore is available, fetch data
+                fetchData();
+            }
         }
-    }, [user, router, firestore]);
+    }, [user, isUserLoading, router, firestore]);
 
     const fetchData = async () => {
         if (!firestore) return;
@@ -2252,7 +2257,3 @@ export default function AdminDashboardPage() {
         </>
     );
 }
-
-    
-
-    

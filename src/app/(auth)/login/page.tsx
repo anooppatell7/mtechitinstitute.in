@@ -22,18 +22,18 @@ export default function LoginPage() {
   const { toast } = useToast();
   const router = useRouter();
   const auth = useAuth();
-  const { user } = useUser();
+  const { user, isLoading: isUserLoading } = useUser();
 
   useEffect(() => {
-    if (user) {
-      // If user is already logged in, decide where to send them
+    // Only redirect if user loading is complete
+    if (!isUserLoading && user) {
       if (user.email && ADMIN_EMAILS.includes(user.email)) {
         router.push('/admin/dashboard');
       } else {
         router.push('/learn');
       }
     }
-  }, [user, router]);
+  }, [user, isUserLoading, router]);
 
 
   const handleLogin = async (e: React.FormEvent) => {
