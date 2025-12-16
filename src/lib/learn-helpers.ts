@@ -1,7 +1,4 @@
 
-
-"use client";
-
 import { db } from '@/firebase';
 import { collection, doc, getDoc, getDocs, query, orderBy } from 'firebase/firestore';
 import type { LearningCourse, LearningModule, Lesson } from './types';
