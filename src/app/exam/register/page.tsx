@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -159,7 +158,7 @@ export default function ExamRegistrationPage() {
                 isRead: false,
             };
 
-            // Use user's UID as the document ID to comply with security rules
+            // Use setDoc with user's UID as the document ID to comply with security rules
             await setDoc(doc(db, "examRegistrations", user.uid), registrationData);
 
             toast({
@@ -421,5 +420,3 @@ export default function ExamRegistrationPage() {
     );
 }
 
-
-    
