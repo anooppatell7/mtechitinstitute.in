@@ -55,7 +55,6 @@ export default function ExamRegistrationPage() {
 
     const [isLoading, setIsLoading] = useState(false);
     const [registrationSuccess, setRegistrationSuccess] = useState(false);
-    const [registrationNumber, setRegistrationNumber] = useState('');
     const [isAlreadyRegistered, setIsAlreadyRegistered] = useState(false);
     
     const [courses, setCourses] = useState<Course[]>([]);
@@ -132,30 +131,14 @@ export default function ExamRegistrationPage() {
         setIsLoading(true);
 
         try {
-            const counterRef = doc(db, 'counters', 'examRegistrations');
-            const newRegNumber = await runTransaction(db, async (transaction) => {
-                const counterDoc = await transaction.get(counterRef);
-                const currentYear = new Date().getFullYear();
-                let newCount = 1;
-                
-                if (!counterDoc.exists() || counterDoc.data().year !== currentYear) {
-                    transaction.set(counterRef, { count: newCount, year: currentYear });
-                } else {
-                    newCount = counterDoc.data().count + 1;
-                    transaction.update(counterRef, { count: newCount });
-                }
-                
-                return `MTECH-${currentYear}-${String(newCount).padStart(4, '0')}`;
-            });
-            
-            setRegistrationNumber(newRegNumber);
-
-            const registrationData: Omit<ExamRegistration, 'id'> = {
+            // FIX: Removed client-side counter logic.
+            // A registration number can be assigned later by an admin or a Cloud Function.
+            const registrationData = {
                 ...data,
                 dob: format(data.dob, 'yyyy-MM-dd'),
-                registrationNumber: newRegNumber,
                 registeredAt: serverTimestamp(),
                 isRead: false,
+                // The registrationNumber field is omitted.
             };
 
             // Use setDoc with user's UID as the document ID to comply with security rules
@@ -163,7 +146,7 @@ export default function ExamRegistrationPage() {
 
             toast({
                 title: "Registration Successful!",
-                description: `Your registration number is ${newRegNumber}. Please save it for future reference.`,
+                description: `Your application has been submitted successfully.`,
             });
             setRegistrationSuccess(true);
             form.reset();
@@ -199,13 +182,10 @@ export default function ExamRegistrationPage() {
                     <Card className="w-full max-w-md text-center shadow-2xl">
                         <CardHeader>
                             <CardTitle className="text-2xl font-headline text-green-600">Registration Successful!</CardTitle>
-                            <CardDescription>Your registration number has been generated.</CardDescription>
+                            <CardDescription>Your application has been submitted.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <p className="text-muted-foreground">Please save this number for future reference:</p>
-                            <div className="my-4 p-4 bg-primary/10 border-2 border-dashed border-primary rounded-lg">
-                                <p className="text-2xl font-bold text-primary tracking-widest">{registrationNumber}</p>
-                            </div>
+                            <p className="text-muted-foreground">We have received your details. You can now view your profile and access available exams.</p>
                             <Button asChild className="mt-6">
                                 <Link href="/profile">View My Profile</Link>
                             </Button>

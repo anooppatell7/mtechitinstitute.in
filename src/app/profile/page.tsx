@@ -100,18 +100,20 @@ export default function ProfilePage() {
                 setRegistration(regData);
                 setFormData(regData);
 
-                // Fetch Exam History
-                const historyQuery = query(
-                    collection(db, "examResults"),
-                    where("registrationNumber", "==", regData.registrationNumber),
-                    orderBy("submittedAt", "desc")
-                );
-                const historySnapshot = await getDocs(historyQuery);
-                const history = historySnapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                } as ExamResult));
-                setExamHistory(history);
+                if (regData.registrationNumber) {
+                    // Fetch Exam History only if a registration number exists
+                    const historyQuery = query(
+                        collection(db, "examResults"),
+                        where("registrationNumber", "==", regData.registrationNumber),
+                        orderBy("submittedAt", "desc")
+                    );
+                    const historySnapshot = await getDocs(historyQuery);
+                    const history = historySnapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    } as ExamResult));
+                    setExamHistory(history);
+                }
 
             }
             setIsLoading(false);
@@ -312,7 +314,9 @@ export default function ProfilePage() {
                             </div>
                         ) : (
                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
-                                <ProfileDetail icon={<Key className="h-6 w-6"/>} label="Registration Number" value={registration.registrationNumber} />
+                                {registration.registrationNumber && (
+                                    <ProfileDetail icon={<Key className="h-6 w-6"/>} label="Registration Number" value={registration.registrationNumber} />
+                                )}
                                 <ProfileDetail icon={<Briefcase className="h-6 w-6"/>} label="Course" value={registration.course} />
                                 <ProfileDetail icon={<User className="h-6 w-6"/>} label="Father's Name" value={registration.fatherName} />
                                 <ProfileDetail icon={<Phone className="h-6 w-6"/>} label="Phone Number" value={registration.phone} />

@@ -189,7 +189,7 @@ export type TestResult = {
 
 export type ExamRegistration = {
   id: string; // Should be user.uid
-  registrationNumber: string;
+  registrationNumber?: string; // Optional now
   fullName: string;
   fatherName: string;
   phone: string;
