@@ -89,7 +89,7 @@ service cloud.firestore {
     }
     match /enrollments/{enrollmentId} {
         allow create: if true;
-        allow read, delete: if isAdmin();
+        allow read, update, delete: if isAdmin();
     }
      match /reviews/{reviewId} {
         allow read: if true;
