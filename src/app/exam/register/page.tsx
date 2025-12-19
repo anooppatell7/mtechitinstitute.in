@@ -159,6 +159,7 @@ export default function ExamRegistrationPage() {
                 isRead: false,
             };
 
+            // Use user's UID as the document ID
             await setDoc(doc(db, "examRegistrations", user.uid), registrationData);
 
             toast({
@@ -172,7 +173,7 @@ export default function ExamRegistrationPage() {
             console.error("Registration failed:", error);
             toast({
                 title: "Registration Failed",
-                description: "An unexpected error occurred. Please check your security rules.",
+                description: "An unexpected error occurred. Please check your security rules or contact support.",
                 variant: "destructive",
             });
         } finally {
@@ -419,3 +420,6 @@ export default function ExamRegistrationPage() {
         </>
     );
 }
+
+
+    
