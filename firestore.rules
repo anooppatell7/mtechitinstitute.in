@@ -4,7 +4,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper functions
+    // Helper functions to make rules easier to read
     function isAuth() {
       return request.auth != null;
     }
@@ -13,77 +13,90 @@ service cloud.firestore {
       return isAuth() && request.auth.uid == userId;
     }
 
-    // PUBLIC COLLECTIONS (read-only for everyone)
+    // Admin can be defined by a list of UIDs or a custom claim
+    // For simplicity, we'll use a list of emails here.
+    // Replace with actual admin emails.
+    function isAdmin() {
+        return isAuth() && request.auth.token.email in ["mtechitinstitute@gmail.com", "anooppbh8@gmail.com"];
+    }
+
+    // PUBLIC COLLECTIONS
+    // Anyone can read, but only admins can write.
     match /blog/{postId} {
       allow read: if true;
-      allow write: if isAuth(); 
+      allow write: if isAdmin();
     }
     match /resources/{resourceId} {
       allow read: if true;
-      allow write: if isAuth(); 
-    }
-    match /reviews/{reviewId} {
-        allow read: if true;
-        allow create: if true; 
-        allow update: if isAuth();
-        allow delete: if isAuth();
+      allow write: if isAdmin();
     }
     match /testCategories/{categoryId} {
         allow read: if true;
-        allow write: if isAuth(); 
+        allow write: if isAdmin();
     }
     match /mockTests/{testId} {
         allow read: if true;
-        allow write: if isAuth(); 
+        allow write: if isAdmin();
     }
-     match /courses/{courseId} {
+    match /courses/{courseId} {
       allow read: if true;
-      allow write: if isAuth();
+      allow write: if isAdmin();
     }
     match /learningCourses/{courseId}/{document=**} {
         allow read: if true;
-        allow write: if isAuth();
+        allow write: if isAdmin();
     }
     match /site_settings/{settingId} {
        allow read: if true;
-       allow write: if isAuth();
+       allow write: if isAdmin();
+    }
+    match /counters/{counterId} {
+       allow read, write: if isAdmin(); // Only admins should be able to manage counters
     }
 
-
-    // USER-SPECIFIC COLLECTIONS
+    // USER-SPECIFIC DATA
+    // Users can read and write their own data.
     match /userProgress/{userId} {
         allow read, write: if isOwner(userId);
     }
+    
+    // Exam Registrations: Users create their own doc with their UID. Admins can read all.
     match /examRegistrations/{userId} {
-        allow read, write: if isOwner(userId) || isAuth(); // Allow admin read
-    }
-     match /certificates/{certId} {
-      allow read: if true;
-      allow write: if isAuth();
+        allow read: if isOwner(userId) || isAdmin();
+        allow create, update: if isOwner(userId);
+        allow delete: if isAdmin();
     }
     
-    // CONTACT & ENROLLMENT (write-only for users)
+    // Exam Results: Publicly readable if link is known. Only created via backend/secure client. Admins can delete.
+    match /examResults/{resultId} {
+        allow read: if true;
+        allow create: if isAuth(); // Allow any logged-in user to submit a result
+        allow delete: if isAdmin();
+    }
+
+    // Certificates: Publicly readable. Only created by admin.
+    match /certificates/{certId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // PUBLIC SUBMISSIONS
+    // Anyone can create, but only admins can read/delete.
     match /contacts/{contactId} {
-        allow read: if isAuth();
         allow create: if true;
-        allow delete: if isAuth();
+        allow read, delete: if isAdmin();
     }
     match /enrollments/{enrollmentId} {
-        allow read: if isAuth();
         allow create: if true;
-        allow update: if isAuth();
-        allow delete: if isAuth();
+        allow read, delete: if isAdmin();
     }
-    match /examResults/{resultId} {
-        allow read: if true; // Results can be public if link is known
-        allow create: if true; 
-        allow delete: if isAuth();
+     match /reviews/{reviewId} {
+        allow read: if true;
+        allow create: if true;
+        allow update, delete: if isAdmin(); // Only admin can approve/delete
     }
-     match /counters/{counterId} {
-        allow read, write: if isAuth();
-    }
-    
-    // Default deny
+
+    // Default deny all other access
     match /{document=**} {
       allow read, write: if false;
     }

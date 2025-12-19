@@ -74,9 +74,8 @@ import { signOut, updateEmail, updatePassword, reauthenticateWithCredential, Ema
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import coursesData from "@/lib/data/courses.json";
-import type { Metadata } from 'next';
 import { useAuth, useFirestore, useUser } from "@/firebase";
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, setDoc, Timestamp, where, arrayUnion, arrayRemove, getDoc, writeBatch } from "firebase/firestore";
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, setDoc, Timestamp, where, arrayUnion, arrayRemove, getDoc, writeBatch, onSnapshot, Unsubscribe } from "firebase/firestore";
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 import { errorEmitter } from '@/firebase/error-emitter';
 
@@ -117,80 +116,191 @@ export default function AdminDashboardPage() {
     const [linkKeyword, setLinkKeyword] = useState<string>("");
     const [isLinkSaving, setIsLinkSaving] = useState(false);
 
+    // Audio for notification
+    const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
     useEffect(() => {
-        // Wait until user loading is finished
-        if (!isUserLoading) {
-            if (!user) {
-                // If no user, redirect to login
-                router.push('/login');
-            } else if (firestore) {
-                // If there is a user and firestore is available, fetch data
-                fetchData();
-            }
-        }
-    }, [user, isUserLoading, router, firestore]);
+        setAudio(new Audio('/notification.mp3'));
+    }, []);
 
-    const fetchData = async () => {
-        if (!firestore) return;
-        setLoading(true);
-        try {
-            // Courses
-            const coursesCollection = collection(firestore, "courses");
-            const courseSnapshot = await getDocs(coursesCollection);
-            const courseList = courseSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
-            setCourses(courseList);
+    const playNotificationSound = () => {
+        audio?.play().catch(error => console.error("Error playing sound:", error));
+    };
 
-             // Learning Courses
-            const learningCoursesQuery = query(collection(firestore, "learningCourses"), orderBy("order"));
-            const learningCoursesSnapshot = await getDocs(learningCoursesQuery);
-            const learningCoursesList = await Promise.all(learningCoursesSnapshot.docs.map(async (courseDoc) => {
-                const courseData = { id: courseDoc.id, ...courseDoc.data() } as LearningCourse;
+
+    useEffect(() => {
+        if (isUserLoading) return;
+        if (!user) {
+            router.push('/login');
+            return;
+        } 
+        if (!firestore) {
+            setLoading(false);
+            return;
+        };
+
+        const fetchData = async () => {
+            setLoading(true);
+            try {
+                // Courses
+                const coursesCollection = collection(firestore, "courses");
+                const courseSnapshot = await getDocs(coursesCollection);
+                const courseList = courseSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Course));
+                setCourses(courseList);
+
+                // Blog Posts
+                const blogQuery = query(collection(firestore, "blog"), orderBy("date", "desc"));
+                const blogSnapshot = await getDocs(blogQuery);
+                const allPosts = blogSnapshot.docs.map(doc => ({ ...doc.data(), slug: doc.id } as BlogPost));
                 
-                const modulesQuery = query(collection(firestore, "learningCourses", courseDoc.id, "modules"), orderBy("order"));
-                const modulesSnapshot = await getDocs(modulesQuery);
-                
-                courseData.modules = await Promise.all(modulesSnapshot.docs.map(async (moduleDoc) => {
-                    const moduleData = { id: moduleDoc.id, ...moduleDoc.data() } as LearningModule;
+                setAllBlogPostsForLinks(allPosts); // For internal linking dropdowns
+                setBlogPosts(allPosts.filter(post => post.category !== "Career Guidance"));
+                setGuidanceArticles(allPosts.filter(post => post.category === "Career Guidance"));
 
-                    const lessonsQuery = query(collection(firestore, "learningCourses", courseDoc.id, "modules", moduleDoc.id, "lessons"), orderBy("order"));
-                    const lessonsSnapshot = await getDocs(lessonsQuery);
-                    moduleData.lessons = lessonsSnapshot.docs.map(lessonDoc => ({ id: lessonDoc.id, ...lessonDoc.data() } as Lesson));
+                 // Learning Courses
+                const learningCoursesQuery = query(collection(firestore, "learningCourses"), orderBy("order"));
+                const learningCoursesSnapshot = await getDocs(learningCoursesQuery);
+                const learningCoursesList = await Promise.all(learningCoursesSnapshot.docs.map(async (courseDoc) => {
+                    const courseData = { id: courseDoc.id, ...courseDoc.data() } as LearningCourse;
                     
-                    return moduleData;
+                    const modulesQuery = query(collection(firestore, "learningCourses", courseDoc.id, "modules"), orderBy("order"));
+                    const modulesSnapshot = await getDocs(modulesQuery);
+                    
+                    courseData.modules = await Promise.all(modulesSnapshot.docs.map(async (moduleDoc) => {
+                        const moduleData = { id: moduleDoc.id, ...moduleDoc.data() } as LearningModule;
+
+                        const lessonsQuery = query(collection(firestore, "learningCourses", courseDoc.id, "modules", moduleDoc.id, "lessons"), orderBy("order"));
+                        const lessonsSnapshot = await getDocs(lessonsQuery);
+                        moduleData.lessons = lessonsSnapshot.docs.map(lessonDoc => ({ id: lessonDoc.id, ...lessonDoc.data() } as Lesson));
+                        
+                        return moduleData;
+                    }));
+
+                    return courseData;
                 }));
+                setLearningCourses(learningCoursesList);
 
-                return courseData;
-            }));
-            setLearningCourses(learningCoursesList);
+                // Resources
+                const resourcesCollection = collection(firestore, "resources");
+                const resourceSnapshot = await getDocs(resourcesCollection);
+                const resourceList = resourceSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Resource));
+                setResources(resourceList);
 
-            // Blog Posts
-            const blogQuery = query(collection(firestore, "blog"), orderBy("date", "desc"));
-            const blogSnapshot = await getDocs(blogQuery);
-            const allPosts = blogSnapshot.docs.map(doc => ({ ...doc.data(), slug: doc.id } as BlogPost));
-            
-            setAllBlogPostsForLinks(allPosts); // For internal linking dropdowns
-            setBlogPosts(allPosts.filter(post => post.category !== "Career Guidance"));
-            setGuidanceArticles(allPosts.filter(post => post.category === "Career Guidance"));
+                // Reviews
+                const reviewsQuery = query(collection(firestore, "reviews"), orderBy("submittedAt", "desc"));
+                const reviewsSnapshot = await getDocs(reviewsQuery);
+                const reviewList = reviewsSnapshot.docs.map(doc => {
+                    const data = doc.data();
+                    const submittedAt = (data.submittedAt as Timestamp)?.toDate().toLocaleString() || new Date().toLocaleString();
+                    return { id: doc.id, ...data, submittedAt } as Review;
+                });
+                setReviews(reviewList);
+                
+                // Test Categories
+                const categoriesQuery = query(collection(firestore, "testCategories"));
+                const categoriesSnapshot = await getDocs(categoriesQuery);
+                const categoriesList = categoriesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as TestCategory));
+                setTestCategories(categoriesList);
 
-            // Resources
-            const resourcesCollection = collection(firestore, "resources");
-            const resourceSnapshot = await getDocs(resourcesCollection);
-            const resourceList = resourceSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Resource));
-            setResources(resourceList);
 
-            // Enrollments
-            const enrollmentsQuery = query(collection(firestore, "enrollments"), orderBy("submittedAt", "desc"));
-            const enrollmentSnapshot = await getDocs(enrollmentsQuery);
-            const enrollmentList = enrollmentSnapshot.docs.map(doc => {
+                // Mock Tests
+                const mockTestsQuery = query(collection(firestore, "mockTests"));
+                const mockTestsSnapshot = await getDocs(mockTestsQuery);
+                const mockTestsList = mockTestsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as MockTest));
+                setMockTests(mockTestsList);
+
+                // Exam Results
+                const examResQuery = query(collection(firestore, "examResults"), orderBy("submittedAt", "desc"));
+                const examResSnapshot = await getDocs(examResQuery);
+                const examResList = examResSnapshot.docs.map(doc => {
+                    const data = doc.data();
+                    const submittedAt = (data.submittedAt as Timestamp)?.toDate().toLocaleString() || new Date().toLocaleString();
+                    return { id: doc.id, ...data, submittedAt } as ExamResult;
+                });
+                setExamResults(examResList);
+
+                // Certificates
+                const certsQuery = query(collection(firestore, "certificates"), orderBy("issueDate", "desc"));
+                const certsSnapshot = await getDocs(certsQuery);
+                const certsList = certsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Certificate));
+                setCertificates(certsList);
+
+
+                // Site Settings
+                const announcementDoc = await getDoc(doc(firestore, "site_settings", "announcement"));
+                if (announcementDoc.exists()) {
+                    setSiteSettings(announcementDoc.data() as SiteSettings);
+                }
+                const popupDoc = await getDoc(doc(firestore, "site_settings", "salesPopup"));
+                if (popupDoc.exists()) {
+                    setPopupSettings(popupDoc.data() as PopupSettings);
+                }
+
+
+            } catch (error) {
+                console.error("Error fetching data: ", error);
+                toast({ title: "Error", description: "Could not fetch data.", variant: "destructive" });
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+
+        const now = new Date();
+        const unsubscribes: Unsubscribe[] = [];
+
+        const setupListener = <T extends { id: string }>(
+            collectionName: string, 
+            stateSetter: React.Dispatch<React.SetStateAction<T[]>>,
+            toastTitle: string,
+            nameField: keyof T,
+            dateField: keyof T
+        ) => {
+            const q = query(collection(firestore, collectionName), where(dateField, ">", now));
+            const unsub = onSnapshot(q, (snapshot) => {
+                let didUpdate = false;
+                snapshot.docChanges().forEach((change) => {
+                    if (change.type === "added") {
+                        const data = change.doc.data() as T;
+                        toast({ title: toastTitle, description: `From: ${data[nameField]}` });
+                        playNotificationSound();
+                        didUpdate = true;
+                    }
+                });
+                if (didUpdate) {
+                     // Refetch all data for this collection to update the list
+                     const fullQuery = query(collection(firestore, collectionName), orderBy(dateField as string, "desc"));
+                     getDocs(fullQuery).then(fullSnapshot => {
+                         const fullList = fullSnapshot.docs.map(doc => {
+                             const data = doc.data();
+                             const date = (data[dateField] as Timestamp)?.toDate().toLocaleString() || new Date().toLocaleString();
+                             return { id: doc.id, ...data, [dateField]: date, isRead: data.isRead || false } as T;
+                         });
+                         stateSetter(fullList);
+                     });
+                }
+            }, (error) => {
+                console.error(`Error listening to ${collectionName}:`, error);
+            });
+            unsubscribes.push(unsub);
+        };
+
+        setupListener<Enrollment>("enrollments", setEnrollments, "New Enrollment", "name", "submittedAt");
+        setupListener<ContactSubmission>("contacts", setContacts, "New Contact Message", "name", "submittedAt");
+        setupListener<ExamRegistration>("examRegistrations", setExamRegistrations, "New Exam Registration", "fullName", "registeredAt");
+
+        const fetchInitialSubmissions = async () => {
+             const initialEnrollmentsQuery = query(collection(firestore, "enrollments"), orderBy("submittedAt", "desc"));
+             const enrollmentSnapshot = await getDocs(initialEnrollmentsQuery);
+             const enrollmentList = enrollmentSnapshot.docs.map(doc => {
               const data = doc.data();
               const submittedAt = (data.submittedAt as Timestamp)?.toDate().toLocaleString() || new Date().toLocaleString();
               return { id: doc.id, ...data, submittedAt, isRead: data.isRead || false } as Enrollment;
             });
             setEnrollments(enrollmentList);
-            
-            // Contacts
-            const contactsQuery = query(collection(firestore, "contacts"), orderBy("submittedAt", "desc"));
-            const contactSnapshot = await getDocs(contactsQuery);
+
+             const initialContactsQuery = query(collection(firestore, "contacts"), orderBy("submittedAt", "desc"));
+            const contactSnapshot = await getDocs(initialContactsQuery);
             const contactList = contactSnapshot.docs.map(doc => {
               const data = doc.data();
               const submittedAt = (data.submittedAt as Timestamp)?.toDate().toLocaleString() || new Date().toLocaleString();
@@ -198,74 +308,22 @@ export default function AdminDashboardPage() {
             });
             setContacts(contactList);
 
-            // Reviews
-            const reviewsQuery = query(collection(firestore, "reviews"), orderBy("submittedAt", "desc"));
-            const reviewsSnapshot = await getDocs(reviewsQuery);
-            const reviewList = reviewsSnapshot.docs.map(doc => {
-                const data = doc.data();
-                const submittedAt = (data.submittedAt as Timestamp)?.toDate().toLocaleString() || new Date().toLocaleString();
-                return { id: doc.id, ...data, submittedAt } as Review;
-            });
-            setReviews(reviewList);
-            
-            // Test Categories
-            const categoriesQuery = query(collection(firestore, "testCategories"));
-            const categoriesSnapshot = await getDocs(categoriesQuery);
-            const categoriesList = categoriesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as TestCategory));
-            setTestCategories(categoriesList);
-
-
-            // Mock Tests
-            const mockTestsQuery = query(collection(firestore, "mockTests"));
-            const mockTestsSnapshot = await getDocs(mockTestsQuery);
-            const mockTestsList = mockTestsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as MockTest));
-            setMockTests(mockTestsList);
-            
-            // Exam Registrations
-            const examRegQuery = query(collection(firestore, "examRegistrations"), orderBy("registeredAt", "desc"));
-            const examRegSnapshot = await getDocs(examRegQuery);
+             const initialExamRegQuery = query(collection(firestore, "examRegistrations"), orderBy("registeredAt", "desc"));
+            const examRegSnapshot = await getDocs(initialExamRegQuery);
             const examRegList = examRegSnapshot.docs.map(doc => {
                 const data = doc.data();
                 const registeredAt = (data.registeredAt as Timestamp)?.toDate().toLocaleString() || new Date().toLocaleString();
                 return { id: doc.id, ...data, registeredAt, isRead: data.isRead || false } as ExamRegistration;
             });
             setExamRegistrations(examRegList);
-
-            // Exam Results
-            const examResQuery = query(collection(firestore, "examResults"), orderBy("submittedAt", "desc"));
-            const examResSnapshot = await getDocs(examResQuery);
-            const examResList = examResSnapshot.docs.map(doc => {
-                const data = doc.data();
-                const submittedAt = (data.submittedAt as Timestamp)?.toDate().toLocaleString() || new Date().toLocaleString();
-                return { id: doc.id, ...data, submittedAt } as ExamResult;
-            });
-            setExamResults(examResList);
-
-            // Certificates
-            const certsQuery = query(collection(firestore, "certificates"), orderBy("issueDate", "desc"));
-            const certsSnapshot = await getDocs(certsQuery);
-            const certsList = certsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Certificate));
-            setCertificates(certsList);
-
-
-            // Site Settings
-            const announcementDoc = await getDoc(doc(firestore, "site_settings", "announcement"));
-            if (announcementDoc.exists()) {
-                setSiteSettings(announcementDoc.data() as SiteSettings);
-            }
-            const popupDoc = await getDoc(doc(firestore, "site_settings", "salesPopup"));
-            if (popupDoc.exists()) {
-                setPopupSettings(popupDoc.data() as PopupSettings);
-            }
-
-
-        } catch (error) {
-            console.error("Error fetching data: ", error);
-             toast({ title: "Error", description: "Could not fetch data.", variant: "destructive" });
-        } finally {
-            setLoading(false);
         }
-    };
+        fetchInitialSubmissions();
+
+        return () => {
+            unsubscribes.forEach(unsub => unsub());
+        }
+
+    }, [user, isUserLoading, router, firestore, toast, audio]);
 
     const [dialogOpen, setDialogOpen] = useState(false);
     const [itemToDelete, setItemToDelete] = useState<{type: ItemType, id: string, parentIds?: { courseId?: string, moduleId?: string, testId?: string }} | null>(null);
@@ -364,7 +422,6 @@ export default function AdminDashboardPage() {
             if (docRef && operation === 'delete') {
                 deleteDoc(docRef).then(() => {
                     toast({ title: "Success", description: "Item deleted successfully." });
-                    fetchData();
                 }).catch(async (serverError) => {
                     const permissionError = new FirestorePermissionError({
                         path: docRef.path,
@@ -375,7 +432,6 @@ export default function AdminDashboardPage() {
             } else if (docRef && operation === 'update') {
                 // This part is already handled inside the case, but a general catch can be added.
                 toast({ title: "Success", description: "Item deleted successfully." });
-                fetchData();
             }
 
             setItemToDelete(null);
@@ -385,7 +441,6 @@ export default function AdminDashboardPage() {
             updateDoc(postRef, { internalLinks: arrayRemove(link) })
                 .then(() => {
                     toast({ title: "Success", description: "Internal link removed." });
-                    fetchData();
                 })
                 .catch(async (serverError) => {
                     const permissionError = new FirestorePermissionError({
@@ -506,7 +561,6 @@ export default function AdminDashboardPage() {
         updateDoc(sourcePostRef, { internalLinks: arrayUnion(newLink) })
             .then(() => {
                 toast({ title: "Success", description: "Internal link added successfully." });
-                fetchData();
                 setSelectedSourcePost("");
                 setSelectedTargetPost("");
                 setLinkKeyword("");
@@ -533,7 +587,6 @@ export default function AdminDashboardPage() {
         let dataToSave = { ...formData };
         let docId: string | undefined = (editingItem as any)?.id;
         
-        // Cleanup data before saving
         delete dataToSave.id;
         if ('modules' in dataToSave) delete dataToSave.modules;
         if ('lessons' in dataToSave) delete dataToSave.lessons;
@@ -547,10 +600,10 @@ export default function AdminDashboardPage() {
         } else if (activeTab === 'blog' || activeTab === 'guidance') {
             collectionRef = collection(firestore, "blog");
             docId = (editingItem as BlogPost)?.slug;
-            if (!docId) { // For new posts
+            if (!docId) {
                 docId = createSlug(dataToSave.title);
                 if (!docId) { toast({title: "Error", description: "Blog post must have a title.", variant: "destructive"}); return; }
-                dataToSave.internalLinks = []; // Initialize for new posts
+                dataToSave.internalLinks = [];
             }
             dataToSave.image = dataToSave.image || `https://picsum.photos/seed/${dataToSave.title || 'blog'}/800/450`;
         } else if (activeTab === 'resources') {
@@ -559,44 +612,44 @@ export default function AdminDashboardPage() {
                 dataToSave.fileUrl = convertToDirectDownloadLink(dataToSave.fileUrl);
             }
         } else if (activeTab === 'learn-content') {
-             if (formParentIds?.courseId) { // Editing/Adding Module or Lesson
-                if (formParentIds.moduleId) { // Lesson
+             if (formParentIds?.courseId) {
+                if (formParentIds.moduleId) {
                     collectionRef = collection(firestore, "learningCourses", formParentIds.courseId, "modules", formParentIds.moduleId, "lessons");
-                } else { // Module
+                } else {
                     collectionRef = collection(firestore, "learningCourses", formParentIds.courseId, "modules");
                 }
-            } else { // Course
+            } else {
                 collectionRef = collection(firestore, "learningCourses");
             }
         } else if (activeTab === 'test-categories') {
              collectionRef = collection(firestore, "testCategories");
-             docId = (editingItem as any)?.id || dataToSave.id; // Use existing id or form id
-             if (!docId) { // For new categories, generate from title
+             docId = (editingItem as any)?.id || dataToSave.id;
+             if (!docId) {
                  docId = createSlug(dataToSave.title);
                  if (!docId) { toast({title: "Error", description: "Category must have a title.", variant: "destructive"}); return; }
              }
-             dataToSave.id = docId; // Make sure the ID is saved within the document
+             dataToSave.id = docId;
         } else if (activeTab === 'mock-tests') {
-            if(formParentIds?.testId) { // It's a question
+            if(formParentIds?.testId) {
                 const testRef = doc(firestore, "mockTests", formParentIds.testId);
                 const testDoc = await getDoc(testRef);
                 let testData: MockTest | undefined;
                 if (testDoc.exists()) {
                      testData = testDoc.data() as MockTest;
-                    if (editingItem && docId) { // Editing a question
+                    if (editingItem && docId) {
                         const questionIndex = testData.questions.findIndex(q => q.id === docId);
                         if(questionIndex > -1) {
                             testData.questions[questionIndex] = { ...dataToSave, id: docId };
                         }
-                    } else { // Adding a new question
-                        dataToSave.id = doc(collection(firestore, 'mock-tests')).id; // Generate a unique ID
+                    } else {
+                        dataToSave.id = doc(collection(firestore, 'mock-tests')).id;
                         testData.questions = [...(testData.questions || []), dataToSave];
                     }
                 }
                 const updatedData = { questions: testData?.questions || [] };
                 updateDoc(testRef, updatedData).then(() => {
                     toast({ title: "Success", description: "Data saved successfully." });
-                    fetchData(); handleCloseForm();
+                    handleCloseForm();
                 }).catch(async (serverError) => {
                     const permissionError = new FirestorePermissionError({
                         path: testRef.path, operation: 'update', requestResourceData: updatedData,
@@ -604,7 +657,7 @@ export default function AdminDashboardPage() {
                     errorEmitter.emit('permission-error', permissionError);
                 });
                 return;
-            } else { // It's a test
+            } else {
                 collectionRef = collection(firestore, "mockTests");
                 if(!editingItem) {
                     dataToSave.questions = [];
@@ -625,7 +678,7 @@ export default function AdminDashboardPage() {
                 }
                 setDoc(docRef, dataToSave).then(() => {
                     toast({ title: "Success", description: "Data saved successfully." });
-                    fetchData(); handleCloseForm();
+                    handleCloseForm();
                 }).catch(async (serverError) => {
                     const permissionError = new FirestorePermissionError({
                         path: docRef.path, operation: 'create', requestResourceData: dataToSave,
@@ -635,7 +688,7 @@ export default function AdminDashboardPage() {
             } else {
                 addDoc(collectionRef, dataToSave).then(() => {
                     toast({ title: "Success", description: "Data saved successfully." });
-                    fetchData(); handleCloseForm();
+                    handleCloseForm();
                 }).catch(async (serverError) => {
                     const permissionError = new FirestorePermissionError({
                         path: collectionRef.path, operation: 'create', requestResourceData: dataToSave,
@@ -648,7 +701,7 @@ export default function AdminDashboardPage() {
             if (['blog', 'guidance', 'test-categories'].includes(activeTab)) {
                 setDoc(docRef, dataToSave).then(() => {
                     toast({ title: "Success", description: "Data saved successfully." });
-                    fetchData(); handleCloseForm();
+                    handleCloseForm();
                 }).catch(async (serverError) => {
                     const permissionError = new FirestorePermissionError({
                         path: docRef.path, operation: 'update', requestResourceData: dataToSave,
@@ -658,7 +711,7 @@ export default function AdminDashboardPage() {
             } else {
                 updateDoc(docRef, dataToSave).then(() => {
                     toast({ title: "Success", description: "Data saved successfully." });
-                    fetchData(); handleCloseForm();
+                    handleCloseForm();
                 }).catch(async (serverError) => {
                     const permissionError = new FirestorePermissionError({
                         path: docRef.path, operation: 'update', requestResourceData: dataToSave,
@@ -862,7 +915,6 @@ export default function AdminDashboardPage() {
 
             await batch.commit();
             toast({ title: "Success", description: "All learning course content has been uploaded to Firestore." });
-            await fetchData(); // Refresh data in the dashboard
 
         } catch (error) {
             console.error("Error uploading content:", error);

@@ -1,6 +1,5 @@
 
 
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -173,7 +172,7 @@ export default function ExamRegistrationPage() {
             console.error("Registration failed:", error);
             toast({
                 title: "Registration Failed",
-                description: "An unexpected error occurred. Please try again.",
+                description: "An unexpected error occurred. Please check your security rules.",
                 variant: "destructive",
             });
         } finally {
@@ -420,8 +419,3 @@ export default function ExamRegistrationPage() {
         </>
     );
 }
-
-    
-
-    
-
