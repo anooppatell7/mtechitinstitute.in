@@ -159,7 +159,7 @@ export default function ExamRegistrationPage() {
                 isRead: false,
             };
 
-            // Use user's UID as the document ID
+            // Use user's UID as the document ID to comply with security rules
             await setDoc(doc(db, "examRegistrations", user.uid), registrationData);
 
             toast({
@@ -421,3 +421,5 @@ export default function ExamRegistrationPage() {
     );
 }
 
+
+    
