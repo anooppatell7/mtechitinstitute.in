@@ -932,12 +932,11 @@ export default function AdminDashboardPage() {
                 const counterRef = doc(firestore, "counters", "examRegistrations");
                 const counterDoc = await transaction.get(counterRef);
                 
-                let newCount;
+                let newCount = (counterDoc.data()?.currentNumber || 0) + 1;
+
                 if (!counterDoc.exists()) {
-                    newCount = 1;
                     transaction.set(counterRef, { currentNumber: newCount });
                 } else {
-                    newCount = counterDoc.data().currentNumber + 1;
                     transaction.update(counterRef, { currentNumber: newCount });
                 }
 
