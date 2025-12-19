@@ -4,7 +4,7 @@
 
 import Link from "next/link";
 import React, { useState, useEffect, use } from "react";
-import { PlusCircle, MoreHorizontal, LogOut, Trash, Edit, Settings, FileText, MessageSquare, Briefcase, Link2, Megaphone, Star, Upload, BookOpen, Layers, ChevronDown, ListTodo, BookCopy, UserCheck, Award, Tv, Database } from "lucide-react";
+import { PlusCircle, MoreHorizontal, LogOut, Trash, Edit, Settings, FileText, MessageSquare, Briefcase, Link2, Megaphone, Star, Upload, BookOpen, Layers, ChevronDown, ListTodo, BookCopy, UserCheck, Award, Tv, Database, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -75,7 +75,7 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import coursesData from "@/lib/data/courses.json";
 import { useAuth, useFirestore, useUser } from "@/firebase";
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, setDoc, Timestamp, where, arrayUnion, arrayRemove, getDoc, writeBatch, onSnapshot, Unsubscribe } from "firebase/firestore";
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, setDoc, Timestamp, where, arrayUnion, arrayRemove, getDoc, writeBatch, onSnapshot, Unsubscribe, runTransaction } from "firebase/firestore";
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 import { errorEmitter } from '@/firebase/error-emitter';
 
@@ -102,6 +102,7 @@ export default function AdminDashboardPage() {
     const [examResults, setExamResults] = useState<ExamResult[]>([]);
     const [certificates, setCertificates] = useState<Certificate[]>([]);
     const [loading, setLoading] = useState(true);
+    const [generatingRegNo, setGeneratingRegNo] = useState<string | null>(null);
     const { toast } = useToast();
 
     // Site settings state
@@ -919,6 +920,55 @@ export default function AdminDashboardPage() {
         } catch (error) {
             console.error("Error uploading content:", error);
             toast({ title: "Error", description: "Could not upload content to Firestore.", variant: "destructive" });
+        }
+    };
+    
+    const handleGenerateRegNo = async (registrationId: string) => {
+        if (!firestore) return;
+        setGeneratingRegNo(registrationId);
+
+        try {
+            await runTransaction(firestore, async (transaction) => {
+                const counterRef = doc(firestore, "counters", "examRegistrations");
+                const counterDoc = await transaction.get(counterRef);
+                
+                let newCount;
+                if (!counterDoc.exists()) {
+                    newCount = 1;
+                    transaction.set(counterRef, { currentNumber: newCount });
+                } else {
+                    newCount = counterDoc.data().currentNumber + 1;
+                    transaction.update(counterRef, { currentNumber: newCount });
+                }
+
+                const currentYear = new Date().getFullYear();
+                const registrationNumber = `MTECH-${currentYear}-${String(newCount).padStart(4, '0')}`;
+                
+                const regRef = doc(firestore, "examRegistrations", registrationId);
+                transaction.update(regRef, { registrationNumber: registrationNumber });
+
+                 setExamRegistrations(prev =>
+                    prev.map(reg => 
+                        reg.id === registrationId 
+                            ? { ...reg, registrationNumber: registrationNumber }
+                            : reg
+                    )
+                );
+
+                toast({
+                    title: "Success",
+                    description: `Generated Registration No: ${registrationNumber}`,
+                });
+            });
+        } catch (error) {
+            console.error("Failed to generate registration number:", error);
+            toast({
+                title: "Error",
+                description: "Could not generate registration number. Check console for details.",
+                variant: "destructive",
+            });
+        } finally {
+            setGeneratingRegNo(null);
         }
     };
 
@@ -1819,7 +1869,7 @@ export default function AdminDashboardPage() {
                                             <TableBody>
                                                 {examRegistrations.map(reg => (
                                                     <TableRow key={reg.id} onClick={() => !reg.isRead && handleMarkAsRead('examRegistrations', reg.id)} className={cn(!reg.isRead && "bg-blue-50 hover:bg-blue-100/80")}>
-                                                        <TableCell className="font-mono">{reg.registrationNumber}</TableCell>
+                                                        <TableCell className="font-mono">{reg.registrationNumber || 'Not Assigned'}</TableCell>
                                                         <TableCell className="font-medium flex items-center gap-2">
                                                             {!reg.isRead && <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse"></span>}
                                                             {reg.fullName}
@@ -1833,6 +1883,12 @@ export default function AdminDashboardPage() {
                                                                     <Button aria-haspopup="true" size="icon" variant="ghost"><MoreHorizontal className="h-4 w-4" /></Button>
                                                                 </DropdownMenuTrigger>
                                                                 <DropdownMenuContent align="end">
+                                                                     {!reg.registrationNumber && (
+                                                                        <DropdownMenuItem onClick={() => handleGenerateRegNo(reg.id)} disabled={generatingRegNo === reg.id}>
+                                                                            {generatingRegNo === reg.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Award className="mr-2 h-4 w-4" />}
+                                                                            Generate Reg. No
+                                                                        </DropdownMenuItem>
+                                                                    )}
                                                                     <DropdownMenuItem className="text-destructive" onClick={() => openConfirmationDialog('examRegistration', reg.id)}>
                                                                         <Trash className="mr-2 h-4 w-4" />Delete
                                                                     </DropdownMenuItem>

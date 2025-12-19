@@ -60,10 +60,10 @@ service cloud.firestore {
         allow read, write: if isOwner(userId);
     }
     
-    // Exam Registrations: Logged-in users can create their own doc with their UID. Admins can read all.
+    // Exam Registrations: Logged-in users can create/update their own doc. Admins can read/update/delete all.
     match /examRegistrations/{userId} {
-        allow read: if isOwner(userId) || isAdmin();
-        allow create, update: if isOwner(userId);
+        allow read, update: if isOwner(userId) || isAdmin();
+        allow create: if isOwner(userId);
         allow delete: if isAdmin();
     }
     

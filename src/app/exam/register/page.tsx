@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -6,7 +7,7 @@ import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useFirestore } from '@/firebase';
-import { collection, addDoc, doc, runTransaction, serverTimestamp, getDocs, query, orderBy, getDoc, setDoc } from 'firebase/firestore';
+import { collection, doc, serverTimestamp, getDocs, query, orderBy, getDoc, setDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import type { Course, ExamRegistration } from '@/lib/types';
 import { useUser } from '@/firebase';
@@ -131,14 +132,12 @@ export default function ExamRegistrationPage() {
         setIsLoading(true);
 
         try {
-            // FIX: Removed client-side counter logic.
-            // A registration number can be assigned later by an admin or a Cloud Function.
             const registrationData = {
                 ...data,
                 dob: format(data.dob, 'yyyy-MM-dd'),
                 registeredAt: serverTimestamp(),
                 isRead: false,
-                // The registrationNumber field is omitted.
+                // The registrationNumber is not generated on the client
             };
 
             // Use setDoc with user's UID as the document ID to comply with security rules
@@ -155,7 +154,7 @@ export default function ExamRegistrationPage() {
             console.error("Registration failed:", error);
             toast({
                 title: "Registration Failed",
-                description: "An unexpected error occurred. Please check your security rules or contact support.",
+                description: "An unexpected error occurred. Please try again later.",
                 variant: "destructive",
             });
         } finally {
@@ -185,7 +184,7 @@ export default function ExamRegistrationPage() {
                             <CardDescription>Your application has been submitted.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <p className="text-muted-foreground">We have received your details. You can now view your profile and access available exams.</p>
+                            <p className="text-muted-foreground">We have received your details. Your registration number will be assigned by the administrator shortly.</p>
                             <Button asChild className="mt-6">
                                 <Link href="/profile">View My Profile</Link>
                             </Button>

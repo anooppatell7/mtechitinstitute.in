@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -132,8 +133,8 @@ export default function ProfilePage() {
         setIsSaving(true);
         try {
             const docRef = doc(db, 'examRegistrations', user.uid);
-            // Ensure the course cannot be changed
-            const dataToUpdate = { ...formData, course: registration.course };
+            // Ensure the course and registration number cannot be changed
+            const dataToUpdate = { ...formData, course: registration.course, registrationNumber: registration.registrationNumber };
             await updateDoc(docRef, dataToUpdate);
             setRegistration(dataToUpdate as ExamRegistration);
             setIsEditing(false);
@@ -314,8 +315,16 @@ export default function ProfilePage() {
                             </div>
                         ) : (
                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
-                                {registration.registrationNumber && (
+                                {registration.registrationNumber ? (
                                     <ProfileDetail icon={<Key className="h-6 w-6"/>} label="Registration Number" value={registration.registrationNumber} />
+                                ) : (
+                                    <div className="flex items-center gap-4 p-3 rounded-md bg-blue-50 border border-blue-200">
+                                        <Key className="h-6 w-6 text-blue-600"/>
+                                        <div>
+                                            <p className="text-sm text-blue-800">Registration Number</p>
+                                            <p className="font-semibold text-base text-blue-700">Pending Assignment</p>
+                                        </div>
+                                    </div>
                                 )}
                                 <ProfileDetail icon={<Briefcase className="h-6 w-6"/>} label="Course" value={registration.course} />
                                 <ProfileDetail icon={<User className="h-6 w-6"/>} label="Father's Name" value={registration.fatherName} />
