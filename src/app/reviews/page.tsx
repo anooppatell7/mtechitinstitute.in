@@ -2,6 +2,10 @@
 import type { Metadata } from 'next';
 import ReviewPageClient from "@/components/reviews-page-client";
 import SectionDivider from "@/components/section-divider";
+import { db } from '@/firebase';
+import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
+import type { Review } from '@/lib/types';
+import { Timestamp } from 'firebase/firestore';
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://mtechitinstitute.in";
 
@@ -19,13 +23,44 @@ export const metadata: Metadata = {
   },
 };
 
+async function getApprovedReviews(): Promise<Review[]> {
+  if (!db) return [];
+  try {
+    const reviewsQuery = query(
+      collection(db, "reviews"),
+      where("isApproved", "==", true),
+      orderBy("submittedAt", "desc")
+    );
+    const reviewsSnapshot = await getDocs(reviewsQuery);
+    return reviewsSnapshot.docs.map(doc => {
+      const data = doc.data();
+      // Convert Firestore Timestamp to a readable date string
+      const submittedAt = (data.submittedAt as Timestamp)?.toDate().toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+      }) || 'Date not available';
 
-export default function ReviewsPage() {
+      return {
+        id: doc.id,
+        ...data,
+        submittedAt,
+      } as Review;
+    });
+  } catch (error) {
+    console.error("Error fetching reviews:", error);
+    return [];
+  }
+}
+
+
+export default async function ReviewsPage() {
+  const reviews = await getApprovedReviews();
   
   return (
     <>
       <div className="bg-gradient-to-br from-indigo-600 via-blue-500 to-cyan-400">
-        <ReviewPageClient />
+        <ReviewPageClient reviews={reviews} />
       </div>
       <div className="relative bg-secondary">
           <SectionDivider style="wave" className="text-gradient-to-br from-indigo-600 via-blue-500 to-cyan-400" position="top"/>

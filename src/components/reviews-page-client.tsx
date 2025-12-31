@@ -9,6 +9,18 @@ import { ReviewFormModal } from "@/components/review-form-modal";
 import { cn } from "@/lib/utils";
 
 export default function ReviewPageClient({ reviews }: { reviews: Review[] }) {
+    
+    if (!reviews) {
+        // Render a loading state or nothing if reviews are not yet available.
+        return (
+             <div className="bg-gradient-to-br from-indigo-600 via-blue-500 to-cyan-400 text-white">
+                <div className="container py-16 sm:py-24 text-center">
+                    <p>Loading reviews...</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="bg-gradient-to-br from-indigo-600 via-blue-500 to-cyan-400 text-white">
             <div className="container py-16 sm:py-24">
