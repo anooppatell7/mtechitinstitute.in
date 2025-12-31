@@ -727,7 +727,7 @@ export default function AdminDashboardPage() {
         const { name, value } = e.target;
         setSettingsFormData({ ...settingsFormData, [name]: value });
     };
-
+    
     const handleSiteSettingsChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setSiteSettings({ ...siteSettings, [name]: value });
@@ -923,7 +923,7 @@ export default function AdminDashboardPage() {
         }
     };
     
-    const handleGenerateRegNo = async (registrationId: string) => {
+    const handleGenerateRegNo = async (registrationId: string, studentName: string) => {
         if (!firestore) return;
         setGeneratingRegNo(registrationId);
 
@@ -956,11 +956,23 @@ export default function AdminDashboardPage() {
 
                 toast({
                     title: "Success",
-                    description: `Generated Registration No: ${registrationNumber}`,
+                    description: `Generated Reg. No: ${registrationNumber}`,
                 });
             });
+
+            // Send notification after successful transaction
+            await fetch('/api/notify-student', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                studentId: registrationId,
+                title: "Registration Approved!",
+                message: `Badhai Ho ${studentName}! Aapka M-Tech IT Institute mein registration approve ho gaya hai.`
+              })
+            });
+
         } catch (error) {
-            console.error("Failed to generate registration number:", error);
+            console.error("Failed to generate registration number or send notification:", error);
             toast({
                 title: "Error",
                 description: "Could not generate registration number. Check console for details.",
@@ -1883,7 +1895,7 @@ export default function AdminDashboardPage() {
                                                                 </DropdownMenuTrigger>
                                                                 <DropdownMenuContent align="end">
                                                                      {!reg.registrationNumber && (
-                                                                        <DropdownMenuItem onClick={() => handleGenerateRegNo(reg.id)} disabled={generatingRegNo === reg.id}>
+                                                                        <DropdownMenuItem onClick={() => handleGenerateRegNo(reg.id, reg.fullName)} disabled={generatingRegNo === reg.id}>
                                                                             {generatingRegNo === reg.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Award className="mr-2 h-4 w-4" />}
                                                                             Generate Reg. No
                                                                         </DropdownMenuItem>

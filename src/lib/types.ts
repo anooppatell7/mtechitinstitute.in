@@ -203,6 +203,7 @@ export type ExamRegistration = {
   pinCode: string;
   registeredAt: any; // Firestore Timestamp
   isRead: boolean;
+  onesignal_player_id?: string;
 };
 
 export type ExamResult = {

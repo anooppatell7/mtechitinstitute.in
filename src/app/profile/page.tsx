@@ -22,6 +22,36 @@ import { generateCertificatePdf } from '@/lib/certificate-generator';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
+// This component handles syncing the OneSignal Player ID
+const OneSignalManager = ({ studentId }: { studentId: string }) => {
+    useEffect(() => {
+        // 1. Check if the user is inside the Android WebView
+        if (typeof window !== "undefined" && (window as any).AndroidApp) {
+            try {
+                // 2. Get the Player ID from the Android Interface
+                const playerID = (window as any).AndroidApp.getOneSignalId();
+
+                if (playerID && playerID !== "not_found") {
+                    // 3. Save the ID to the student's record in Firestore
+                    const studentRef = doc(db, "examRegistrations", studentId);
+                    updateDoc(studentRef, {
+                        onesignal_player_id: playerID
+                    }).then(() => {
+                        console.log("OneSignal Player ID synced successfully: ", playerID);
+                    }).catch(err => {
+                        console.error("Failed to sync OneSignal ID to Firestore:", err);
+                    });
+                }
+            } catch (error) {
+                console.error("Error getting OneSignal Player ID from AndroidApp interface:", error);
+            }
+        }
+    }, [studentId]);
+
+    return null; // This component does not render anything
+};
+
+
 function ProfileSkeleton() {
     return (
         <div className="bg-secondary min-h-[80vh]">
@@ -254,6 +284,7 @@ export default function ProfilePage() {
 
     return (
         <div className="bg-secondary">
+             {user && <OneSignalManager studentId={user.uid} />}
              <div className="container py-12 sm:py-20">
                 <Card className="max-w-4xl mx-auto shadow-2xl overflow-hidden border-t-4 border-t-accent">
                     <CardHeader className="bg-card p-8 border-b">
