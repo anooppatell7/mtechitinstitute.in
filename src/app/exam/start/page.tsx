@@ -57,18 +57,17 @@ export default function StartExamPage() {
         const studentData = { id: querySnapshot.docs[0].id, ...querySnapshot.docs[0].data() } as ExamRegistration;
         setStudentDetails(studentData);
         
-        // Fetch the specific test available for the student's course
+        // Fetch any available test from the "Student Exam" category
         const testsQuery = query(
             collection(db, "mockTests"), 
             where("isPublished", "==", true), 
             where("categoryName", "==", "Student Exam"),
-            where("title", "==", studentData.course),
             limit(1)
         );
         const testsSnapshot = await getDocs(testsQuery);
         
         if (testsSnapshot.empty) {
-            toast({ title: "No Exam Found", description: "There is no exam available for your registered course at the moment.", variant: "destructive" });
+            toast({ title: "No Exam Found", description: "There are no official exams available at the moment.", variant: "destructive" });
         } else {
             const test = { id: testsSnapshot.docs[0].id, ...testsSnapshot.docs[0].data() } as MockTest;
             setAvailableTest(test);
@@ -88,7 +87,7 @@ export default function StartExamPage() {
         toast({ title: "No Exam Available", description: "There is no exam for you to start.", variant: "destructive"});
         return;
     }
-    if (!studentDetails) {
+    if (!studentDetails || !studentDetails.registrationNumber) {
         toast({ title: "Student details not found.", description: "Please re-verify your registration number.", variant: "destructive"});
         return;
     }
@@ -159,7 +158,7 @@ export default function StartExamPage() {
                                 
                                 {availableTest ? (
                                     <div className="space-y-4">
-                                         <Label>Selected Exam</Label>
+                                         <Label>Available Exam</Label>
                                          <div className="flex items-center gap-3 rounded-md border bg-background p-4">
                                              <BookOpen className="h-5 w-5 text-accent" />
                                              <span className="font-semibold text-primary">{availableTest.title}</span>
