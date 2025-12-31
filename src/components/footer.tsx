@@ -95,7 +95,8 @@ export default function Footer() {
               </Link>
             </div>
           <div className="text-sm text-center sm:text-right">
-            <span>&copy; {new Date().getFullYear()} MTech IT Institute. All Rights Reserved.</span>
+            <div>&copy; {new Date().getFullYear()} MTech IT Institute. All Rights Reserved.</div>
+            <div className="text-muted-foreground mt-1">Powered by <a href="https://veloxlaunch.com" target="_blank" rel="noopener noreferrer" className="hover:text-accent font-semibold">VeloxLaunch</a></div>
           </div>
         </div>
       </div>
