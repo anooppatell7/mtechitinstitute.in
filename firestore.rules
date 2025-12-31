@@ -63,15 +63,23 @@ service cloud.firestore {
     // Exam Registrations: Logged-in users can create their own doc. Admins can read/update/delete all.
     match /examRegistrations/{userId} {
         allow read: if isOwner(userId) || isAdmin();
-        allow update: if isAdmin(); // Only Admin can update (e.g., assign reg no, mark as read)
+        allow update: if isOwner(userId) || isAdmin();
         allow create: if isOwner(userId);
         allow delete: if isAdmin();
     }
     
-    // Exam Results: Publicly readable. Write access for any logged-in user or admin.
+    // Exam Results: Publicly readable. Write access restricted.
     match /examResults/{resultId} {
         allow read: if true;
-        allow write: if isAuth() || isAdmin();
+        allow create: if isAuth() && (
+            // Allow if user is an admin
+            isAdmin() ||
+            // Allow if it's a practice test (registrationNumber is user's UID)
+            request.resource.data.registrationNumber == request.auth.uid ||
+            // Allow if it's an official exam and the user is the registered owner
+            exists(/databases/$(database)/documents/examRegistrations/$(request.auth.uid))
+        );
+        allow update, delete: if isAdmin(); // Only admins can modify results
     }
 
     // Certificates: Publicly readable. Only created by admin.
