@@ -60,40 +60,34 @@ service cloud.firestore {
         allow read, write: if isOwner(userId);
     }
     
-    // Exam Registrations: Logged-in users can create their own doc. Admins can read/update/delete all.
+    // Exam Registrations: Logged-in users can create/update their own doc. Admins can access all.
     match /examRegistrations/{userId} {
         allow read: if isOwner(userId) || isAdmin();
-        allow update: if isOwner(userId) || isAdmin();
-        allow create: if isOwner(userId);
+        allow create, update: if isOwner(userId) || isAdmin();
         allow delete: if isAdmin();
     }
     
-    // Exam Results: Publicly readable. Write access restricted.
+    // Exam Results: Publicly readable. Write access is highly restricted.
     match /examResults/{resultId} {
-      // Anyone can read results (for certificate verification)
+      // Anyone can read results (e.g., for certificate verification).
       allow read: if true;
 
-      // Allow creation only under specific, secure conditions
+      // Allow creation ONLY under specific, secure conditions.
       allow create: if isAuth() && (
-        // 1. Admins can always create results
-        isAdmin()
-        ||
-        // 2. For practice/mock tests, the result's userId must match the logged-in user
-        (
-          request.resource.data.userId == request.auth.uid
-        )
-        ||
-        // 3. For official exams, the user must be registered and the registration number must match
-        (
-          exists(/databases/$(database)/documents/examRegistrations/$(request.auth.uid)) &&
-          request.resource.data.registrationNumber ==
-          get(/databases/$(database)/documents/examRegistrations/$(request.auth.uid)).data.registrationNumber
-        )
+        // 1. Admins can always create results.
+        isAdmin() ||
+        // 2. For practice tests, where the registration number IS the user's UID.
+        request.resource.data.registrationNumber == request.auth.uid ||
+        // 3. For official exams, verify the submitting user owns the registration number.
+        // This rule checks that the registration number in the submitted result
+        // matches the registration number inside the user's own registration document.
+        get(/databases/$(database)/documents/examRegistrations/$(request.auth.uid)).data.registrationNumber == request.resource.data.registrationNumber
       );
 
-      // Only admins can modify or delete results after creation
+      // Only admins can modify or delete results after they are created.
       allow update, delete: if isAdmin();
     }
+
 
     // Certificates: Publicly readable. Only created by admin.
     match /certificates/{certId} {

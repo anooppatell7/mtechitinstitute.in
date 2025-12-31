@@ -138,77 +138,54 @@ export const useMockTest = (testId: string) => {
         
         const isOfficialExam = !!registrationNumber;
         
-        let finalRegistrationNumber = registrationNumber;
-        let finalStudentName = studentName;
-        let examDate = new Date();
+        let finalRegistrationNumber: string;
+        let finalStudentName: string;
 
-        try {
-            if (isOfficialExam && registrationNumber) {
-                 const regQuery = query(collection(db, "examRegistrations"), where("registrationNumber", "==", registrationNumber));
-                 const regSnap = await getDocs(regQuery);
-                 
-                 if (!regSnap.empty) {
-                    const regData = regSnap.docs[0].data() as ExamRegistration;
-                    finalStudentName = regData.fullName;
-                    // @ts-ignore
-                    examDate = regData.registeredAt?.toDate ? regData.registeredAt.toDate() : new Date();
-                 }
-            } else {
-                finalRegistrationNumber = user.uid;
-                finalStudentName = user.displayName || user.email || 'Anonymous';
+        // Determine registration number and student name
+        if (isOfficialExam && registrationNumber) {
+            finalRegistrationNumber = registrationNumber;
+            finalStudentName = studentName || user.displayName || user.email || "Student";
+        } else {
+            // For practice tests, the user's UID is the registration number
+            finalRegistrationNumber = user.uid;
+            finalStudentName = user.displayName || user.email || "Student";
+        }
+
+        let score = 0;
+        let correctAnswers = 0;
+
+        const responses: TestResponse[] = testData.questions.map((q, i) => {
+            const selectedOption = selectedAnswers[i];
+            const isCorrect = selectedOption === q.correctOption;
+            const questionMarks = q.marks || 1;
+            if (isCorrect) {
+                score += questionMarks;
+                correctAnswers++;
             }
-            
-            if (!finalRegistrationNumber || !finalStudentName) {
-                toast({ title: "Error", description: "Could not verify student details.", variant: "destructive" });
-                setIsSubmitting(false);
-                return;
-            }
-
-            let score = 0;
-            let correctAnswers = 0;
-
-            const responses: TestResponse[] = testData.questions.map((q, i) => {
-                const selectedOption = selectedAnswers[i];
-                const isCorrect = selectedOption === q.correctOption;
-                const questionMarks = q.marks || 1;
-                if (isCorrect) {
-                    score += questionMarks;
-                    correctAnswers++;
-                }
-                return {
-                    questionId: q.id,
-                    selectedOption: selectedOption === undefined || selectedOption === null ? null : selectedOption,
-                    isCorrect,
-                    marksAwarded: isCorrect ? questionMarks : 0,
-                };
-            });
-
-            const attemptedQuestions = selectedAnswers.filter(a => a !== null && a !== undefined).length;
-            const accuracy = attemptedQuestions > 0 ? (correctAnswers / attemptedQuestions) * 100 : 0;
-            
-            let timeTaken = initialDurationRef.current - timeLeft;
-            if (isNaN(timeTaken) || timeTaken < 0) {
-                timeTaken = 0;
-            }
-
-            // Generate Certificate ID
-            const currentYear = new Date().getFullYear();
-            const randomSuffix = Math.floor(100000 + Math.random() * 900000);
-            const certificateId = `CERT-${currentYear}-${randomSuffix}`;
-            
-            const cleanData = (obj: any): any => {
-                if (Array.isArray(obj)) {
-                    return obj.map(v => cleanData(v));
-                } else if (obj !== null && typeof obj === 'object') {
-                    return Object.entries(obj)
-                        .filter(([_, v]) => v !== undefined)
-                        .reduce((acc, [k, v]) => ({ ...acc, [k]: cleanData(v) }), {});
-                }
-                return obj;
+            return {
+                questionId: q.id,
+                selectedOption: selectedOption === undefined || selectedOption === null ? null : selectedOption,
+                isCorrect,
+                marksAwarded: isCorrect ? questionMarks : 0,
             };
+        });
 
-            const resultData = {
-                userId: user.uid, // IMPORTANT: Add userId for security rules
+        const attemptedQuestions = selectedAnswers.filter(a => a !== null && a !== undefined).length;
+        const accuracy = attemptedQuestions > 0 ? (correctAnswers / attemptedQuestions) * 100 : 0;
+        
+        let timeTaken = initialDurationRef.current - timeLeft;
+        if (isNaN(timeTaken) || timeTaken < 0) {
+            timeTaken = 0;
+        }
+
+        // Generate Certificate ID
+        const currentYear = new Date().getFullYear();
+        const randomSuffix = Math.floor(100000 + Math.random() * 900000);
+        const certificateId = `CERT-${currentYear}-${randomSuffix}`;
+        
+        try {
+             const resultData = {
+                userId: user.uid,
                 registrationNumber: finalRegistrationNumber,
                 studentName: finalStudentName,
                 testId: testData.id,
@@ -221,8 +198,7 @@ export const useMockTest = (testId: string) => {
                 certificateId: certificateId,
             };
             
-            const finalResultData = cleanData(resultData);
-            const resultId = await saveExamResult(finalResultData as Omit<ExamResult, 'id'|'submittedAt'>);
+            const resultId = await saveExamResult(resultData as Omit<ExamResult, 'id'|'submittedAt'>);
 
             toast({
                 title: isOfficialExam ? "Exam Submitted" : "Test Submitted",
