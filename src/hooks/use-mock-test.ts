@@ -207,7 +207,8 @@ export const useMockTest = (testId: string) => {
                 return obj;
             };
 
-            const resultData: Omit<ExamResult, 'id' | 'submittedAt'> = {
+            const resultData = {
+                userId: user.uid, // IMPORTANT: Add userId for security rules
                 registrationNumber: finalRegistrationNumber,
                 studentName: finalStudentName,
                 testId: testData.id,
@@ -221,7 +222,7 @@ export const useMockTest = (testId: string) => {
             };
             
             const finalResultData = cleanData(resultData);
-            const resultId = await saveExamResult(finalResultData);
+            const resultId = await saveExamResult(finalResultData as Omit<ExamResult, 'id'|'submittedAt'>);
 
             toast({
                 title: isOfficialExam ? "Exam Submitted" : "Test Submitted",

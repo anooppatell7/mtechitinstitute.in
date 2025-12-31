@@ -209,6 +209,7 @@ export type ExamRegistration = {
 
 export type ExamResult = {
   id: string;
+  userId: string; // IMPORTANT: For security rules
   registrationNumber: string;
   studentName: string;
   testId: string;

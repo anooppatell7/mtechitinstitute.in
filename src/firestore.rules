@@ -1,0 +1,121 @@
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions to make rules easier to read
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuth() && request.auth.uid == userId;
+    }
+
+    // Admin can be defined by a list of UIDs or a custom claim
+    // For simplicity, we'll use a list of emails here.
+    // Replace with actual admin emails.
+    function isAdmin() {
+        return isAuth() && request.auth.token.email in ["mtechitinstitute@gmail.com", "anooppbh8@gmail.com"];
+    }
+
+    // PUBLIC COLLECTIONS
+    // Anyone can read, but only admins can write.
+    match /blog/{postId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /resources/{resourceId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /testCategories/{categoryId} {
+        allow read: if true;
+        allow write: if isAdmin();
+    }
+    match /mockTests/{testId} {
+        allow read: if true;
+        allow write: if isAdmin();
+    }
+    match /courses/{courseId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /learningCourses/{courseId}/{document=**} {
+        allow read: if true;
+        allow write: if isAdmin();
+    }
+    match /site_settings/{settingId} {
+       allow read: if true;
+       allow write: if isAdmin();
+    }
+    match /counters/{counterId} {
+       allow read, write: if isAdmin(); // Only admins should be able to manage counters
+    }
+
+    // USER-SPECIFIC DATA
+    // Users can read and write their own data.
+    match /userProgress/{userId} {
+        allow read, write: if isOwner(userId);
+    }
+    
+    // Exam Registrations: Logged-in users can create their own doc. Admins can read/update/delete all.
+    match /examRegistrations/{userId} {
+        allow read: if isOwner(userId) || isAdmin();
+        allow update: if isOwner(userId) || isAdmin();
+        allow create: if isOwner(userId);
+        allow delete: if isAdmin();
+    }
+    
+    // Exam Results: Publicly readable. Write access restricted.
+    match /examResults/{resultId} {
+      // Anyone can read results (for certificate verification)
+      allow read: if true;
+
+      // Allow creation only under specific, secure conditions
+      allow create: if isAuth() && (
+        // 1. Admins can always create results
+        isAdmin()
+        ||
+        // 2. For practice/mock tests, the result's userId must match the logged-in user
+        (
+          request.resource.data.userId == request.auth.uid
+        )
+        ||
+        // 3. For official exams, the user must be registered and the registration number must match
+        (
+          exists(/databases/$(database)/documents/examRegistrations/$(request.auth.uid)) &&
+          request.resource.data.registrationNumber ==
+          get(/databases/$(database)/documents/examRegistrations/$(request.auth.uid)).data.registrationNumber
+        )
+      );
+
+      // Only admins can modify or delete results after creation
+      allow update, delete: if isAdmin();
+    }
+
+    // Certificates: Publicly readable. Only created by admin.
+    match /certificates/{certId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // PUBLIC SUBMISSIONS
+    // Anyone can create, but only admins can read/delete.
+    match /contacts/{contactId} {
+        allow create: if true;
+        allow read, delete: if isAdmin();
+    }
+    match /enrollments/{enrollmentId} {
+        allow create: if true;
+        allow read, update, delete: if isAdmin();
+    }
+     match /reviews/{reviewId} {
+        allow read: if true;
+        allow create: if true;
+        allow update, delete: if isAdmin(); // Only admin can approve/delete
+    }
+
+  }
+}
