@@ -11,7 +11,7 @@ import type { MockTest, TestResult, TestCategory, ExamResult, ExamRegistration }
 import { useUser, useFirestore } from "@/firebase";
 import { collection, query, where, getDocs, doc, getDoc } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
-import { db } from "@/lib/firebase";
+import { db } from "@/firebase";
 import SectionDivider from "@/components/section-divider";
 
 function TestsLoadingSkeleton() {
@@ -47,7 +47,10 @@ export default function StudentExamPage() {
 
     useEffect(() => {
         if (userLoading) return;
-        if (!user) return; // This page should be protected
+        if (!user || !firestore) {
+            setIsLoading(false);
+            return;
+        }
 
         const fetchData = async () => {
             setIsLoading(true);
@@ -65,12 +68,11 @@ export default function StudentExamPage() {
                 const regData = { id: regSnap.id, ...regSnap.data() } as ExamRegistration;
                 setRegistration(regData);
 
-                // 2. Fetch tests that match the user's registered course
+                // 2. Fetch tests that are in the "Student Exam" category
                 const testsQuery = query(
                     collection(db, "mockTests"),
                     where("categoryName", "==", "Student Exam"),
-                    where("isPublished", "==", true),
-                    where("title", "==", regData.course) // <-- This is the new restriction
+                    where("isPublished", "==", true)
                 );
                 const testsSnapshot = await getDocs(testsQuery);
                 const testList = testsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as MockTest));
@@ -84,12 +86,12 @@ export default function StudentExamPage() {
         };
         
         fetchData();
-    }, [user, userLoading]);
+    }, [user, userLoading, firestore]);
 
     // Fetch results for the current user
     useEffect(() => {
         const fetchUserResults = async () => {
-            if (!user || !firestore || mockTests.length === 0 || !registration) {
+            if (!user || !firestore || mockTests.length === 0 || !registration?.registrationNumber) {
                 return;
             };
 
