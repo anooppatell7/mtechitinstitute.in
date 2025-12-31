@@ -66,6 +66,8 @@ export default function ExamResultPage() {
 
         const fetchResultAndTest = async () => {
             setIsLoading(true);
+            setIsAuthorized(null); // Reset authorization state on new fetch
+
             const resultRef = doc(db, 'examResults', resultId);
             const resultSnap = await getDoc(resultRef);
 
@@ -75,57 +77,47 @@ export default function ExamResultPage() {
             }
 
             const resultData = { id: resultSnap.id, ...resultSnap.data() } as ExamResultType;
+            setResult(resultData);
+            document.title = `Result: ${resultData.testName} - MTech IT Institute`;
             
-            // Check if it's an official exam or a practice test.
-            // Official exams have a registration number like 'MTECH-YYYY-NNNN'.
-            // Practice tests use the user's UID as the registrationNumber.
             const officialExam = resultData.registrationNumber.startsWith('MTECH-');
             setIsOfficialExam(officialExam);
 
             // Authorization Check
-            if (user) {
-                const isAdmin = user.email && ["mtechitinstitute@gmail.com", "anooppbh8@gmail.com"].includes(user.email);
-                let isOwner = false;
-                
-                // For practice tests, the registrationNumber is the user's UID.
-                if (!officialExam && resultData.registrationNumber === user.uid) {
-                    isOwner = true;
-                } else if (officialExam) {
-                    // For official exams, check if user's UID matches the ID of the registration document.
-                    const registrationQuery = query(collection(db, "examRegistrations"), where("registrationNumber", "==", resultData.registrationNumber), limit(1));
-                    const registrationSnapshot = await getDocs(registrationQuery);
-
-                    if (!registrationSnapshot.empty) {
-                        const registrationDoc = registrationSnapshot.docs[0];
-                        if(registrationDoc.id === user.uid) {
-                            isOwner = true;
-                        }
-                    }
-                }
-
-                if (isAdmin || isOwner) {
-                    setIsAuthorized(true);
-                } else {
-                    setIsAuthorized(false);
-                }
+            let hasPermission = false;
+            const isAdmin = user?.email && ["mtechitinstitute@gmail.com", "anooppbh8@gmail.com"].includes(user.email);
+            
+            if (isAdmin) {
+                hasPermission = true;
+            } else if (officialExam) {
+                // Official exam results are public as per security rules `read: if true;`
+                hasPermission = true;
             } else {
-                 setIsAuthorized(true);
+                // For practice tests, check if the logged-in user is the owner.
+                if (user && resultData.registrationNumber === user.uid) {
+                    hasPermission = true;
+                } else if (!user) {
+                    // Unauthenticated users cannot view practice tests.
+                    hasPermission = false;
+                }
             }
 
-            setResult(resultData);
-            document.title = `Result: ${resultData.testName} - MTech IT Institute`;
+            setIsAuthorized(hasPermission);
 
-            const testRef = doc(db, 'mockTests', resultData.testId);
-            const testSnap = await getDoc(testRef);
+            if (hasPermission) {
+                const testRef = doc(db, 'mockTests', resultData.testId);
+                const testSnap = await getDoc(testRef);
 
-            if (testSnap.exists()) {
-                setTest({ id: testSnap.id, ...testSnap.data() } as MockTest);
-            } else {
-                 console.error("Associated test not found!");
+                if (testSnap.exists()) {
+                    setTest({ id: testSnap.id, ...testSnap.data() } as MockTest);
+                } else {
+                     console.error("Associated test not found!");
+                }
+                
+                fetchRank(resultData);
             }
             
             setIsLoading(false);
-            fetchRank(resultData);
         };
         
         const fetchRank = async (currentResult: ExamResultType) => {
@@ -164,27 +156,30 @@ export default function ExamResultPage() {
             }
         };
 
-        if (!userLoading) {
-             fetchResultAndTest();
-        }
+        // We run the fetch regardless of user state, as public users might have access.
+        // Authorization is handled inside the fetch function.
+        fetchResultAndTest();
+
     }, [resultId, user, userLoading]);
 
-    if (isLoading || userLoading) {
+    if (isLoading || isAuthorized === null) {
         return <ResultSkeleton />;
     }
     
     if (isAuthorized === false) {
+        // This is now primarily for unauthenticated users trying to access private practice tests
         return (
             <div className="container text-center py-20">
                 <h1 className="text-2xl font-bold text-destructive">Access Denied</h1>
-                <p className="text-muted-foreground mt-2">You do not have permission to view this result.</p>
-                <Button onClick={() => router.push('/profile')} className="mt-6">Go to My Profile</Button>
+                <p className="text-muted-foreground mt-2">You do not have permission to view this result. Please log in if this is your practice test result.</p>
+                <Button onClick={() => router.push('/login?redirect=/profile')} className="mt-6">Go to Login</Button>
             </div>
         )
     }
 
     if (!result || !test) {
-        return <div className="text-center py-10">Result or test not found.</div>;
+        // This case would be hit if authorized, but the test document itself is missing.
+        return <div className="text-center py-10">Result data is available, but the associated test could not be found.</div>;
     }
 
     const timeTakenFormatted = `${Math.floor(result.timeTaken / 60)}m ${result.timeTaken % 60}s`;
