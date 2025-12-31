@@ -68,11 +68,12 @@ export default function StudentExamPage() {
                 const regData = { id: regSnap.id, ...regSnap.data() } as ExamRegistration;
                 setRegistration(regData);
 
-                // 2. Fetch tests that are in the "Student Exam" category
+                // 2. Fetch tests that are in the "Student Exam" category and match the student's course
                 const testsQuery = query(
                     collection(db, "mockTests"),
-                    where("categoryName", "==", "Student Exam"),
-                    where("isPublished", "==", true)
+                    where("categoryId", "==", "student-exam"),
+                    where("isPublished", "==", true),
+                    where("assignedCourse", "==", regData.course)
                 );
                 const testsSnapshot = await getDocs(testsQuery);
                 const testList = testsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as MockTest));
@@ -185,7 +186,7 @@ export default function StudentExamPage() {
                                                 </Button>
                                             ) : (
                                                 <Button asChild className="w-full">
-                                                    <Link href={user ? `/exam/start`: `/login?redirect=/exam`}>
+                                                    <Link href={user ? `/mock-tests/${test.id}?regNo=${registration?.registrationNumber}&studentName=${registration?.fullName}` : `/login?redirect=/exam`}>
                                                         Start Exam <ArrowRight className="ml-2 h-4 w-4" />
                                                     </Link>
                                                 </Button>

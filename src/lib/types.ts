@@ -164,6 +164,7 @@ export type MockTest = {
     isPublished: boolean;
     categoryId: string;
     categoryName: string;
+    assignedCourse?: string; // New field to link test to a course
 };
 
 export type TestResponse = {
