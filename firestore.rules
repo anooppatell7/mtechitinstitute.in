@@ -68,11 +68,10 @@ service cloud.firestore {
         allow delete: if isAdmin();
     }
     
-    // Exam Results: Publicly readable. Only created via secure client (logged in user). Admins can delete.
+    // Exam Results: Publicly readable. Write access for any logged-in user or admin.
     match /examResults/{resultId} {
         allow read: if true;
-        allow create: if isAuth(); // Allow any logged-in user to submit a result
-        allow delete: if isAdmin();
+        allow write: if isAuth() || isAdmin();
     }
 
     // Certificates: Publicly readable. Only created by admin.
