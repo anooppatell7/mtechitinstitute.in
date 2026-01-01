@@ -1250,19 +1250,6 @@ export default function AdminDashboardPage() {
                              </SelectContent>
                         </Select>
                     </div>
-                    {formData.categoryId === 'student-exam' && (
-                        <div className="grid gap-2">
-                            <Label htmlFor="assignedCourse">Assign to Course (for Student Exams)</Label>
-                            <Select name="assignedCourse" value={formData.assignedCourse || ''} onValueChange={(val) => setFormData({ ...formData, assignedCourse: val })}>
-                                <SelectTrigger><SelectValue placeholder="Select a course for this exam" /></SelectTrigger>
-                                <SelectContent>
-                                    {courses.map(course => (
-                                        <SelectItem key={course.id} value={course.title}>{course.title}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    )}
                     <div className="grid gap-2">
                         <Label htmlFor="description">Description</Label>
                         <Textarea id="description" name="description" value={formData.description || ''} onChange={handleFormChange} />
@@ -1772,7 +1759,6 @@ export default function AdminDashboardPage() {
                                                                 <div>
                                                                   <span className="font-semibold text-lg">{test.title}</span>
                                                                   <Badge variant="outline" className="ml-2">{test.categoryName || 'Uncategorized'}</Badge>
-                                                                  {test.assignedCourse && <Badge variant="secondary" className="ml-2">{test.assignedCourse}</Badge>}
                                                                 </div>
                                                                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
                                                                     <span>{test.questions?.length || 0} Questions</span>
@@ -2384,5 +2370,7 @@ export default function AdminDashboardPage() {
     );
 }
 
+
+    
 
     

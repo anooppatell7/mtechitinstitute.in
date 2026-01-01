@@ -67,12 +67,11 @@ export default function StudentExamPage() {
                 const regData = { id: regSnap.id, ...regSnap.data() } as ExamRegistration;
                 setRegistration(regData);
 
-                // 2. Fetch tests that are in the "Student Exam" category and match the student's assigned course
+                // 2. Fetch tests that are in the "Student Exam" category
                 const testsQuery = query(
                     collection(db, "mockTests"),
                     where("categoryId", "==", "student-exam"),
-                    where("isPublished", "==", true),
-                    where("assignedCourse", "==", regData.course)
+                    where("isPublished", "==", true)
                 );
                 const testsSnapshot = await getDocs(testsQuery);
                 const testList = testsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as MockTest));
@@ -208,3 +207,5 @@ export default function StudentExamPage() {
         </>
     );
 }
+
+    
