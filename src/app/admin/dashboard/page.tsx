@@ -4,7 +4,7 @@
 
 import Link from "next/link";
 import React, { useState, useEffect, use } from "react";
-import { PlusCircle, MoreHorizontal, LogOut, Trash, Edit, Settings, FileText, MessageSquare, Briefcase, Link2, Megaphone, Star, Upload, BookOpen, Layers, ChevronDown, ListTodo, BookCopy, UserCheck, Award, Tv, Database, Loader2 } from "lucide-react";
+import { PlusCircle, MoreHorizontal, LogOut, Trash, Edit, Settings, FileText, MessageSquare, Briefcase, Link2, Megaphone, Star, Upload, BookOpen, Layers, ChevronDown, ListTodo, BookCopy, UserCheck, Award, Tv, Database, Loader2, Users, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -104,6 +104,10 @@ export default function AdminDashboardPage() {
     const [loading, setLoading] = useState(true);
     const [generatingRegNo, setGeneratingRegNo] = useState<string | null>(null);
     const { toast } = useToast();
+    
+    // State for registration analytics
+    const [registrationStats, setRegistrationStats] = useState<{ total: number; byCourse: Record<string, number> }>({ total: 0, byCourse: {} });
+
 
     // Site settings state
     const [siteSettings, setSiteSettings] = useState<SiteSettings>({ id: 'announcement', text: '', link: '', isVisible: false });
@@ -326,6 +330,20 @@ export default function AdminDashboardPage() {
 
     }, [user, isUserLoading, router, firestore, toast, audio]);
 
+    // Process analytics when examRegistrations data changes
+    useEffect(() => {
+        if (examRegistrations.length > 0) {
+            const total = examRegistrations.length;
+            const byCourse = examRegistrations.reduce((acc, reg) => {
+                const courseName = reg.course || 'Unknown';
+                acc[courseName] = (acc[courseName] || 0) + 1;
+                return acc;
+            }, {} as Record<string, number>);
+            setRegistrationStats({ total, byCourse });
+        }
+    }, [examRegistrations]);
+
+
     const [dialogOpen, setDialogOpen] = useState(false);
     const [itemToDelete, setItemToDelete] = useState<{type: ItemType, id: string, parentIds?: { courseId?: string, moduleId?: string, testId?: string }} | null>(null);
     const [linkToDelete, setLinkToDelete] = useState<{postSlug: string, link: InternalLink} | null>(null);
@@ -334,7 +352,7 @@ export default function AdminDashboardPage() {
     const [editingItem, setEditingItem] = useState<any>(null);
     const [formParentIds, setFormParentIds] = useState<{ courseId?: string, moduleId?: string, testId?: string } | null>(null);
     const [formData, setFormData] = useState<any>({});
-    const [activeTab, setActiveTab] = useState<string>('courses');
+    const [activeTab, setActiveTab] = useState<string>('dashboard');
     
     const [settingsFormData, setSettingsFormData] = useState({
         currentPassword: '',
@@ -1353,10 +1371,11 @@ export default function AdminDashboardPage() {
                     </div>
                 </header>
                 <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
-                    <Tabs defaultValue="courses" onValueChange={(value) => setActiveTab(value as string)}>
+                    <Tabs defaultValue="dashboard" onValueChange={(value) => setActiveTab(value as string)}>
                         <div className="flex items-center">
                             <ScrollArea className="w-full whitespace-nowrap">
                                 <TabsList className="inline-flex">
+                                    <TabsTrigger value="dashboard"><LayoutDashboard className="mr-2 h-4 w-4"/>Dashboard</TabsTrigger>
                                     <TabsTrigger value="courses">Courses</TabsTrigger>
                                     <TabsTrigger value="blog">Blog Posts</TabsTrigger>
                                     <TabsTrigger value="guidance"><Briefcase className="mr-2 h-4 w-4"/>Career Guidance</TabsTrigger>
@@ -1385,7 +1404,7 @@ export default function AdminDashboardPage() {
                                 <ScrollBar orientation="horizontal" />
                             </ScrollArea>
                              <div className="ml-auto flex items-center gap-2 pl-4">
-                                {activeTab !== 'settings' && activeTab !== 'site-settings' && activeTab !== 'popup-settings' && activeTab !== 'enrollments' && activeTab !== 'contacts' && activeTab !== 'internal-links' && activeTab !== 'reviews' && activeTab !== 'exam-registrations' && activeTab !== 'exam-results' && activeTab !== 'certificates' && activeTab !== 'data-management' && (
+                                {activeTab !== 'dashboard' && activeTab !== 'settings' && activeTab !== 'site-settings' && activeTab !== 'popup-settings' && activeTab !== 'enrollments' && activeTab !== 'contacts' && activeTab !== 'internal-links' && activeTab !== 'reviews' && activeTab !== 'exam-registrations' && activeTab !== 'exam-results' && activeTab !== 'certificates' && activeTab !== 'data-management' && (
                                 <Button size="sm" className="h-8 gap-1" onClick={() => handleAddNew()}>
                                     <PlusCircle className="h-3.5 w-3.5" />
                                     <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
@@ -1395,6 +1414,46 @@ export default function AdminDashboardPage() {
                                 )}
                             </div>
                         </div>
+                        <TabsContent value="dashboard">
+                            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                                <Card>
+                                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                        <CardTitle className="text-sm font-medium">Total Registered Students</CardTitle>
+                                        <Users className="h-4 w-4 text-muted-foreground" />
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="text-2xl font-bold">{registrationStats.total}</div>
+                                        <p className="text-xs text-muted-foreground">Total students who have registered for exams.</p>
+                                    </CardContent>
+                                </Card>
+                            </div>
+                            <div className="mt-8">
+                                <Card>
+                                     <CardHeader>
+                                        <CardTitle className="flex items-center gap-2"><BookOpen className="h-5 w-5"/> Course-wise Enrollment</CardTitle>
+                                        <CardDescription>Breakdown of students registered in each course.</CardDescription>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead>Course Name</TableHead>
+                                                    <TableHead className="text-right">Number of Students</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {Object.entries(registrationStats.byCourse).sort(([, a], [, b]) => b - a).map(([course, count]) => (
+                                                    <TableRow key={course}>
+                                                        <TableCell className="font-medium">{course}</TableCell>
+                                                        <TableCell className="text-right font-bold">{count}</TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        </TabsContent>
                         <TabsContent value="courses">
                             <Card>
                                 <CardHeader>
@@ -2388,3 +2447,4 @@ export default function AdminDashboardPage() {
     
 
     
+
