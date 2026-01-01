@@ -1,6 +1,5 @@
 
-
-"use client";
+'use client';
 
 import Link from "next/link";
 import React, { useState, useEffect, use } from "react";
@@ -79,7 +78,8 @@ import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy,
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 import { errorEmitter } from '@/firebase/error-emitter';
 
-
+export const revalidate = 0;
+export const dynamic = 'force-dynamic';
 
 type ItemType = 'courses' | 'blog' | 'guidance' | 'resources' | 'settings' | 'enrollments' | 'contacts' | 'internal-links' | 'site-settings' | 'reviews' | 'learningCourse' | 'learningModule' | 'learningLesson' | 'mockTest' | 'testQuestion' | 'testCategory' | 'examRegistration' | 'examResult' | 'certificate';
 
