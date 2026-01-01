@@ -3,11 +3,10 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useParams, notFound } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ListChecks, Clock, ArrowRight, BarChart, ChevronLeft } from "lucide-react";
-import type { MockTest, TestResult, TestCategory, ExamResult, ExamRegistration } from "@/lib/types";
+import { ListChecks, Clock, ArrowRight, BarChart } from "lucide-react";
+import type { MockTest, ExamResult, ExamRegistration } from "@/lib/types";
 import { useUser, useFirestore } from "@/firebase";
 import { collection, query, where, getDocs, doc, getDoc } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -68,7 +67,7 @@ export default function StudentExamPage() {
                 const regData = { id: regSnap.id, ...regSnap.data() } as ExamRegistration;
                 setRegistration(regData);
 
-                // 2. Fetch tests that are in the "Student Exam" category and match the student's course
+                // 2. Fetch tests that are in the "Student Exam" category and match the student's assigned course
                 const testsQuery = query(
                     collection(db, "mockTests"),
                     where("categoryId", "==", "student-exam"),
