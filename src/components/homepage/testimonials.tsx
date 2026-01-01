@@ -4,8 +4,8 @@
 import { db } from "@/firebase";
 import { collection, query, where, orderBy, limit, getDocs } from "firebase/firestore";
 import type { Review } from "@/lib/types";
-import { Card, CardContent } from "@/components/ui/card";
-import { Star, User } from "lucide-react";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Star, User, MessageSquare } from "lucide-react";
 import {
   Carousel,
   CarouselContent,
@@ -75,25 +75,26 @@ export default function Testimonials() {
                     {reviews.map((review) => (
                         <CarouselItem key={review.id} className="md:basis-1/2 lg:basis-1/3">
                             <div className="p-1 h-full">
-                               <Card className="h-full flex flex-col shadow-lg bg-secondary/50 border-t-4 border-t-accent">
-                                    <CardContent className="p-8 flex-grow flex flex-col justify-between">
-                                       <div>
-                                            <div className="flex items-center mb-4">
-                                                {Array.from({ length: 5 }).map((_, i) => (
-                                                    <Star key={i} className={cn("h-5 w-5", i < review.rating ? "text-yellow-400 fill-yellow-400" : "text-muted-foreground/50")} />
-                                                ))}
-                                            </div>
-                                            <p className="text-foreground/80 italic text-lg">"{review.comment}"</p>
-                                       </div>
-                                        <div className="flex items-center gap-4 mt-6 pt-6 border-t">
-                                            <div className="p-3 bg-primary text-primary-foreground rounded-full">
+                               <Card className="h-full flex flex-col justify-between shadow-lg bg-card border-t-4 border-accent rounded-lg overflow-hidden">
+                                    <CardContent className="p-8 pb-4 relative">
+                                        <MessageSquare className="absolute top-4 right-4 h-16 w-16 text-primary/5" />
+                                        <div className="flex items-center mb-4">
+                                            {Array.from({ length: 5 }).map((_, i) => (
+                                                <Star key={i} className={cn("h-5 w-5", i < review.rating ? "text-yellow-400 fill-yellow-400" : "text-muted-foreground/30")} />
+                                            ))}
+                                        </div>
+                                        <p className="text-foreground/80 italic text-lg relative z-10">"{review.comment}"</p>
+                                    </CardContent>
+                                    <CardFooter className="p-6 bg-secondary/50">
+                                        <div className="flex items-center gap-4">
+                                            <div className="p-3 bg-primary text-primary-foreground rounded-full shadow-md">
                                                 <User className="h-6 w-6" />
                                             </div>
                                             <div>
-                                              <p className="font-semibold text-lg text-primary">{review.name}</p>
+                                                <p className="font-semibold text-lg text-primary">{review.name}</p>
                                             </div>
                                         </div>
-                                    </CardContent>
+                                    </CardFooter>
                                 </Card>
                             </div>
                         </CarouselItem>
