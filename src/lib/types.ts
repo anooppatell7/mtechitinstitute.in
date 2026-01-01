@@ -1,5 +1,4 @@
 
-
 import type { HowTo, FAQPage } from 'schema-dts';
 
 export type InternalLink = {
