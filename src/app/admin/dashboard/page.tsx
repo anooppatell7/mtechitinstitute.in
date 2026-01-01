@@ -78,9 +78,6 @@ import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy,
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 import { errorEmitter } from '@/firebase/error-emitter';
 
-export const revalidate = 0;
-export const dynamic = 'force-dynamic';
-
 type ItemType = 'courses' | 'blog' | 'guidance' | 'resources' | 'settings' | 'enrollments' | 'contacts' | 'internal-links' | 'site-settings' | 'reviews' | 'learningCourse' | 'learningModule' | 'learningLesson' | 'mockTest' | 'testQuestion' | 'testCategory' | 'examRegistration' | 'examResult' | 'certificate';
 
 export default function AdminDashboardPage() {
@@ -2447,4 +2444,5 @@ export default function AdminDashboardPage() {
     
 
     
+
 
