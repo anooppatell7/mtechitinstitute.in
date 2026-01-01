@@ -3,10 +3,10 @@
 
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { notFound, useParams, useRouter, useSearchParams } from 'next/navigation';
-import { useUser } from '@/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { useUser, useFirestore } from '@/firebase';
+import { doc, getDoc, collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
 import { db } from '@/firebase';
-import type { MockTest, TestQuestion } from '@/lib/types';
+import type { MockTest, TestQuestion, ExamResult } from '@/lib/types';
 import { useMockTest } from '@/hooks/use-mock-test';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -55,6 +55,7 @@ function TestPageSkeleton() {
 
 function MockTestClientComponent({ testId }: { testId: string }) {
     const { user, isLoading: userLoading } = useUser();
+    const firestore = useFirestore();
     const router = useRouter();
     const searchParams = useSearchParams();
     
@@ -80,6 +81,34 @@ function MockTestClientComponent({ testId }: { testId: string }) {
         isSubmitting,
         handleSubmit,
     } = useMockTest(testId);
+    
+    // Security Check: Redirect if user has already taken this test.
+    useEffect(() => {
+        if (!user || !firestore || !testId || !isInitialized) return;
+
+        const checkPreviousSubmission = async () => {
+            // Determine the number to check against.
+            const userIdentifier = registrationNumber || user.uid;
+
+            const q = query(
+                collection(firestore, "examResults"),
+                where("testId", "==", testId),
+                where("registrationNumber", "==", userIdentifier),
+                orderBy("submittedAt", "desc"),
+                limit(1)
+            );
+
+            const querySnapshot = await getDocs(q);
+
+            if (!querySnapshot.empty) {
+                const latestResult = querySnapshot.docs[0];
+                // User has already submitted this test, redirect to their result.
+                router.replace(`/exam/result/${latestResult.id}`);
+            }
+        };
+
+        checkPreviousSubmission();
+    }, [user, firestore, testId, isInitialized, router, registrationNumber]);
 
     useEffect(() => {
         // Any user (registered or not) must be logged in to attempt any test

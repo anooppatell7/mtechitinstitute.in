@@ -207,7 +207,8 @@ export const useMockTest = (testId: string) => {
                     : `Your ${isOfficialExam ? 'exam' : 'test'} has been submitted successfully.`
             });
             
-            router.push(`/exam/result/${resultId}`);
+            // Use replace instead of push to prevent going back to the test page
+            router.replace(`/exam/result/${resultId}`);
             
             cleanupLocalStorage(registrationNumber);
 
