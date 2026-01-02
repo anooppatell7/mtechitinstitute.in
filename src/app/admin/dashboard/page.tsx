@@ -277,7 +277,7 @@ export default function AdminDashboardPage() {
                              const data = doc.data();
                              const dateValue = data[dateField];
                              const date = (dateValue instanceof Timestamp) ? dateValue.toDate().toLocaleString() : String(dateValue);
-                             return { id: doc.id, ...data, [dateField]: date, isRead: data.isRead || false } as T;
+                             return { id: doc.id, ...data, [dateField]: date, isRead: data.isRead || false } as unknown as T;
                          });
                          stateSetter(fullList);
                      });

@@ -53,7 +53,9 @@ export async function POST(req: NextRequest) {
   } catch (error: any) {
     console.error('OneSignal API Error:', error);
     let errorMessage = 'Failed to send notification.';
-    if (error instanceof OneSignal.OneSignalError) {
+    // The onesignal-node library throws errors that have a `message` property.
+    // We check for this property to provide a more specific error message.
+    if (error && error.message) {
       errorMessage = error.message;
     }
     return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
