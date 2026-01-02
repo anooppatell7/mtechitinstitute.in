@@ -10,9 +10,9 @@ export async function POST(req: NextRequest) {
 
     const { studentId, title, message } = body;
 
-    // Direct Keys use kar rahe hain testing ke liye
+    // Using direct keys for reliability, bypassing potential process.env issues on server.
     const appId = "5f5c7586-edd7-4b3d-aa11-50922c1d3c4f";
-    const restKey = "YmFiYmUxMmMtZTE3Mi00ZDM0LWE0MzYtZmM3YjkwZTRlZjg2"; // Asli REST API Key
+    const restKey = "YmFiYmUxMmMtZTE3Mi00ZDM0LWE0MzYtZmM3YjkwZTRlZjg2";
 
     if (!studentId) {
        console.log("LOG: CRASH ERROR: Student ID is missing in request body.");
@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
     console.log("LOG: OneSignal API Result:", osResult);
     
     if (!osResponse.ok) {
-        console.log("LOG: OneSignal API returned an error status.", osResponse.status);
+        console.log("LOG: OneSignal API returned an error status.", osResponse.status, osResult);
     }
 
     return NextResponse.json({ success: true, result: osResult });
