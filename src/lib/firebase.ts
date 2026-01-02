@@ -56,6 +56,3 @@ export async function getPopupSettings(): Promise<PopupSettings | null> {
         return null;
     }
 }
-
-// Keep db and auth exports for any legacy files if needed, but encourage new imports from @/firebase
-export { db, auth } from "@/firebase";

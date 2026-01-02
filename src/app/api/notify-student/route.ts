@@ -1,68 +1,65 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/firebase';
+import { db } from '@/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 
 export async function POST(req: NextRequest) {
   try {
-    const { studentId, title, message } = await req.json();
+    const body = await req.json();
+    console.log("LOG: Request received for studentId:", body.studentId);
 
-    if (!studentId || !title || !message) {
-        return NextResponse.json({ error: 'Missing required fields: studentId, title, message' }, { status: 400 });
+    const { studentId, title, message } = body;
+
+    // Direct Keys use kar rahe hain testing ke liye
+    const appId = "5f5c7586-edd7-4b3d-aa11-50922c1d3c4f";
+    const restKey = "YmFiYmUxMmMtZTE3Mi00ZDM0LWE0MzYtZmM3YjkwZTRlZjg2"; // Asli REST API Key
+
+    if (!studentId) {
+       console.log("LOG: CRASH ERROR: Student ID is missing in request body.");
+       return NextResponse.json({ error: "Student ID is missing" }, { status: 400 });
     }
 
-    const ONESIGNAL_APP_ID = process.env.ONESIGNAL_APP_ID;
-    const ONESIGNAL_REST_API_KEY = process.env.ONESIGNAL_REST_API_KEY;
-
-    if (!ONESIGNAL_APP_ID || !ONESIGNAL_REST_API_KEY) {
-        console.error("OneSignal environment variables are not set.");
-        return NextResponse.json({ error: 'Server configuration error for notifications.' }, { status: 500 });
-    }
-
-    // 1. Firebase se student ka data nikaalein
     const studentRef = doc(db, "examRegistrations", studentId);
     const studentSnap = await getDoc(studentRef);
 
     if (!studentSnap.exists()) {
-      return NextResponse.json({ error: 'Student record not found in database.' }, { status: 404 });
+      console.log("LOG: Student ID not found in Firebase:", studentId);
+      return NextResponse.json({ error: "Student not found in DB" }, { status: 404 });
     }
 
-    const studentData = studentSnap.data();
-    // Screenshot ke mutabiq sahi field
-    const playerID = studentData.onesignal_player_id; 
+    const playerID = studentSnap.data().onesignal_player_id;
+    console.log("LOG: Player ID found:", playerID);
 
     if (!playerID) {
-      return NextResponse.json({ error: 'OneSignal Player ID is missing in database for this student.' }, { status: 400 });
+       console.log("LOG: No Player ID found for this student in Firestore document.");
+       return NextResponse.json({ error: "No Player ID for this student" }, { status: 400 });
     }
 
-    // 2. OneSignal ko notification bhejein (Direct Fetch Method)
-    const response = await fetch("https://onesignal.com/api/v1/notifications", {
+    const osResponse = await fetch("https://onesignal.com/api/v1/notifications", {
       method: "POST",
       headers: {
         "Content-Type": "application/json; charset=utf-8",
-        "Authorization": `Basic ${ONESIGNAL_REST_API_KEY}` // Yahan Basic likhna zaroori hai
+        "Authorization": `Basic ${restKey}`
       },
       body: JSON.stringify({
-        app_id: ONESIGNAL_APP_ID,
-        include_player_ids: [playerID], // ID ko array mein bhejna zaroori hai
+        app_id: appId,
+        include_player_ids: [playerID],
         headings: { en: title },
-        contents: { en: message },
-        android_accent_color: "FF0000FF", // Accent color for notification
-        priority: 10
+        contents: { en: message }
       })
     });
 
-    const result = await response.json();
-
-    if (!response.ok) {
-      console.error("OneSignal Error Response:", result);
-      return NextResponse.json({ error: 'OneSignal rejected the notification', details: result }, { status: response.status });
+    const osResult = await osResponse.json();
+    console.log("LOG: OneSignal API Result:", osResult);
+    
+    if (!osResponse.ok) {
+        console.log("LOG: OneSignal API returned an error status.", osResponse.status);
     }
 
-    return NextResponse.json({ success: true, result });
+    return NextResponse.json({ success: true, result: osResult });
 
   } catch (error: any) {
-    console.error("Critical Backend Error:", error);
-    return NextResponse.json({ error: "Internal Server Error", message: error.message }, { status: 500 });
+    console.error("LOG: CRASH ERROR:", error.message);
+    return NextResponse.json({ error: "Internal Server Error: " + error.message }, { status: 500 });
   }
 }
