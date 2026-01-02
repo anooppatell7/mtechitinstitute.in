@@ -255,7 +255,7 @@ export default function AdminDashboardPage() {
             collectionName: string, 
             stateSetter: React.Dispatch<React.SetStateAction<T[]>>,
             toastTitle: string,
-            nameField: keyof T,
+            nameField: Extract<keyof T, string>,
             dateField: Extract<keyof T, string>
         ) => {
             const q = query(collection(firestore, collectionName), where(dateField, ">", now));
@@ -277,7 +277,7 @@ export default function AdminDashboardPage() {
                              const data = doc.data();
                              const dateValue = data[dateField];
                              const date = (dateValue instanceof Timestamp) ? dateValue.toDate().toLocaleString() : String(dateValue);
-                             return { id: doc.id, ...data, [dateField]: date, isRead: data.isRead || false } as unknown as T;
+                             return { id: doc.id, ...data, [dateField]: date, isRead: data.isRead || false } as T;
                          });
                          stateSetter(fullList);
                      });
@@ -374,9 +374,9 @@ export default function AdminDashboardPage() {
         const docRef = doc(firestore, type, id);
         updateDoc(docRef, { isRead: true }).then(() => {
             if (type === 'enrollments') {
-                setEnrollments(prev => prev.map(item => item.id === id ? { ...item, isRead: true } : item));
+                setEnrollments(prev => prev.map(item => item.id === id ? { ...item, isRead: true } : item as Enrollment));
             } else if (type === 'examRegistrations') {
-                setExamRegistrations(prev => prev.map(item => item.id === id ? { ...item, isRead: true } : item));
+                setExamRegistrations(prev => prev.map(item => item.id === id ? { ...item, isRead: true } : item as ExamRegistration));
             }
         }).catch(async (serverError) => {
             const permissionError = new FirestorePermissionError({
@@ -942,6 +942,7 @@ export default function AdminDashboardPage() {
     const handleGenerateRegNo = async (registrationId: string, studentName: string) => {
         if (!firestore) return;
         setGeneratingRegNo(registrationId);
+        let newRegistrationNumber = '';
 
         try {
             await runTransaction(firestore, async (transaction) => {
@@ -957,35 +958,45 @@ export default function AdminDashboardPage() {
                 }
 
                 const currentYear = new Date().getFullYear();
-                const registrationNumber = `MTECH-${currentYear}-${String(newCount).padStart(4, '0')}`;
+                newRegistrationNumber = `MTECH-${currentYear}-${String(newCount).padStart(4, '0')}`;
                 
                 const regRef = doc(firestore, "examRegistrations", registrationId);
-                transaction.update(regRef, { registrationNumber: registrationNumber });
-
-                 setExamRegistrations(prev =>
-                    prev.map(reg => 
-                        reg.id === registrationId 
-                            ? { ...reg, registrationNumber: registrationNumber }
-                            : reg
-                    )
-                );
-
-                toast({
-                    title: "Success",
-                    description: `Generated Reg. No: ${registrationNumber}`,
-                });
+                transaction.update(regRef, { registrationNumber: newRegistrationNumber });
             });
 
+            // Update local state after successful transaction
+            setExamRegistrations(prev =>
+                prev.map(reg => 
+                    reg.id === registrationId 
+                        ? { ...reg, registrationNumber: newRegistrationNumber }
+                        : reg
+                )
+            );
+
             // Send notification after successful transaction
-            await fetch('/api/notify-student', {
+            const notifyRes = await fetch('/api/notify-student', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 studentId: registrationId,
                 title: "Registration Approved!",
-                message: `Badhai Ho ${studentName}! Aapka M-Tech IT Institute mein registration approve ho gaya hai.`
+                message: `Badhai Ho ${studentName}! Aapka M-Tech IT Institute mein registration approve ho gaya hai. Aapka Registration No. hai: ${newRegistrationNumber}`
               })
             });
+
+            const notifyData = await notifyRes.json();
+            if(notifyData.success) {
+                toast({
+                    title: "Success",
+                    description: `Generated Reg. No: ${newRegistrationNumber} and notification sent.`,
+                });
+            } else {
+                 toast({
+                    title: "Warning",
+                    description: `Reg. No generated, but notification failed: ${notifyData.error || 'Unknown error'}`,
+                    variant: "destructive"
+                });
+            }
 
         } catch (error) {
             console.error("Failed to generate registration number or send notification:", error);

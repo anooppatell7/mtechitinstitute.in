@@ -1,63 +1,68 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import * as OneSignal from 'onesignal-node';
 import { db } from '@/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 
 export async function POST(req: NextRequest) {
-  const { studentId, title, message } = await req.json();
-
-  if (!studentId || !title || !message) {
-    return NextResponse.json({ success: false, error: 'Missing required fields: studentId, title, message' }, { status: 400 });
-  }
-
-  const ONESIGNAL_APP_ID = process.env.ONESIGNAL_APP_ID;
-  const ONESIGNAL_REST_API_KEY = process.env.ONESIGNAL_REST_API_KEY;
-
-  if (!ONESIGNAL_APP_ID || !ONESIGNAL_REST_API_KEY) {
-    console.error("OneSignal environment variables are not set.");
-    return NextResponse.json({ success: false, error: 'Server configuration error for notifications.' }, { status: 500 });
-  }
-
   try {
-    // 1. Fetch the student's document to get the OneSignal Player ID
+    const { studentId, title, message } = await req.json();
+
+    if (!studentId || !title || !message) {
+        return NextResponse.json({ error: 'Missing required fields: studentId, title, message' }, { status: 400 });
+    }
+
+    const ONESIGNAL_APP_ID = process.env.ONESIGNAL_APP_ID;
+    const ONESIGNAL_REST_API_KEY = process.env.ONESIGNAL_REST_API_KEY;
+
+    if (!ONESIGNAL_APP_ID || !ONESIGNAL_REST_API_KEY) {
+        console.error("OneSignal environment variables are not set.");
+        return NextResponse.json({ error: 'Server configuration error for notifications.' }, { status: 500 });
+    }
+
+    // 1. Firebase se student ka data nikaalein
     const studentRef = doc(db, "examRegistrations", studentId);
     const studentSnap = await getDoc(studentRef);
 
     if (!studentSnap.exists()) {
-      return NextResponse.json({ success: false, error: 'Student not found.' }, { status: 404 });
+      return NextResponse.json({ error: 'Student record not found in database.' }, { status: 404 });
     }
 
     const studentData = studentSnap.data();
-    const playerID = studentData.onesignal_player_id;
+    // Screenshot ke mutabiq sahi field
+    const playerID = studentData.onesignal_player_id; 
 
     if (!playerID) {
-      return NextResponse.json({ success: false, error: 'OneSignal Player ID not found for this student.' }, { status: 404 });
+      return NextResponse.json({ error: 'OneSignal Player ID is missing in database for this student.' }, { status: 400 });
     }
 
-    // 2. Setup OneSignal Client
-    const client = new OneSignal.Client(ONESIGNAL_APP_ID, ONESIGNAL_REST_API_KEY);
+    // 2. OneSignal ko notification bhejein (Direct Fetch Method)
+    const response = await fetch("https://onesignal.com/api/v1/notifications", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Authorization": `Basic ${ONESIGNAL_REST_API_KEY}` // Yahan Basic likhna zaroori hai
+      },
+      body: JSON.stringify({
+        app_id: ONESIGNAL_APP_ID,
+        include_player_ids: [playerID], // ID ko array mein bhejna zaroori hai
+        headings: { en: title },
+        contents: { en: message },
+        android_accent_color: "FF0000FF", // Accent color for notification
+        priority: 10
+      })
+    });
 
-    // 3. Create the notification object
-    const notification = {
-      contents: { 'en': message },
-      headings: { 'en': title },
-      include_player_ids: [playerID],
-    };
+    const result = await response.json();
 
-    // 4. Send the notification
-    const response = await client.createNotification(notification);
-    
-    return NextResponse.json({ success: true, response: response.body });
+    if (!response.ok) {
+      console.error("OneSignal Error Response:", result);
+      return NextResponse.json({ error: 'OneSignal rejected the notification', details: result }, { status: response.status });
+    }
+
+    return NextResponse.json({ success: true, result });
 
   } catch (error: any) {
-    console.error('OneSignal API Error:', error);
-    let errorMessage = 'Failed to send notification.';
-    if (error instanceof OneSignal.OneSignalError) {
-      errorMessage = error.message;
-    }
-    return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
+    console.error("Critical Backend Error:", error);
+    return NextResponse.json({ error: "Internal Server Error", message: error.message }, { status: 500 });
   }
 }
-
-    
