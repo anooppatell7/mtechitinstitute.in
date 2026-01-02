@@ -1,6 +1,9 @@
 
 'use client';
 
+export const revalidate = 0;
+export const dynamic = 'force-dynamic';
+
 import Link from "next/link";
 import React, { useState, useEffect, use } from "react";
 import { PlusCircle, MoreHorizontal, LogOut, Trash, Edit, Settings, FileText, MessageSquare, Briefcase, Link2, Megaphone, Star, Upload, BookOpen, Layers, ChevronDown, ListTodo, BookCopy, UserCheck, Award, Tv, Database, Loader2, Users, LayoutDashboard } from "lucide-react";
@@ -79,9 +82,6 @@ import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/e
 import { errorEmitter } from '@/firebase/error-emitter';
 
 type ItemType = 'courses' | 'blog' | 'guidance' | 'resources' | 'settings' | 'enrollments' | 'contacts' | 'internal-links' | 'site-settings' | 'reviews' | 'learningCourse' | 'learningModule' | 'learningLesson' | 'mockTest' | 'testQuestion' | 'testCategory' | 'examRegistration' | 'examResult' | 'certificate';
-
-export const revalidate = 0;
-export const dynamic = 'force-dynamic';
 
 export default function AdminDashboardPage() {
     const auth = useAuth();
@@ -2442,13 +2442,3 @@ export default function AdminDashboardPage() {
         </>
     );
 }
-
-
-    
-
-    
-
-
-
-
-    
