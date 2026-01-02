@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
 
     // Using direct keys for reliability, bypassing potential process.env issues on server.
     const appId = "5f5c7586-edd7-4b3d-aa11-50922c1d3c4f";
-    const restKey = "YmFiYmUxMmMtZTE3Mi00ZDM0LWE0MzYtZmM3YjkwZTRlZjg2";
+    const restKey = "os_v2_app_l5ohlbxn25ft3kqrkcjcyhj4j4mx7ddsz6luc7vtt4s3wntqg2utk2aleljyxjcge45rxffnj4vpyng5qutuqqyzpokvhm33ochg3dq";
 
     if (!studentId) {
        console.log("LOG: CRASH ERROR: Student ID is missing in request body.");
