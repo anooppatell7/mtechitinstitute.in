@@ -61,9 +61,21 @@ export default function ExamRegistrationPage() {
     const [courses, setCourses] = useState<Course[]>([]);
     const [coursesLoading, setCoursesLoading] = useState(true);
     const { toast } = useToast();
+    const [oneSignalPlayerId, setOneSignalPlayerId] = useState<string | null>(null);
     
     useEffect(() => {
         document.title = "Exam Registration - MTech IT Institute";
+        // Attempt to get OneSignal Player ID when the component mounts
+        if (typeof window !== "undefined" && (window as any).AndroidApp) {
+            try {
+                const playerId = (window as any).AndroidApp.getOneSignalId();
+                if (playerId && playerId !== "not_found") {
+                    setOneSignalPlayerId(playerId);
+                }
+            } catch (error) {
+                console.error("Error getting OneSignal Player ID from AndroidApp interface:", error);
+            }
+        }
     }, []);
 
     useEffect(() => {
@@ -132,13 +144,17 @@ export default function ExamRegistrationPage() {
         setIsLoading(true);
 
         try {
-            const registrationData = {
+            const registrationData: Partial<ExamRegistration> = {
                 ...data,
                 dob: format(data.dob, 'yyyy-MM-dd'),
                 registeredAt: serverTimestamp(),
                 isRead: false,
-                // The registrationNumber is not generated on the client
             };
+
+            // Add the OneSignal Player ID if it was found
+            if (oneSignalPlayerId) {
+                registrationData.onesignal_player_id = oneSignalPlayerId;
+            }
 
             // Use setDoc with user's UID as the document ID to comply with security rules
             await setDoc(doc(db, "examRegistrations", user.uid), registrationData);

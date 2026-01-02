@@ -22,35 +22,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import jsPDF from 'jspdf';
 
-// This component handles syncing the OneSignal Player ID
-const OneSignalManager = ({ studentId }: { studentId: string }) => {
-    useEffect(() => {
-        // 1. Check if the user is inside the Android WebView
-        if (typeof window !== "undefined" && (window as any).AndroidApp) {
-            try {
-                // 2. Get the Player ID from the Android Interface
-                const playerID = (window as any).AndroidApp.getOneSignalId();
-
-                if (playerID && playerID !== "not_found") {
-                    // 3. Save the ID to the student's record in Firestore
-                    const studentRef = doc(db, "examRegistrations", studentId);
-                    updateDoc(studentRef, {
-                        onesignal_player_id: playerID
-                    }).then(() => {
-                        console.log("OneSignal Player ID synced successfully: ", playerID);
-                    }).catch(err => {
-                        console.error("Failed to sync OneSignal ID to Firestore:", err);
-                    });
-                }
-            } catch (error) {
-                console.error("Error getting OneSignal Player ID from AndroidApp interface:", error);
-            }
-        }
-    }, [studentId]);
-
-    return null; // This component does not render anything
-};
-
 
 function ProfileSkeleton() {
     return (
@@ -198,26 +169,31 @@ export default function ProfilePage() {
             }
     
             const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const fileName = `Certificate-${result.studentName.replace(/ /g, '_')}.pdf`;
+            const reader = new FileReader();
+            reader.readAsDataURL(blob);
+            reader.onloadend = () => {
+                const base64data = reader.result as string;
+                const base64String = base64data.split(',')[1];
+                const fileName = `Certificate-${result.studentName.replace(/ /g, '_')}.pdf`;
+                const mimeType = "application/pdf";
+                
+                if (typeof window !== "undefined" && (window as any).AndroidApp && (window as any).AndroidApp.downloadBase64File) {
+                    (window as any).AndroidApp.downloadBase64File(base64String, fileName, mimeType);
+                    toast({
+                        title: "Download Started",
+                        description: "Your certificate is being saved to your Downloads folder.",
+                    });
+                } else {
+                    // Fallback for normal browsers
+                    const link = document.createElement('a');
+                    link.href = `data:application/pdf;base64,${base64String}`;
+                    link.download = fileName;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+            };
 
-            if (window.AndroidApp && window.AndroidApp.downloadUrl) {
-                // If App is being used, call the Android function to handle download
-                window.AndroidApp.downloadUrl(url, fileName, "application/pdf");
-                 toast({
-                    title: "Download Started",
-                    description: "Your certificate is being saved to your Downloads folder.",
-                });
-            } else {
-                // Fallback for normal browsers
-                const link = document.createElement('a');
-                link.href = url;
-                link.setAttribute('download', fileName);
-                document.body.appendChild(link);
-                link.click();
-                link.remove();
-                window.URL.revokeObjectURL(url);
-            }
         } catch (error: any) {
             console.error("CERTIFICATE ERROR", error);
             toast({
@@ -264,7 +240,6 @@ export default function ProfilePage() {
 
     return (
         <div className="bg-secondary">
-             {user && <OneSignalManager studentId={user.uid} />}
              <div className="container py-12 sm:py-20">
                 <Card className="max-w-4xl mx-auto shadow-2xl overflow-hidden border-t-4 border-t-accent">
                     <CardHeader className="bg-card p-8 border-b">
@@ -408,4 +383,3 @@ export default function ProfilePage() {
     );
 }
 
-    
