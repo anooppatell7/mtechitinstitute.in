@@ -214,24 +214,23 @@ export default function ProfilePage() {
                 percentage: (result.score / result.totalMarks) * 100
             };
             
-            const pdfBlob = await generateCertificatePdf(certDataForPdf);
+            const pdf = await generateCertificatePdf(certDataForPdf);
 
-            // Create a temporary URL for the blob
-            const url = window.URL.createObjectURL(pdfBlob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `Certificate-${result.studentName}-${result.testName.replace(/ /g, '_')}.pdf`;
-            document.body.appendChild(a);
-            a.click();
-            
-            // Clean up
-            a.remove();
-            window.URL.revokeObjectURL(url);
+            const base64String = pdf.output('datauristring').split(',')[1];
+            const fileName = `Certificate-${result.studentName.replace(/ /g, '_')}.pdf`;
+            const mimeType = "application/pdf";
 
-            toast({
-                title: "Certificate Downloaded!",
-                description: "Your certificate should be in your downloads folder.",
-            });
+            if ((window as any).AndroidApp && (window as any).AndroidApp.downloadBase64File) {
+                // If App के andar hai toh Android function call karein
+                (window as any).AndroidApp.downloadBase64File(base64String, fileName, mimeType);
+                toast({
+                    title: "Download Started",
+                    description: "Your certificate is being saved to your Downloads folder.",
+                });
+            } else {
+                // Agar normal browser mein hai toh purana tarika
+                pdf.save(fileName);
+            }
 
         } catch (error: any) {
             console.error("CERTIFICATE ERROR", error);

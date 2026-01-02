@@ -20,21 +20,19 @@ const A4_WIDTH = 1123;
 const A4_HEIGHT = 794;
 
 async function getCertificateImages() {
-  const [logo, watermark, goldSeal, signature, leftSeal, rightSeal] = await Promise.all([
-    preloadImageAsBase64("https://res.cloudinary.com/dzr4xjizf/image/upload/v1763979689/MTECHITINSTITUTE_logo.png"),
+  const [logo, watermark, goldSeal, signature] = await Promise.all([
+    preloadImageAsBase64("https://res.cloudinary.com/dzr4xjizf/image/upload/v1757138798/mtechlogo_1_wsdhhx.png"),
     preloadImageAsBase64("https://res.cloudinary.com/dzr4xjizf/image/upload/v1763804040/watermark_png.png"),
     preloadImageAsBase64("https://res.cloudinary.com/dzr4xjizf/image/upload/v1763803007/seal_png.png"),
     preloadImageAsBase64("https://res.cloudinary.com/dqycipmr0/image/upload/v1763721267/signature_kfj27k.png"),
-    preloadImageAsBase64("https://res.cloudinary.com/dzr4xjizf/image/upload/v1763803007/seal_png.png"), // Using same seal for left
-    preloadImageAsBase64("https://res.cloudinary.com/dzr4xjizf/image/upload/v1763803007/seal_png.png")  // and right
   ]);
 
-  return { logo, watermark, goldSeal, signature, leftSeal, rightSeal };
+  return { logo, watermark, goldSeal, signature };
 }
 
-export async function generateCertificatePdf(data: CertificateData): Promise<Blob> {
+export async function generateCertificatePdf(data: CertificateData): Promise<jsPDF> {
   try {
-    const { logo, watermark, goldSeal, signature, leftSeal, rightSeal } = await getCertificateImages();
+    const { logo, watermark, goldSeal, signature } = await getCertificateImages();
     
     const finalData = {
       ...data,
@@ -42,8 +40,6 @@ export async function generateCertificatePdf(data: CertificateData): Promise<Blo
       watermarkUrl: watermark,
       goldSealUrl: goldSeal,
       signatureUrl: signature,
-      leftSealUrl: leftSeal,
-      rightSealUrl: rightSeal,
     };
     
     // Create an off-screen container for rendering
@@ -86,14 +82,9 @@ export async function generateCertificatePdf(data: CertificateData): Promise<Blo
     });
 
     pdf.addImage(imgData, "PNG", 0, 0, A4_WIDTH, A4_HEIGHT);
-    const blob = pdf.output("blob");
+    
+    return pdf;
 
-    if (!blob || blob.size < 5000) {
-      console.error("Generated PDF is too small or invalid:", blob.size);
-      throw new Error("EMPTY_PDF_GENERATED");
-    }
-
-    return blob;
   } catch (err) {
     console.error("PDF_GENERATION_FAILED:", err);
     throw err; // Re-throw the original error
