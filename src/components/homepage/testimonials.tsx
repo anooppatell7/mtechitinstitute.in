@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { db } from "@/firebase";
@@ -17,6 +18,10 @@ import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 
 async function getFeaturedReviews(): Promise<Review[]> {
+    if (!db) {
+        console.error("Firestore not initialized for getFeaturedReviews");
+        return [];
+    }
     const reviewsQuery = query(
         collection(db, "reviews"),
         orderBy("submittedAt", "desc"),

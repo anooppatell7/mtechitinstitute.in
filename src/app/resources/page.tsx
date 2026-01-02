@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { db } from "@/firebase";
@@ -74,5 +75,3 @@ export default function ResourcesPage() {
     </>
   );
 }
-
-    
