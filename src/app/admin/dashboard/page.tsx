@@ -80,6 +80,9 @@ import { errorEmitter } from '@/firebase/error-emitter';
 
 type ItemType = 'courses' | 'blog' | 'guidance' | 'resources' | 'settings' | 'enrollments' | 'contacts' | 'internal-links' | 'site-settings' | 'reviews' | 'learningCourse' | 'learningModule' | 'learningLesson' | 'mockTest' | 'testQuestion' | 'testCategory' | 'examRegistration' | 'examResult' | 'certificate';
 
+export const revalidate = 0;
+export const dynamic = 'force-dynamic';
+
 export default function AdminDashboardPage() {
     const auth = useAuth();
     const firestore = useFirestore();
@@ -2446,3 +2449,6 @@ export default function AdminDashboardPage() {
     
 
 
+
+
+    

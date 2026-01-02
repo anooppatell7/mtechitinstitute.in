@@ -1,4 +1,5 @@
 
+
 import type { HowTo, FAQPage } from 'schema-dts';
 
 export type InternalLink = {
@@ -241,3 +242,5 @@ export type Certificate = {
 // Add types for more complex schemas
 export type HowToSchema = HowTo;
 export type FAQPageSchema = FAQPage;
+
+    

@@ -18,9 +18,9 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { generateCertificatePdf } from '@/lib/certificate-generator';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import jsPDF from 'jspdf';
 
 // This component handles syncing the OneSignal Player ID
 const OneSignalManager = ({ studentId }: { studentId: string }) => {
@@ -188,60 +188,41 @@ export default function ProfilePage() {
             return;
         }
         setIsGeneratingCert(result.id);
-
+    
         try {
-            const issueDate = new Date();
-            let examDateObj;
-            if (result.submittedAt && typeof result.submittedAt.toDate === 'function') {
-                examDateObj = result.submittedAt.toDate();
-            } else if (result.submittedAt && result.submittedAt.seconds) {
-                examDateObj = new Date(result.submittedAt.seconds * 1000);
-            } else if (result.submittedAt) {
-                examDateObj = new Date(result.submittedAt);
-            } else {
-                examDateObj = new Date(); // Fallback
-            }
+            const response = await fetch(`/api/download-certificate?resultId=${result.id}`);
             
-             if (isNaN(examDateObj.getTime())) {
-                throw new Error("Invalid exam date could not be parsed.");
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to generate certificate');
             }
-
-            const certDataForPdf = {
-                ...result,
-                certificateId: result.certificateId, // Use the stored ID
-                issueDate: issueDate.toISOString(),
-                examDate: examDateObj.toISOString(),
-                percentage: (result.score / result.totalMarks) * 100
-            };
-            
-            const pdf = await generateCertificatePdf(certDataForPdf);
-
-            const base64String = pdf.output('datauristring').split(',')[1];
+    
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
             const fileName = `Certificate-${result.studentName.replace(/ /g, '_')}.pdf`;
-            const mimeType = "application/pdf";
 
-            if ((window as any).AndroidApp && (window as any).AndroidApp.downloadBase64File) {
-                // If App के andar hai toh Android function call karein
-                (window as any).AndroidApp.downloadBase64File(base64String, fileName, mimeType);
-                toast({
+            if (window.AndroidApp && window.AndroidApp.downloadUrl) {
+                // If App is being used, call the Android function to handle download
+                window.AndroidApp.downloadUrl(url, fileName, "application/pdf");
+                 toast({
                     title: "Download Started",
                     description: "Your certificate is being saved to your Downloads folder.",
                 });
             } else {
-                // Agar normal browser mein hai toh purana tarika
-                pdf.save(fileName);
+                // Fallback for normal browsers
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', fileName);
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                window.URL.revokeObjectURL(url);
             }
-
         } catch (error: any) {
             console.error("CERTIFICATE ERROR", error);
-            let description = "An unexpected error occurred. Please try again or contact support.";
-            if (error.message.includes("PDF")) {
-                description = "Could not generate the certificate PDF. Please try again.";
-            }
-
             toast({
                 title: "Certificate Generation Failed",
-                description: description,
+                description: error.message || "An unexpected error occurred. Please try again or contact support.",
                 variant: "destructive"
             });
         } finally {
@@ -426,3 +407,5 @@ export default function ProfilePage() {
         </div>
     );
 }
+
+    
