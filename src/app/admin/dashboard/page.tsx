@@ -256,7 +256,7 @@ export default function AdminDashboardPage() {
             stateSetter: React.Dispatch<React.SetStateAction<T[]>>,
             toastTitle: string,
             nameField: keyof T,
-            dateField: keyof T
+            dateField: Extract<keyof T, string>
         ) => {
             const q = query(collection(firestore, collectionName), where(dateField, ">", now));
             const unsub = onSnapshot(q, (snapshot) => {
@@ -271,11 +271,12 @@ export default function AdminDashboardPage() {
                 });
                 if (didUpdate) {
                      // Refetch all data for this collection to update the list
-                     const fullQuery = query(collection(firestore, collectionName), orderBy(dateField as string, "desc"));
+                     const fullQuery = query(collection(firestore, collectionName), orderBy(dateField, "desc"));
                      getDocs(fullQuery).then(fullSnapshot => {
                          const fullList = fullSnapshot.docs.map(doc => {
                              const data = doc.data();
-                             const date = (data[dateField] as Timestamp)?.toDate().toLocaleString() || new Date().toLocaleString();
+                             const dateValue = data[dateField];
+                             const date = (dateValue instanceof Timestamp) ? dateValue.toDate().toLocaleString() : String(dateValue);
                              return { id: doc.id, ...data, [dateField]: date, isRead: data.isRead || false } as T;
                          });
                          stateSetter(fullList);
