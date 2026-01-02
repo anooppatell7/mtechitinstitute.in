@@ -74,7 +74,7 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import coursesData from "@/lib/data/courses.json";
 import { useAuth, useFirestore, useUser } from "@/firebase";
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, setDoc, Timestamp, where, arrayUnion, arrayRemove, getDoc, writeBatch, onSnapshot, Unsubscribe, runTransaction } from "firebase/firestore";
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, setDoc, Timestamp, where, arrayUnion, arrayRemove, getDoc, writeBatch, onSnapshot, Unsubscribe, runTransaction, FieldPath } from "firebase/firestore";
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 import { errorEmitter } from '@/firebase/error-emitter';
 
@@ -251,20 +251,20 @@ export default function AdminDashboardPage() {
         const now = new Date();
         const unsubscribes: Unsubscribe[] = [];
 
-        const setupListener = <T extends { id: string }>(
+        const setupListener = <T extends { id: string, isRead?: boolean }>(
             collectionName: string, 
             stateSetter: React.Dispatch<React.SetStateAction<T[]>>,
             toastTitle: string,
-            nameField: Extract<keyof T, string>,
+            nameField: keyof T,
             dateField: Extract<keyof T, string>
         ) => {
-            const q = query(collection(firestore, collectionName), where(dateField, ">", now));
+            const q = query(collection(firestore, collectionName), where(dateField as string, ">", now));
             const unsub = onSnapshot(q, (snapshot) => {
                 let didUpdate = false;
                 snapshot.docChanges().forEach((change) => {
                     if (change.type === "added") {
                         const data = change.doc.data() as T;
-                        toast({ title: toastTitle, description: `From: ${data[nameField]}` });
+                        toast({ title: toastTitle, description: `From: ${data[nameField] as string}` });
                         playNotificationSound();
                         didUpdate = true;
                     }
@@ -374,9 +374,9 @@ export default function AdminDashboardPage() {
         const docRef = doc(firestore, type, id);
         updateDoc(docRef, { isRead: true }).then(() => {
             if (type === 'enrollments') {
-                setEnrollments(prev => prev.map(item => item.id === id ? { ...item, isRead: true } : item as Enrollment));
+                setEnrollments(prev => prev.map(item => item.id === id ? { ...item, isRead: true } as Enrollment : item));
             } else if (type === 'examRegistrations') {
-                setExamRegistrations(prev => prev.map(item => item.id === id ? { ...item, isRead: true } : item as ExamRegistration));
+                setExamRegistrations(prev => prev.map(item => item.id === id ? { ...item, isRead: true } as ExamRegistration : item));
             }
         }).catch(async (serverError) => {
             const permissionError = new FirestorePermissionError({
