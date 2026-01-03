@@ -20,6 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import jsPDF from 'jspdf';
+import { generateCertificatePdf } from '@/lib/certificate-generator';
 
 
 function ProfileSkeleton() {
@@ -150,7 +151,7 @@ export default function ProfilePage() {
 
     const handleGenerateCertificate = async (result: ExamResult) => {
         if (!registration || !result.certificateId) {
-             toast({
+            toast({
                 title: "Certificate ID Missing",
                 description: "The certificate ID for this result is missing. Please contact support.",
                 variant: "destructive"
@@ -160,38 +161,29 @@ export default function ProfilePage() {
         setIsGeneratingCert(result.id);
     
         try {
-            const response = await fetch(`/api/download-certificate?resultId=${result.id}`);
-            
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
-                throw new Error(errorData.error || `Server responded with status ${response.status}`);
-            }
-    
-            const blob = await response.blob();
-            const reader = new FileReader();
-            reader.readAsDataURL(blob);
-            reader.onloadend = () => {
-                const base64data = reader.result as string;
-                const base64String = base64data.split(',')[1];
-                const fileName = `Certificate-${result.studentName.replace(/ /g, '_')}.pdf`;
-                const mimeType = "application/pdf";
-                
-                if (typeof window !== "undefined" && (window as any).AndroidApp && (window as any).AndroidApp.downloadBase64File) {
-                    (window as any).AndroidApp.downloadBase64File(base64String, fileName, mimeType);
-                    toast({
-                        title: "Download Started",
-                        description: "Your certificate is being saved to your Downloads folder.",
-                    });
-                } else {
-                    // Fallback for normal browsers
-                    const link = document.createElement('a');
-                    link.href = `data:application/pdf;base64,${base64String}`;
-                    link.download = fileName;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                }
+            const percentage = result.totalMarks > 0 ? (result.score / result.totalMarks) * 100 : 0;
+            const certificateData = {
+                studentName: result.studentName,
+                registrationNumber: result.registrationNumber,
+                testName: result.testName,
+                score: result.score,
+                totalMarks: result.totalMarks,
+                accuracy: result.accuracy,
+                userId: result.userId,
+                testId: result.testId,
+                certificateId: result.certificateId,
+                percentage: parseFloat(percentage.toFixed(2)),
+                issueDate: format(new Date(), 'yyyy-MM-dd'),
+                examDate: format(result.submittedAt.toDate(), 'yyyy-MM-dd'),
             };
+
+            const pdf = await generateCertificatePdf(certificateData);
+            pdf.save(`Certificate-${result.studentName.replace(/ /g, '_')}.pdf`);
+            
+             toast({
+                title: "Download Started",
+                description: "Your certificate is being saved to your Downloads folder.",
+            });
 
         } catch (error: any) {
             console.error("CERTIFICATE ERROR", error);
