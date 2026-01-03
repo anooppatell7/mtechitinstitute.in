@@ -19,6 +19,15 @@ interface CertificateData extends Omit<ExamResult, 'id' | 'submittedAt' | 'respo
 const A4_WIDTH = 1123;
 const A4_HEIGHT = 794;
 
+declare global {
+    interface Window {
+        AndroidApp?: {
+            downloadBase64File: (base64: string, fileName: string, mimeType: string) => void;
+        }
+    }
+}
+
+
 async function getCertificateImages() {
   const [logo, watermark, goldSeal, signature] = await Promise.all([
     preloadImageAsBase64("https://res.cloudinary.com/dzr4xjizf/image/upload/v1757138798/mtechlogo_1_wsdhhx.png"),
@@ -31,11 +40,10 @@ async function getCertificateImages() {
 }
 
 /**
- * Generates a certificate as a Blob URL for client-side download.
+ * Generates a certificate and initiates download based on the environment (web vs. Android app).
  * @param data The data for the certificate.
- * @returns A promise that resolves to an object containing the Blob URL and a filename.
  */
-export async function generateCertificatePdf(data: CertificateData): Promise<{ blobUrl: string, fileName: string }> {
+export async function generateCertificatePdf(data: CertificateData): Promise<void> {
   try {
     const { logo, watermark, goldSeal, signature } = await getCertificateImages();
     
@@ -81,12 +89,28 @@ export async function generateCertificatePdf(data: CertificateData): Promise<{ b
 
     pdf.addImage(imgData, "PNG", 0, 0, A4_WIDTH, A4_HEIGHT);
     
-    // Generate Blob and create a URL for it
-    const pdfBlob = pdf.output('blob');
-    const blobUrl = window.URL.createObjectURL(pdfBlob);
     const fileName = `Certificate-${data.studentName.replace(/ /g, '_')}.pdf`;
-
-    return { blobUrl, fileName };
+    
+    // Check if running inside the Android App's WebView
+    if (window.AndroidApp && typeof window.AndroidApp.downloadBase64File === 'function') {
+        // App environment: send Base64 string to native Java code
+        const base64String = pdf.output('datauristring').split(',')[1];
+        window.AndroidApp.downloadBase64File(base64String, fileName, "application/pdf");
+    } else {
+        // Web browser environment: use blob URL to trigger download
+        const pdfBlob = pdf.output('blob');
+        const blobUrl = window.URL.createObjectURL(pdfBlob);
+        
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Clean up the blob URL after download
+        window.URL.revokeObjectURL(blobUrl);
+    }
 
   } catch (err) {
     console.error("PDF_GENERATION_FAILED:", err);

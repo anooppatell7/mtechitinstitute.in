@@ -176,21 +176,11 @@ export default function ProfilePage() {
                 examDate: format(result.submittedAt.toDate(), 'yyyy-MM-dd'),
             };
 
-            const { blobUrl, fileName } = await generateCertificatePdf(certificateData);
+            await generateCertificatePdf(certificateData);
 
-            const link = document.createElement('a');
-            link.href = blobUrl;
-            link.download = fileName;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            // Clean up the blob URL after download
-            window.URL.revokeObjectURL(blobUrl);
-            
              toast({
                 title: "Download Started",
-                description: "Your certificate is being saved.",
+                description: "Your certificate is being prepared for download.",
             });
 
         } catch (error: any) {
