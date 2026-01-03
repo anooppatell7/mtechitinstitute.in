@@ -5,61 +5,50 @@ import { doc, getDoc } from 'firebase/firestore';
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { studentId, title, message } = body;
+    const { studentId, title, message } = await req.json();
 
-    // Hardcoded keys to eliminate environment variable issues.
-    const appId = "5f5c7586-edd7-4b3d-aa11-50922c1d3c4f"; 
-    const restKey = "os_v2_app_l5ohlbxn25ft3kqrkcjcyhj4j4mx7ddsz6luc7vtt4s3wntqg2utk2aleljyxjcge45rxffnj4vpyng5qutuqqyzpokvhm33ochg3dq"; 
+    // 1. ASLI KEYS (Yahan check karein)
+    const ONESIGNAL_APP_ID = "5f5c7586-edd7-4b3d-aa11-50922c1d3c4f";
+    // Yahan wo lambi key daalein jo "+ Add Key" karne par mili thi
+    const ONESIGNAL_REST_API_KEY = "os_v2_app_l5ohlbxn25ft3kqrkcjcyhj4j4mx7ddsz6luc7vtt4s3wntqg2utk2aleljyxjcge45rxffnj4vpyng5qutuqqyzpokvhm33ochg3dq"; 
 
-    if (!studentId) {
-      return NextResponse.json({ error: "Student ID is missing" }, { status: 400 });
-    }
-
-    // Fetch the student's document to get the OneSignal Player ID
+    // 2. Fetch Player ID from Firebase
     const studentRef = doc(db, "examRegistrations", studentId);
     const studentSnap = await getDoc(studentRef);
 
     if (!studentSnap.exists()) {
-      return NextResponse.json({ error: `Student ID ${studentId} not found in Firestore` }, { status: 404 });
+      return NextResponse.json({ error: "Student not found" }, { status: 404 });
     }
 
     const playerID = studentSnap.data().onesignal_player_id;
-
     if (!playerID) {
-      return NextResponse.json({ error: "onesignal_player_id is empty in the database for this student." }, { status: 400 });
+      return NextResponse.json({ error: "No Player ID found" }, { status: 400 });
     }
 
-    // OneSignal API call using Fetch
-    const response = await fetch("https://onesignal.com/api/v1/notifications", {
+    // 3. OneSignal API Call with proper headers
+    const osResponse = await fetch("https://onesignal.com/api/v1/notifications", {
       method: "POST",
       headers: {
         "Content-Type": "application/json; charset=utf-8",
-        "Authorization": `Basic ${restKey}`
+        "Authorization": `Basic ${ONESIGNAL_REST_API_KEY}` // 'Basic' word bahut zaroori hai
       },
       body: JSON.stringify({
-        app_id: appId,
+        app_id: ONESIGNAL_APP_ID,
         include_player_ids: [playerID],
         headings: { en: title },
         contents: { en: message }
       })
     });
 
-    const result = await response.json();
-    
-    if (!response.ok) {
-      console.error("OneSignal API Error:", result);
-      return NextResponse.json({ error: "OneSignal API request failed", details: result }, { status: response.status });
+    const result = await osResponse.json();
+
+    if (!osResponse.ok) {
+      return NextResponse.json({ error: "OneSignal API request failed", details: result }, { status: osResponse.status });
     }
 
     return NextResponse.json({ success: true, result });
 
   } catch (error: any) {
-    console.error("Critical Backend Error:", error);
-    return NextResponse.json({ 
-      error: "Internal Server Error", 
-      message: error.message, 
-      stack: error.stack 
-    }, { status: 500 });
+    return NextResponse.json({ error: "Server Crash", message: error.message }, { status: 500 });
   }
 }
