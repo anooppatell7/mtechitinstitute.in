@@ -31,11 +31,11 @@ async function getCertificateImages() {
 }
 
 /**
- * Generates a certificate as a Base64 encoded string.
+ * Generates a certificate as a Blob URL for client-side download.
  * @param data The data for the certificate.
- * @returns A promise that resolves to the Base64 string of the PDF.
+ * @returns A promise that resolves to an object containing the Blob URL and a filename.
  */
-export async function generateCertificatePdfAsBase64(data: CertificateData): Promise<string> {
+export async function generateCertificatePdf(data: CertificateData): Promise<{ blobUrl: string, fileName: string }> {
   try {
     const { logo, watermark, goldSeal, signature } = await getCertificateImages();
     
@@ -47,10 +47,9 @@ export async function generateCertificatePdfAsBase64(data: CertificateData): Pro
       signatureUrl: signature,
     };
     
-    // Create an off-screen container for rendering
     const container = document.createElement("div");
     container.style.position = "fixed";
-    container.style.top = "-9999px"; // Position it off-screen
+    container.style.top = "-9999px";
     container.style.left = "-9999px";
     container.style.width = `${A4_WIDTH}px`;
     container.style.height = `${A4_HEIGHT}px`;
@@ -58,16 +57,13 @@ export async function generateCertificatePdfAsBase64(data: CertificateData): Pro
     container.style.fontFamily = '"Great Vibes", "Playfair Display", serif';
     document.body.appendChild(container);
     
-    // Render the React component to an HTML string
     const staticMarkup = renderToStaticMarkup(CertificateTemplate(finalData));
     container.innerHTML = staticMarkup;
     
-    // Add a small delay to ensure fonts and images are loaded by the browser
     await new Promise(resolve => setTimeout(resolve, 500));
 
-    // Render to canvas
     const canvas = await html2canvas(container, {
-      scale: 2, // For higher resolution
+      scale: 2,
       useCORS: true,
       allowTaint: true,
       backgroundColor: null,
@@ -75,11 +71,8 @@ export async function generateCertificatePdfAsBase64(data: CertificateData): Pro
     });
 
     const imgData = canvas.toDataURL("image/png", 1.0);
-
-    // Clean up the off-screen container
     document.body.removeChild(container);
 
-    // Create PDF
     const pdf = new jsPDF({
       orientation: "landscape",
       unit: "px",
@@ -88,11 +81,15 @@ export async function generateCertificatePdfAsBase64(data: CertificateData): Pro
 
     pdf.addImage(imgData, "PNG", 0, 0, A4_WIDTH, A4_HEIGHT);
     
-    // Return the PDF as a Base64 string (without the data URI prefix)
-    return pdf.output('datauristring').split(',')[1];
+    // Generate Blob and create a URL for it
+    const pdfBlob = pdf.output('blob');
+    const blobUrl = window.URL.createObjectURL(pdfBlob);
+    const fileName = `Certificate-${data.studentName.replace(/ /g, '_')}.pdf`;
+
+    return { blobUrl, fileName };
 
   } catch (err) {
     console.error("PDF_GENERATION_FAILED:", err);
-    throw err; // Re-throw the original error
+    throw err;
   }
 }

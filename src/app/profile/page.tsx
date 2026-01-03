@@ -19,7 +19,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { generateCertificatePdfAsBase64 } from '@/lib/certificate-generator';
+import { generateCertificatePdf } from '@/lib/certificate-generator';
 
 
 function ProfileSkeleton() {
@@ -176,25 +176,21 @@ export default function ProfilePage() {
                 examDate: format(result.submittedAt.toDate(), 'yyyy-MM-dd'),
             };
 
-            const base64Pdf = await generateCertificatePdfAsBase64(certificateData);
-            const fileName = `Certificate-${result.studentName.replace(/ /g, '_')}.pdf`;
+            const { blobUrl, fileName } = await generateCertificatePdf(certificateData);
 
-            // Check for Android WebView interface
-            if (typeof window !== "undefined" && (window as any).AndroidApp?.savePdf) {
-                (window as any).AndroidApp.savePdf(base64Pdf, fileName);
-            } else {
-                // Fallback for standard browsers
-                const link = document.createElement('a');
-                link.href = `data:application/pdf;base64,${base64Pdf}`;
-                link.download = fileName;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            }
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Clean up the blob URL after download
+            window.URL.revokeObjectURL(blobUrl);
             
              toast({
                 title: "Download Started",
-                description: "Your certificate is being saved to your Downloads folder.",
+                description: "Your certificate is being saved.",
             });
 
         } catch (error: any) {
