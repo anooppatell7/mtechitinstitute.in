@@ -7,57 +7,49 @@ export async function POST(req: NextRequest) {
   try {
     const { studentId, title, message } = await req.json();
 
-    // 1. Correct App ID and REST API Key are hardcoded for reliability.
-    const appId = "5f5c7586-edd7-4b3d-aa11-50922c1d3c4f"; 
-    
-    // The correct, long REST API key is used here directly.
-    const restKey = "os_v2_app_l5ohlbxn25ft3kqrkcjcyhj4j5b25xi5ckge624c5ridndvpnvcmwf6fniq5x45dppzn2xrqq6jtysrqzub2eplqx5dbsstiyduwd3q"; 
-
-    if (!studentId) {
-      return NextResponse.json({ error: "Student ID is missing from the request body." }, { status: 400 });
+    if (!studentId || !title || !message) {
+      return NextResponse.json({ error: "Missing fields" }, { status: 400 });
     }
 
-    // 2. Fetch the student's document from Firestore to get their OneSignal Player ID.
-    const studentRef = doc(db, "examRegistrations", studentId);
-    const studentSnap = await getDoc(studentRef);
+    const APP_ID = "5f5c7586-edd7-4b3d-aa11-50922c1d3c4f";
+    // Using the correct V2 REST API Key directly
+    const API_KEY = "os_v2_app_l5ohlbxn25ft3kqrkcjcyhj4j5b25xi5ckge624c5ridndvpnvcmwf6fniq5x45dppzn2xrqq6jtysrqzub2eplqx5dbsstiyduwd3q"; 
 
-    if (!studentSnap.exists()) {
-      return NextResponse.json({ error: `Student with ID '${studentId}' was not found in the database.` }, { status: 404 });
+    const snap = await getDoc(doc(db, "examRegistrations", studentId));
+    if (!snap.exists()) {
+      return NextResponse.json({ error: "Student not found" }, { status: 404 });
     }
 
-    const playerID = studentSnap.data().onesignal_player_id;
-
-    if (!playerID) {
-      return NextResponse.json({ error: "This student does not have a OneSignal Player ID in the database." }, { status: 400 });
+    const playerId = snap.data().onesignal_player_id;
+    if (!playerId) {
+      return NextResponse.json({ error: "Player ID missing" }, { status: 400 });
     }
 
-    // 3. Make the API call to OneSignal with the correct headers.
-    const response = await fetch("https://onesignal.com/api/v1/notifications", {
+    // Using the correct V2 API endpoint and Bearer token
+    const res = await fetch("https://api.onesignal.com/notifications", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json; charset=utf-8",
-        // The 'Authorization' header must be in the 'Basic <KEY>' format.
-        "Authorization": `Basic ${restKey}` 
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${API_KEY}`
       },
       body: JSON.stringify({
-        app_id: appId,
-        include_player_ids: [playerID],
+        app_id: APP_ID,
+        target_channel: "push",
+        include_player_ids: [playerId],
         headings: { en: title },
         contents: { en: message }
       })
     });
 
-    const result = await response.json();
+    const data = await res.json();
 
-    // If OneSignal returns an error, forward a descriptive error.
-    if (!response.ok) {
-      return NextResponse.json({ error: "OneSignal API request failed.", details: result }, { status: response.status });
+    if (!res.ok) {
+      return NextResponse.json({ error: "OneSignal error", data }, { status: res.status });
     }
 
-    return NextResponse.json({ success: true, result });
+    return NextResponse.json({ success: true, data });
 
-  } catch (error: any) {
-    // Catch any unexpected server crashes.
-    return NextResponse.json({ error: "An internal server error occurred.", message: error.message }, { status: 500 });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
