@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
     // 1. ASLI KEYS (Yahan check karein)
     const ONESIGNAL_APP_ID = "5f5c7586-edd7-4b3d-aa11-50922c1d3c4f";
     // Yahan wo lambi key daalein jo "+ Add Key" karne par mili thi
-    const ONESIGNAL_REST_API_KEY = "os_v2_app_l5ohlbxn25ft3kqrkcjcyhj4j7rluy4c6ehuj64svdebt7wqebt6outq7kzqsgrkrskqapct56wj4cau4n5mygesk6qwowznjoiqe7q"; 
+    const ONESIGNAL_REST_API_KEY = "os_v2_app_l5ohlbxn25ft3kqrkcjcyhj4j5b25xi5ckge624c5ridndvpnvcmwf6fniq5x45dppzn2xrqq6jtysrqzub2eplqx5dbsstiyduwd3q"; 
 
     // 2. Fetch Player ID from Firebase
     const studentRef = doc(db, "examRegistrations", studentId);
