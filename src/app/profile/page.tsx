@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -164,8 +163,8 @@ export default function ProfilePage() {
             const response = await fetch(`/api/download-certificate?resultId=${result.id}`);
             
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to generate certificate');
+                const errorData = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
+                throw new Error(errorData.error || `Server responded with status ${response.status}`);
             }
     
             const blob = await response.blob();
