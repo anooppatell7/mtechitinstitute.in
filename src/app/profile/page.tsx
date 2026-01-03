@@ -19,8 +19,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import jsPDF from 'jspdf';
-import { generateCertificatePdf } from '@/lib/certificate-generator';
+import { generateCertificatePdfAsBase64 } from '@/lib/certificate-generator';
 
 
 function ProfileSkeleton() {
@@ -177,8 +176,21 @@ export default function ProfilePage() {
                 examDate: format(result.submittedAt.toDate(), 'yyyy-MM-dd'),
             };
 
-            const pdf = await generateCertificatePdf(certificateData);
-            pdf.save(`Certificate-${result.studentName.replace(/ /g, '_')}.pdf`);
+            const base64Pdf = await generateCertificatePdfAsBase64(certificateData);
+            const fileName = `Certificate-${result.studentName.replace(/ /g, '_')}.pdf`;
+
+            // Check for Android WebView interface
+            if (typeof window !== "undefined" && (window as any).AndroidApp?.savePdf) {
+                (window as any).AndroidApp.savePdf(base64Pdf, fileName);
+            } else {
+                // Fallback for standard browsers
+                const link = document.createElement('a');
+                link.href = `data:application/pdf;base64,${base64Pdf}`;
+                link.download = fileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
             
              toast({
                 title: "Download Started",

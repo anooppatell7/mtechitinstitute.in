@@ -30,7 +30,12 @@ async function getCertificateImages() {
   return { logo, watermark, goldSeal, signature };
 }
 
-export async function generateCertificatePdf(data: CertificateData): Promise<jsPDF> {
+/**
+ * Generates a certificate as a Base64 encoded string.
+ * @param data The data for the certificate.
+ * @returns A promise that resolves to the Base64 string of the PDF.
+ */
+export async function generateCertificatePdfAsBase64(data: CertificateData): Promise<string> {
   try {
     const { logo, watermark, goldSeal, signature } = await getCertificateImages();
     
@@ -45,11 +50,11 @@ export async function generateCertificatePdf(data: CertificateData): Promise<jsP
     // Create an off-screen container for rendering
     const container = document.createElement("div");
     container.style.position = "fixed";
-    container.style.top = "0";
-    container.style.left = "0";
+    container.style.top = "-9999px"; // Position it off-screen
+    container.style.left = "-9999px";
     container.style.width = `${A4_WIDTH}px`;
     container.style.height = `${A4_HEIGHT}px`;
-    container.style.zIndex = "-9999"; // Hide it
+    container.style.zIndex = "-1"; 
     container.style.fontFamily = '"Great Vibes", "Playfair Display", serif';
     document.body.appendChild(container);
     
@@ -65,7 +70,7 @@ export async function generateCertificatePdf(data: CertificateData): Promise<jsP
       scale: 2, // For higher resolution
       useCORS: true,
       allowTaint: true,
-      backgroundColor: null, // Transparent background
+      backgroundColor: null,
       imageTimeout: 0,
     });
 
@@ -83,7 +88,8 @@ export async function generateCertificatePdf(data: CertificateData): Promise<jsP
 
     pdf.addImage(imgData, "PNG", 0, 0, A4_WIDTH, A4_HEIGHT);
     
-    return pdf;
+    // Return the PDF as a Base64 string (without the data URI prefix)
+    return pdf.output('datauristring').split(',')[1];
 
   } catch (err) {
     console.error("PDF_GENERATION_FAILED:", err);
