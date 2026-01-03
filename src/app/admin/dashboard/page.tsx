@@ -258,7 +258,7 @@ export default function AdminDashboardPage() {
             nameField: keyof T,
             dateField: Extract<keyof T, string>
         ) => {
-            const q = query(collection(firestore, collectionName), where(dateField as string, ">", now));
+            const q = query(collection(firestore, collectionName), where(dateField, ">", now));
             const unsub = onSnapshot(q, (snapshot) => {
                 let didUpdate = false;
                 snapshot.docChanges().forEach((change) => {
@@ -940,71 +940,60 @@ export default function AdminDashboardPage() {
     };
     
     const handleGenerateRegNo = async (registrationId: string, studentName: string) => {
-        if (!firestore) return;
         setGeneratingRegNo(registrationId);
-        let newRegistrationNumber = '';
-
+        if (!firestore) {
+            setGeneratingRegNo(null);
+            return;
+        }
+    
         try {
+            let newRegistrationNumber = '';
             await runTransaction(firestore, async (transaction) => {
                 const counterRef = doc(firestore, "counters", "examRegistrations");
                 const counterDoc = await transaction.get(counterRef);
-                
-                let newCount = (counterDoc.data()?.currentNumber || 0) + 1;
-
-                if (!counterDoc.exists()) {
-                    transaction.set(counterRef, { currentNumber: newCount });
-                } else {
-                    transaction.update(counterRef, { currentNumber: newCount });
+                let newCount = 1;
+                if (counterDoc.exists()) {
+                    newCount = counterDoc.data()?.currentNumber + 1;
                 }
-
+                
                 const currentYear = new Date().getFullYear();
                 newRegistrationNumber = `MTECH-${currentYear}-${String(newCount).padStart(4, '0')}`;
+                
+                transaction.set(counterRef, { currentNumber: newCount }, { merge: true });
                 
                 const regRef = doc(firestore, "examRegistrations", registrationId);
                 transaction.update(regRef, { registrationNumber: newRegistrationNumber });
             });
-
-            // Update local state after successful transaction
+    
             setExamRegistrations(prev =>
-                prev.map(reg => 
-                    reg.id === registrationId 
+                prev.map(reg =>
+                    reg.id === registrationId
                         ? { ...reg, registrationNumber: newRegistrationNumber }
                         : reg
                 )
             );
-
-            // Send notification after successful transaction
-            const notifyRes = await fetch('/api/notify-student', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                studentId: registrationId,
-                title: "Registration Approved!",
-                message: `Badhai Ho ${studentName}! Aapka M-Tech IT Institute mein registration approve ho gaya hai. Aapka Registration No. hai: ${newRegistrationNumber}`
-              })
+    
+            const response = await fetch('/api/notify-student', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    studentId: registrationId,
+                    title: "Registration Approved!",
+                    message: `Congratulations ${studentName}! Your registration at M-Tech IT Institute is approved. Your Registration No. is: ${newRegistrationNumber}`
+                })
             });
-
-            const notifyData = await notifyRes.json();
-            if(notifyData.success) {
-                toast({
-                    title: "Success",
-                    description: `Generated Reg. No: ${newRegistrationNumber} and notification sent.`,
-                });
+    
+            const data = await response.json();
+    
+            if (!response.ok) {
+                alert("SERVER ERROR: " + (data.message || data.error || "Unknown Error"));
+                console.log("Full Error Data:", data);
             } else {
-                 toast({
-                    title: "Warning",
-                    description: `Reg. No generated, but notification failed: ${notifyData.error || 'Unknown error'}`,
-                    variant: "destructive"
-                });
+                alert("Notification Sent Successfully!");
             }
-
-        } catch (error) {
-            console.error("Failed to generate registration number or send notification:", error);
-            toast({
-                title: "Error",
-                description: "Could not generate registration number. Check console for details.",
-                variant: "destructive",
-            });
+    
+        } catch (err: any) {
+            alert("FRONTEND CRASH: " + err.message);
         } finally {
             setGeneratingRegNo(null);
         }
