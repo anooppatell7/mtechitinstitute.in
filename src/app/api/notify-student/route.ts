@@ -7,12 +7,14 @@ export async function POST(req: NextRequest) {
   try {
     const { studentId, title, message } = await req.json();
 
-    // 1. ASLI KEYS (Yahan check karein)
-    const ONESIGNAL_APP_ID = "5f5c7586-edd7-4b3d-aa11-50922c1d3c4f";
-    // Yahan wo lambi key daalein jo "+ Add Key" karne par mili thi
-    const ONESIGNAL_REST_API_KEY = "os_v2_app_l5ohlbxn25ft3kqrkcjcyhj4j5b25xi5ckge624c5ridndvpnvcmwf6fniq5x45dppzn2xrqq6jtysrqzub2eplqx5dbsstiyduwd3q"; 
+    // 1. APNA APP ID YAHAN CHECK KAREIN
+    const appId = "5f5c7586-edd7-4b3d-aa11-50922c1d3c4f"; 
+    
+    // 2. YAHAN WO LAMBI WALI SECRET KEY PASTE KAREIN (Direct String mein)
+    // .env se mat uthaiye, direct yahan paste kijiye
+    const restKey = "os_v2_app_l5ohlbxn25ft3kqrkcjcyhj4j5b25xi5ckge624c5ridndvpnvcmwf6fniq5x45dppzn2xrqq6jtysrqzub2eplqx5dbsstiyduwd3q"; 
 
-    // 2. Fetch Player ID from Firebase
+    // Firebase data fetch
     const studentRef = doc(db, "examRegistrations", studentId);
     const studentSnap = await getDoc(studentRef);
 
@@ -21,29 +23,27 @@ export async function POST(req: NextRequest) {
     }
 
     const playerID = studentSnap.data().onesignal_player_id;
-    if (!playerID) {
-      return NextResponse.json({ error: "No Player ID found" }, { status: 400 });
-    }
 
-    // 3. OneSignal API Call with proper headers
-    const osResponse = await fetch("https://onesignal.com/api/v1/notifications", {
+    // 3. OneSignal API Call
+    const response = await fetch("https://onesignal.com/api/v1/notifications", {
       method: "POST",
       headers: {
         "Content-Type": "application/json; charset=utf-8",
-        "Authorization": `Basic ${ONESIGNAL_REST_API_KEY}` // 'Basic' word bahut zaroori hai
+        // 'Basic ' ke saath space dena zaroori hai
+        "Authorization": `Basic ${restKey}` 
       },
       body: JSON.stringify({
-        app_id: ONESIGNAL_APP_ID,
+        app_id: appId,
         include_player_ids: [playerID],
         headings: { en: title },
         contents: { en: message }
       })
     });
 
-    const result = await osResponse.json();
+    const result = await response.json();
 
-    if (!osResponse.ok) {
-      return NextResponse.json({ error: "OneSignal API request failed", details: result }, { status: osResponse.status });
+    if (!response.ok) {
+      return NextResponse.json({ error: "OneSignal API request failed", details: result }, { status: response.status });
     }
 
     return NextResponse.json({ success: true, result });
