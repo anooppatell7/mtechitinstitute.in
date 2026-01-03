@@ -12,20 +12,23 @@ export async function POST(req: NextRequest) {
     }
 
     const APP_ID = "5f5c7586-edd7-4b3d-aa11-50922c1d3c4f";
-    // Using the correct V2 REST API Key directly
-    const API_KEY = "os_v2_app_l5ohlbxn25ft3kqrkcjcyhj4j5b25xi5ckge624c5ridndvpnvcmwf6fniq5x45dppzn2xrqq6jtysrqzub2eplqx5dbsstiyduwd3q"; 
+    const API_KEY = process.env.ONESIGNAL_V2_API_KEY; 
 
-    const snap = await getDoc(doc(db, "examRegistrations", studentId));
-    if (!snap.exists()) {
+    // Firebase Check
+    const studentRef = doc(db, "examRegistrations", studentId);
+    const studentSnap = await getDoc(studentRef);
+
+    if (!studentSnap.exists()) {
       return NextResponse.json({ error: "Student not found" }, { status: 404 });
     }
 
-    const playerId = snap.data().onesignal_player_id;
+    const playerId = studentSnap.data().onesignal_player_id;
     if (!playerId) {
       return NextResponse.json({ error: "Player ID missing" }, { status: 400 });
     }
 
-    // Using the correct V2 API endpoint and Bearer token
+    console.log("ONESIGNAL KEY EXISTS:", !!process.env.ONESIGNAL_V2_API_KEY);
+
     const res = await fetch("https://api.onesignal.com/notifications", {
       method: "POST",
       headers: {
