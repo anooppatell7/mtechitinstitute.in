@@ -7,7 +7,6 @@ import { db } from "@/firebase";
 import { collection, getDocs, orderBy, query } from "firebase/firestore";
 import type { BlogPost } from "@/lib/types";
 import BlogCard from "@/components/blog-card";
-import AdPlaceholder from "@/components/ad-placeholder";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -154,7 +153,6 @@ export default function BlogPage() {
                         </div>
                       )}
                   </div>
-                  <AdPlaceholder />
               </aside>
           </div>
         </div>

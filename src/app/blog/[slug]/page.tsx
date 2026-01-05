@@ -5,7 +5,6 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { Calendar, User, Tag } from "lucide-react";
-import AdPlaceholder from "@/components/ad-placeholder";
 import { Badge } from "@/components/ui/badge";
 import { db } from "@/firebase";
 import { collection, doc, getDoc, getDocs } from "firebase/firestore";
@@ -141,8 +140,8 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
       <div className="bg-gradient-to-br from-indigo-600 via-blue-500 to-cyan-400 relative">
         <SectionDivider style="wave" className="text-background" position="top"/>
         <div className="container py-16 sm:py-24">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
-              <article className="lg:col-span-3 prose prose-lg max-w-none dark:prose-invert prose-headings:font-headline prose-headings:text-primary prose-a:text-accent bg-background p-8 rounded-lg shadow-md">
+          <div className="grid grid-cols-1">
+              <article className="prose prose-lg max-w-none dark:prose-invert prose-headings:font-headline prose-headings:text-primary prose-a:text-accent bg-background p-8 rounded-lg shadow-md">
                   <div className="mb-8">
                       <div className="relative w-full aspect-video rounded-lg overflow-hidden mb-6">
                           <Image src={post.image} alt={`${post.title} - Blog Post Banner`} data-ai-hint={(post.tags || []).slice(0, 2).join(' ')} fill className="object-cover" />
@@ -168,10 +167,6 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
                   <ShareButtons title={post.title} />
 
               </article>
-              <aside className="lg:col-span-1 space-y-8">
-                   <AdPlaceholder />
-                   <AdPlaceholder className="h-96" />
-              </aside>
           </div>
         </div>
       </div>
