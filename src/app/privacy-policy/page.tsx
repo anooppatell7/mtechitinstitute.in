@@ -68,7 +68,7 @@ export default function PrivacyPolicyPage() {
             We have implemented appropriate technical and organizational security measures, such as encryption, designed to protect the security of any personal information we process.
           </p>
            <p>
-            <strong>Data Deletion:</strong> Users can request to delete their account and associated personal data by sending an email to mtechitinstitute@gmail.com with the subject "Account Deletion Request". We will process the request in accordance with applicable laws.
+            <strong>Data Deletion:</strong> To request deletion of your account and personal data, please email us at mtechitinstitute@gmail.com. Users can request to delete their account and associated personal data by sending an email to mtechitinstitute@gmail.com with the subject "Account Deletion Request". We will process the request in accordance with applicable laws.
           </p>
           
           <h2>5. DO WE COLLECT INFORMATION FROM MINORS?</h2>
