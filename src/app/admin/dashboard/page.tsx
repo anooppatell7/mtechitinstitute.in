@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import React, { useState, useEffect } from "react";
-import { PlusCircle, MoreHorizontal, LogOut, Trash, Edit, Settings, FileText, MessageSquare, Briefcase, Link2, Megaphone, Star, Upload, BookOpen, Layers, ChevronDown, ListTodo, BookCopy, UserCheck, Award, Tv, Database, Loader2, Users, LayoutDashboard } from "lucide-react";
+import { PlusCircle, MoreHorizontal, LogOut, Trash, Edit, Settings, FileText, MessageSquare, Briefcase, Link2, Megaphone, Star, Upload, BookOpen, Layers, ChevronDown, ListTodo, BookCopy, UserCheck, Award, Tv, Database, Loader2, Users, LayoutDashboard, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -80,6 +80,11 @@ import { errorEmitter } from '@/firebase/error-emitter';
 
 type ItemType = 'courses' | 'blog' | 'guidance' | 'resources' | 'settings' | 'enrollments' | 'contacts' | 'internal-links' | 'site-settings' | 'reviews' | 'learningCourse' | 'learningModule' | 'learningLesson' | 'mockTest' | 'testQuestion' | 'testCategory' | 'examRegistration' | 'examResult' | 'certificate';
 
+type AppLinkSettings = {
+    id: 'app_download';
+    url: string;
+}
+
 export default function AdminDashboardPage() {
     const auth = useAuth();
     const firestore = useFirestore();
@@ -109,6 +114,7 @@ export default function AdminDashboardPage() {
     // Site settings state
     const [siteSettings, setSiteSettings] = useState<SiteSettings>({ id: 'announcement', text: '', link: '', isVisible: false });
     const [popupSettings, setPopupSettings] = useState<PopupSettings>({ id: 'salesPopup', isVisible: false, title: '', description: '', imageUrl: '', ctaText: '', ctaLink: '' });
+    const [appLinkSettings, setAppLinkSettings] = useState<AppLinkSettings>({ id: 'app_download', url: '' });
 
 
     // Internal linking state
@@ -235,6 +241,10 @@ export default function AdminDashboardPage() {
                 const popupDoc = await getDoc(doc(firestore, "site_settings", "salesPopup"));
                 if (popupDoc.exists()) {
                     setPopupSettings(popupDoc.data() as PopupSettings);
+                }
+                const appLinkDoc = await getDoc(doc(firestore, "site_settings", "app_download"));
+                if (appLinkDoc.exists()) {
+                    setAppLinkSettings(appLinkDoc.data() as AppLinkSettings);
                 }
 
 
@@ -754,6 +764,11 @@ export default function AdminDashboardPage() {
         setPopupSettings({ ...popupSettings, [name]: value });
     };
 
+    const handleAppLinkSettingsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setAppLinkSettings({ ...appLinkSettings, [name]: value });
+    };
+
     const handleSiteSettingsSwitchChange = (checked: boolean) => {
         setSiteSettings({ ...siteSettings, isVisible: checked });
     };
@@ -805,6 +820,20 @@ export default function AdminDashboardPage() {
             errorEmitter.emit('permission-error', permissionError);
         });
     };
+
+    const handleAppLinkSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!firestore) return;
+        const docRef = doc(firestore, "site_settings", "app_download");
+        setDoc(docRef, appLinkSettings, { merge: true }).then(() => {
+            toast({ title: "Success", description: "App download link updated successfully." });
+        }).catch(async (serverError) => {
+            const permissionError = new FirestorePermissionError({
+                path: docRef.path, operation: 'update', requestResourceData: appLinkSettings,
+            } satisfies SecurityRuleContext);
+            errorEmitter.emit('permission-error', permissionError);
+        });
+    }
 
     const handleFeatureToggle = (courseId: string, isFeatured: boolean) => {
       if (!firestore) return;
@@ -1397,12 +1426,17 @@ export default function AdminDashboardPage() {
                                     <TabsTrigger value="data-management"><Database className="mr-2 h-4 w-4"/>Data Management</TabsTrigger>
                                     <TabsTrigger value="site-settings"><Megaphone className="mr-2 h-4 w-4"/>Announcements</TabsTrigger>
                                     <TabsTrigger value="popup-settings"><Tv className="mr-2 h-4 w-4"/>Popup</TabsTrigger>
+                                    <TabsTrigger value="app-download"><Smartphone className="mr-2 h-4 w-4"/>App Download</TabsTrigger>
                                     <TabsTrigger value="settings"><Settings className="mr-2 h-4 w-4"/>Settings</TabsTrigger>
                                 </TabsList>
                                 <ScrollBar orientation="horizontal" />
                             </ScrollArea>
                              <div className="ml-auto flex items-center gap-2 pl-4">
-                                {activeTab !== 'dashboard' && activeTab !== 'settings' && activeTab !== 'site-settings' && activeTab !== 'popup-settings' && activeTab !== 'enrollments' && activeTab !== 'contacts' && activeTab !== 'internal-links' && activeTab !== 'reviews' && activeTab !== 'exam-registrations' && activeTab !== 'exam-results' && activeTab !== 'certificates' && activeTab !== 'data-management' && (
+                                {![
+                                    'dashboard', 'settings', 'site-settings', 'popup-settings', 'app-download', 
+                                    'enrollments', 'contacts', 'internal-links', 'reviews', 'exam-registrations', 
+                                    'exam-results', 'certificates', 'data-management'
+                                ].includes(activeTab) && (
                                 <Button size="sm" className="h-8 gap-1" onClick={() => handleAddNew()}>
                                     <PlusCircle className="h-3.5 w-3.5" />
                                     <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
@@ -2365,6 +2399,23 @@ export default function AdminDashboardPage() {
                                             <Label htmlFor="popupVisibility">Show Popup on Homepage</Label>
                                         </div>
                                         <Button type="submit">Save Popup Settings</Button>
+                                    </form>
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+                        <TabsContent value="app-download">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>App Download Link</CardTitle>
+                                    <CardDescription>Manage the download link for your Android app.</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <form onSubmit={handleAppLinkSubmit} className="space-y-6 max-w-lg">
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="appLinkUrl">App Download URL</Label>
+                                            <Input id="appLinkUrl" name="url" value={appLinkSettings.url} onChange={handleAppLinkSettingsChange} placeholder="e.g., /mtech-it-institute.apk or a Google Drive link" />
+                                        </div>
+                                        <Button type="submit">Save Link</Button>
                                     </form>
                                 </CardContent>
                             </Card>

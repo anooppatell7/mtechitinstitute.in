@@ -56,3 +56,28 @@ export async function getPopupSettings(): Promise<PopupSettings | null> {
         return null;
     }
 }
+
+/**
+ * Fetches the app download link from Firestore.
+ * @returns A promise that resolves to the URL string or null if not found.
+ */
+export async function getAppLink(): Promise<string | null> {
+    if (!db) {
+        console.error("Firestore is not initialized.");
+        return null;
+    }
+    try {
+        const docRef = doc(db, "site_settings", "app_download");
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists() && docSnap.data().url) {
+            return docSnap.data().url as string;
+        } else {
+            console.log("No app download link found in Firestore.");
+            return null;
+        }
+    } catch (error) {
+        console.error("Error fetching app download link:", error);
+        return null;
+    }
+}

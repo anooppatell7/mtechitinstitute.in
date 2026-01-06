@@ -1,10 +1,25 @@
 
+"use client";
+
 import Link from "next/link";
 import { Facebook, Instagram, Phone, Mail, MapPin, Send } from "lucide-react";
 import Logo from "./logo";
+import { useEffect, useState } from "react";
+import { getAppLink } from "@/lib/firebase";
 
 export default function Footer() {
-  // Split links for a two-column layout
+  const [appDownloadLink, setAppDownloadLink] = useState("/mtech-it-institute.apk");
+
+  useEffect(() => {
+    async function fetchAppLink() {
+        const link = await getAppLink();
+        if (link) {
+            setAppDownloadLink(link);
+        }
+    }
+    fetchAppLink();
+  }, []);
+
   const quickLinks = [
     { title: "Home", href: "/" },
     { title: "About", href: "/about" },
@@ -18,7 +33,7 @@ export default function Footer() {
     { title: "Resources", href: "/resources" },
     { title: "Reviews", href: "/reviews" },
     { title: "Verify Certificate", href: "/verify-certificate" },
-    { title: "Download App", href: "/mtech-it-institute.apk" },
+    { title: "Download App", href: appDownloadLink },
     { title: "Privacy Policy", href: "/privacy-policy" },
     { title: "Terms & Conditions", href: "/terms-and-conditions" },
   ];
