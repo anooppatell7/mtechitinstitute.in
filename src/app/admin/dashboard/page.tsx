@@ -2407,7 +2407,7 @@ export default function AdminDashboardPage() {
                             <Card>
                                 <CardHeader>
                                     <CardTitle>App Download Link</CardTitle>
-                                    <CardDescription>Manage the download link for your Android app.</CardDescription>
+                                    <CardDescription>Manage the download link for your Android app. This link will be used on the App Download page.</CardDescription>
                                 </CardHeader>
                                 <CardContent>
                                     <form onSubmit={handleAppLinkSubmit} className="space-y-6 max-w-lg">

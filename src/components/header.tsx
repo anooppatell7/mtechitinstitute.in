@@ -39,7 +39,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import type { NavItem } from "@/lib/types";
 import React from "react";
-import { getAppLink } from "@/lib/firebase";
 
 
 const ADMIN_EMAILS = ["mtechitinstitute@gmail.com", "anooppbh8@gmail.com"];
@@ -79,17 +78,10 @@ export default function Header() {
   const router = useRouter();
   const [isRegistered, setIsRegistered] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
-  const [appDownloadLink, setAppDownloadLink] = useState("/mtech-it-institute.apk");
+  const appDownloadLink = "/mtech-it-institute.apk";
 
   useEffect(() => {
     setIsMounted(true);
-    async function fetchAppLink() {
-      const link = await getAppLink();
-      if (link) {
-        setAppDownloadLink(link);
-      }
-    }
-    fetchAppLink();
   }, []);
 
   const isLearnPage = pathname.startsWith('/learn');

@@ -5,20 +5,9 @@ import Link from "next/link";
 import { Facebook, Instagram, Phone, Mail, MapPin, Send } from "lucide-react";
 import Logo from "./logo";
 import { useEffect, useState } from "react";
-import { getAppLink } from "@/lib/firebase";
 
 export default function Footer() {
-  const [appDownloadLink, setAppDownloadLink] = useState("/mtech-it-institute.apk");
-
-  useEffect(() => {
-    async function fetchAppLink() {
-        const link = await getAppLink();
-        if (link) {
-            setAppDownloadLink(link);
-        }
-    }
-    fetchAppLink();
-  }, []);
+  const appDownloadLink = "/mtech-it-institute.apk";
 
   const quickLinks = [
     { title: "Home", href: "/" },
