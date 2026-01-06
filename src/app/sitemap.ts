@@ -20,14 +20,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/exam/register',
     '/exam/result',
     '/verify-certificate',
-    '/reviews'
+    '/reviews',
+    '/mtech-it-institute.apk'
   ];
 
   const staticUrls = staticRoutes.map((route) => ({
     url: `${siteUrl}${route}`,
     lastModified: new Date(),
     changeFrequency: 'monthly' as const,
-    priority: route === '' ? 1.0 : (route.includes('privacy') || route.includes('terms') ? 0.3 : 0.8),
+    priority: route === '' ? 1.0 : (route.includes('privacy') || route.includes('terms') ? 0.3 : (route.includes('apk') ? 0.5 : 0.8)),
   }));
 
   // NOTE: Dynamic routes (courses, blog posts) are not included here to prevent

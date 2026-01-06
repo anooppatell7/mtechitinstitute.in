@@ -35,16 +35,6 @@ export default function Hero() {
           >
             <Link href="/courses">View Courses</Link>
           </Button>
-           <Button
-            asChild
-            size="lg"
-            className="h-auto bg-green-500 text-white hover:bg-green-600 transition-all transform hover:scale-105 rounded-full px-8 py-4 text-base font-semibold shadow-lg shadow-green-500/30"
-          >
-            <Link href="/mtech-it-institute.apk" download>
-                <Smartphone className="ml-2 h-5 w-5" />
-                Download App
-            </Link>
-          </Button>
         </div>
 
         <div className="mt-10 flex flex-wrap justify-center gap-x-6 gap-y-2">
