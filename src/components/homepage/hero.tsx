@@ -1,7 +1,7 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Award, Users, Briefcase, Rocket } from "lucide-react";
+import { Award, Users, Briefcase, Rocket, Smartphone } from "lucide-react";
 import SectionDivider from "../section-divider";
 
 export default function Hero() {
@@ -16,7 +16,7 @@ export default function Hero() {
           Practice, and Grow with MTech IT Institute.
         </p>
 
-        <div className="mt-10 flex flex-wrap justify-center gap-4">
+        <div className="mt-10 flex flex-wrap justify-center items-center gap-4">
           <Button
             asChild
             size="lg"
@@ -34,6 +34,16 @@ export default function Hero() {
             className="h-auto rounded-full border-2 border-white bg-transparent text-white shadow-lg backdrop-blur-sm transition-colors hover:bg-white/20 hover:text-white px-8 py-4 text-base font-semibold"
           >
             <Link href="/courses">View Courses</Link>
+          </Button>
+           <Button
+            asChild
+            size="lg"
+            className="h-auto bg-green-500 text-white hover:bg-green-600 transition-all transform hover:scale-105 rounded-full px-8 py-4 text-base font-semibold shadow-lg shadow-green-500/30"
+          >
+            <Link href="/mtech-it-institute.apk" download>
+                <Smartphone className="ml-2 h-5 w-5" />
+                Download App
+            </Link>
           </Button>
         </div>
 

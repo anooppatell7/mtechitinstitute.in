@@ -18,6 +18,7 @@ export default function Footer() {
     { title: "Resources", href: "/resources" },
     { title: "Reviews", href: "/reviews" },
     { title: "Verify Certificate", href: "/verify-certificate" },
+    { title: "Download App", href: "/mtech-it-institute.apk" },
     { title: "Privacy Policy", href: "/privacy-policy" },
     { title: "Terms & Conditions", href: "/terms-and-conditions" },
   ];
