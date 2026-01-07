@@ -20,7 +20,8 @@ const HandPhoneIcon = (props: React.SVGProps<SVGSVGElement>) => (
         <path d="M33.5 28.5V33.5C33.5 35.1569 32.1569 36.5 30.5 36.5H21.5C19.8431 36.5 18.5 35.1569 18.5 33.5V20.5C18.5 18.8431 19.8431 17.5 21.5 17.5H25.5" stroke="#1C1C1C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
         <path d="M22.5 14.5H35.5C37.1569 14.5 38.5 15.8431 38.5 17.5V30.5C38.5 32.1569 37.1569 33.5 35.5 33.5H33.5" stroke="#E1F5FE" strokeOpacity="0.8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
         <circle cx="28.5" cy="24.5" r="7" fill="#2962FF"/>
-        <path d="M28.5 22V27M26 24.5H31" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+        <path d="M28.5 22V27M26 24.5H31" stroke="white" strokeWidth="1.5" strokeLinecap="round" transform="translate(0, 1.5) rotate(-45 28.5 24.5)"/>
+        <path d="M26 27H31" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
 );
 
@@ -74,4 +75,3 @@ export default function FloatingDownloadButton() {
     </Link>
   );
 }
-
