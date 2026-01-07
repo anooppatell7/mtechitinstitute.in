@@ -233,15 +233,6 @@ export default function Header() {
                       </NavigationMenuLink>
                     </Link>
                 </NavigationMenuItem>
-                 <NavigationMenuItem>
-                    <Link href={appDownloadLink} legacyBehavior passHref>
-                         <NavigationMenuLink asChild>
-                            <a className={cn(navigationMenuTriggerStyle(), "bg-transparent text-white hover:bg-white/10 flex items-center gap-2")}>
-                                <Smartphone className="h-4 w-4" /> Download App
-                            </a>
-                          </NavigationMenuLink>
-                    </Link>
-                </NavigationMenuItem>
                 <NavigationMenuItem>
                     <Link href="/contact" legacyBehavior passHref>
                       <NavigationMenuLink asChild>
@@ -352,7 +343,6 @@ export default function Header() {
                      <Link href="/blog" className="flex w-full items-center rounded-md p-2 text-sm font-medium hover:underline" onClick={() => setIsOpen(false)}>Blog</Link>
                      <Link href="/verify-certificate" className="flex w-full items-center rounded-md p-2 text-sm font-medium hover:underline" onClick={() => setIsOpen(false)}>Verify Certificate</Link>
                      <Link href="/contact" className="flex w-full items-center rounded-md p-2 text-sm font-medium hover:underline" onClick={() => setIsOpen(false)}>Contact</Link>
-                     <Link href={appDownloadLink} className="flex w-full items-center rounded-md p-2 text-sm font-medium hover:underline" onClick={() => setIsOpen(false)}>Download App</Link>
                 </nav>
                 {!user && (
                   <div className="flex flex-col gap-2">

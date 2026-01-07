@@ -22,7 +22,6 @@ export default function Footer() {
     { title: "Resources", href: "/resources" },
     { title: "Reviews", href: "/reviews" },
     { title: "Verify Certificate", href: "/verify-certificate" },
-    { title: "Download App", href: appDownloadLink },
     { title: "Privacy Policy", href: "/privacy-policy" },
     { title: "Terms & Conditions", href: "/terms-and-conditions" },
   ];
@@ -81,6 +80,11 @@ export default function Footer() {
                                 </Link>
                             </li>
                         ))}
+                         <li>
+                            <Link href={appDownloadLink} className="hover:text-accent transition-colors">
+                                Download App
+                            </Link>
+                        </li>
                     </ul>
                  </div>
             </div>
