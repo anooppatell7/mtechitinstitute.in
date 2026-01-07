@@ -18,11 +18,19 @@ export default function IntroTour() {
         if (!tourWasDone) {
             // Start the tour after a short delay to ensure all elements are rendered
             const timer = setTimeout(() => {
+                if (typeof window === 'undefined' || !(window as any).introJs) {
+                    return;
+                }
                 const intro = (window as any).introJs();
                 
                 const isMobile = window.innerWidth < 768;
 
-                const desktopSteps = [
+                // Logic to check if the download button would be visible
+                const isAppMode = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true;
+                const isCustomWebView = navigator.userAgent.includes("MTechApp-WebView");
+                const shouldHideDownloadButton = isAppMode || isCustomWebView;
+
+                const baseDesktopSteps = [
                     {
                         title: 'Welcome!',
                         intro: 'MTech IT Institute mein aapka swagat hai! 👋 Chaliye aapko website ke kuch khaas features dikhate hain.'
@@ -54,7 +62,7 @@ export default function IntroTour() {
                     }
                 ];
 
-                const mobileSteps = [
+                const baseMobileSteps = [
                     {
                         title: 'Welcome!',
                         intro: 'MTech IT Institute mein aapka swagat hai! 👋 Chaliye aapko website ke kuch khaas features dikhate hain.'
@@ -81,8 +89,18 @@ export default function IntroTour() {
                     }
                 ];
 
+                // Filter out the download button step if it's hidden
+                const finalDesktopSteps = shouldHideDownloadButton 
+                    ? baseDesktopSteps.filter(step => step.element !== document.querySelector('.download-btn-floating')) 
+                    : baseDesktopSteps;
+                
+                const finalMobileSteps = shouldHideDownloadButton
+                    ? baseMobileSteps.filter(step => step.element !== document.querySelector('.download-btn-floating'))
+                    : baseMobileSteps;
+
+
                 intro.setOptions({
-                    steps: isMobile ? mobileSteps : desktopSteps,
+                    steps: isMobile ? finalMobileSteps : finalDesktopSteps,
                     showProgress: true,
                     showBullets: false,
                     exitOnOverlayClick: false,
