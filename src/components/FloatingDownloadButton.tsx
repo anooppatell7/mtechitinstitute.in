@@ -1,27 +1,33 @@
+
 "use client";
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Download } from 'lucide-react';
 
-const AndroidIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-        <path d="M4 14V17C4 18.1046 4.89543 19 6 19H18C19.1046 19 20 18.1046 20 17V14M12 4V14M12 14L9 11M12 14L15 11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-);
-
-
 export default function FloatingDownloadButton() {
   const pathname = usePathname();
   const downloadPageUrl = '/mtech-it-institute.apk';
+  const [isVisible, setIsVisible] = useState(false);
 
-  // Define the paths where the icon should be hidden
-  const hiddenPaths = ['/mock-tests/', '/exam/'];
+  useEffect(() => {
+    // Check if the app is running in a standalone-like mode (WebView, PWA)
+    const isAppMode = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true;
+    
+    // Define the paths where the icon should be hidden
+    const hiddenPaths = ['/mock-tests/', '/exam/'];
+    const isPathHidden = hiddenPaths.some(path => pathname.startsWith(path));
 
-  // Check if the current path starts with any of the hidden paths
-  const isHidden = hiddenPaths.some(path => pathname.startsWith(path));
+    // Show the button only if it's NOT in app mode and NOT on a hidden path
+    if (!isAppMode && !isPathHidden) {
+      setIsVisible(true);
+    } else {
+      setIsVisible(false);
+    }
+  }, [pathname]);
 
-  if (isHidden) {
+  if (!isVisible) {
     return null;
   }
 
