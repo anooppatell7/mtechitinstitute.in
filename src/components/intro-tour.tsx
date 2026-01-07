@@ -3,7 +3,6 @@
 
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import introJs from 'intro.js';
 import 'intro.js/introjs.css';
 
 export default function IntroTour() {
@@ -19,7 +18,8 @@ export default function IntroTour() {
         if (!tourWasDone) {
             // Start the tour after a short delay to ensure all elements are rendered
             const timer = setTimeout(() => {
-                const intro = introJs();
+                // Access introJs from the window object
+                const intro = (window as any).introJs();
                 intro.setOptions({
                     steps: [{
                         title: 'Welcome!',

@@ -145,6 +145,7 @@ export default async function RootLayout({
           </div>
           <Toaster />
         </FirebaseClientProvider>
+        <script src="https://unpkg.com/intro.js/minified/intro.min.js"></script>
       </body>
     </html>
   );
