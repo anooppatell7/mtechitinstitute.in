@@ -12,15 +12,18 @@ export default function FloatingDownloadButton() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    // Check if the app is running in a standalone-like mode (WebView, PWA)
+    // Check if running in a standalone-like mode (PWA, some WebViews)
     const isAppMode = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true;
     
-    // Define the paths where the icon should be hidden
+    // Check for custom User-Agent string from the Android WebView
+    const isCustomWebView = navigator.userAgent.includes("MTechApp-WebView");
+
+    // Define the paths where the icon should be hidden (e.g., during exams)
     const hiddenPaths = ['/mock-tests/', '/exam/'];
     const isPathHidden = hiddenPaths.some(path => pathname.startsWith(path));
 
-    // Show the button only if it's NOT in app mode and NOT on a hidden path
-    if (!isAppMode && !isPathHidden) {
+    // Show the button only if it's NOT in app mode, NOT in the custom webview, and NOT on a hidden path
+    if (!isAppMode && !isCustomWebView && !isPathHidden) {
       setIsVisible(true);
     } else {
       setIsVisible(false);
