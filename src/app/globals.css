@@ -65,4 +65,37 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Custom styles for Intro.js */
+  .custom-intro-tooltip {
+    @apply bg-blue-900/80 backdrop-blur-sm text-white rounded-lg shadow-2xl border border-blue-700;
+    font-family: var(--font-body);
+  }
+  .introjs-tooltip-title {
+    @apply text-xl font-headline text-white;
+  }
+  .introjs-tooltiptext {
+    @apply text-base text-blue-100;
+  }
+  .introjs-button {
+    @apply rounded-md border text-sm font-semibold transition-colors;
+  }
+  .introjs-button:focus, .introjs-button:hover {
+    @apply !shadow-none;
+  }
+  .introjs-nextbutton {
+    @apply bg-accent border-accent text-accent-foreground hover:bg-accent/90;
+  }
+  .introjs-prevbutton, .introjs-skipbutton {
+    @apply bg-transparent border-blue-400 text-white hover:bg-blue-800;
+  }
+  .introjs-donebutton {
+    @apply bg-accent border-accent text-accent-foreground hover:bg-accent/90;
+  }
+  .introjs-progress {
+    @apply mt-4;
+  }
+  .introjs-progressbar {
+    @apply bg-accent;
+  }
 }

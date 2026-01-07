@@ -23,7 +23,7 @@ export default function IntroTour() {
                 intro.setOptions({
                     steps: [{
                         title: 'Welcome!',
-                        intro: 'M-Tech IT Institute mein aapka swagat hai! 👋 Chaliye aapko website ke kuch khaas features dikhate hain.'
+                        intro: 'MTech IT Institute mein aapka swagat hai! 👋 Chaliye aapko website ke kuch khaas features dikhate hain.'
                     },
                     {
                         element: document.querySelector('.download-btn-floating'),
@@ -37,6 +37,7 @@ export default function IntroTour() {
                     showBullets: false,
                     exitOnOverlayClick: false,
                     doneLabel: 'Got it!',
+                    tooltipClass: 'custom-intro-tooltip'
                 });
                 
                 intro.oncomplete(() => {
