@@ -78,7 +78,6 @@ export default function Header() {
   const router = useRouter();
   const [isRegistered, setIsRegistered] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
-  const appDownloadLink = "/mtech-it-institute.apk";
 
   useEffect(() => {
     setIsMounted(true);
@@ -194,7 +193,7 @@ export default function Header() {
                     </Link>
                 </NavigationMenuItem>
                  <NavigationMenuItem>
-                    <NavigationMenuTrigger className="bg-transparent text-white hover:bg-white/10 data-[state=open]:bg-white/10">Academics</NavigationMenuTrigger>
+                    <NavigationMenuTrigger data-intro="Yahan aapko sabhi courses, free resources aur career guidance milegi." className="bg-transparent text-white hover:bg-white/10 data-[state=open]:bg-white/10">Academics</NavigationMenuTrigger>
                     <NavigationMenuContent>
                       <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] bg-background text-foreground">
                         {academicsComponents.map((component) => (
@@ -208,7 +207,7 @@ export default function Header() {
                     </NavigationMenuContent>
                 </NavigationMenuItem>
                  <NavigationMenuItem>
-                    <NavigationMenuTrigger className="bg-transparent text-white hover:bg-white/10 data-[state=open]:bg-white/10">Exams</NavigationMenuTrigger>
+                    <NavigationMenuTrigger data-intro="Practice ke liye mock tests aur official exams yahan milenge. Student registration bhi yahin se hoga." className="bg-transparent text-white hover:bg-white/10 data-[state=open]:bg-white/10">Exams</NavigationMenuTrigger>
                     <NavigationMenuContent>
                       <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] bg-background text-foreground">
                         {examsComponents.map((component) => {
@@ -248,7 +247,7 @@ export default function Header() {
               user ? (
                  <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="relative h-8 w-8 rounded-full hover:bg-white/10">
+                        <Button data-intro="Login karne ke baad, aapki profile, learning dashboard aur logout ka option yahan milega." variant="ghost" className="relative h-8 w-8 rounded-full hover:bg-white/10">
                            <Avatar className="h-8 w-8">
                                 <AvatarImage src={user.photoURL || undefined} alt={user.displayName || user.email || 'User'} />
                                 <AvatarFallback>{user.displayName?.[0] || user.email?.[0] || 'U'}</AvatarFallback>

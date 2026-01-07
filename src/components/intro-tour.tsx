@@ -18,21 +18,40 @@ export default function IntroTour() {
         if (!tourWasDone) {
             // Start the tour after a short delay to ensure all elements are rendered
             const timer = setTimeout(() => {
-                // Access introJs from the window object
                 const intro = (window as any).introJs();
+                
                 intro.setOptions({
-                    steps: [{
-                        title: 'Welcome!',
-                        intro: 'MTech IT Institute mein aapka swagat hai! 👋 Chaliye aapko website ke kuch khaas features dikhate hain.'
-                    },
-                    {
-                        element: document.querySelector('.download-btn-floating'),
-                        intro: 'Yahan se aap hamari official Android App download kar sakte hain, behtar anubhav ke liye.'
-                    },
-                    {
-                        element: document.querySelector('#courses-section'),
-                        intro: 'Hamare sabse popular courses yahan dekhein. Aap "View All Courses" par click karke saare courses dekh sakte hain.'
-                    }],
+                    steps: [
+                        {
+                            title: 'Welcome!',
+                            intro: 'MTech IT Institute mein aapka swagat hai! 👋 Chaliye aapko website ke kuch khaas features dikhate hain.'
+                        },
+                        {
+                            element: document.querySelector('[data-intro="Yahan aapko sabhi courses, free resources aur career guidance milegi."]'),
+                            title: 'Academics',
+                            intro: 'Yahan aapko sabhi courses, free resources aur career guidance milegi.'
+                        },
+                        {
+                            element: document.querySelector('[data-intro="Practice ke liye mock tests aur official exams yahan milenge. Student registration bhi yahin se hoga."]'),
+                            title: 'Exams',
+                            intro: 'Practice ke liye mock tests aur official exams yahan milenge. Student registration bhi yahin se hoga.'
+                        },
+                         {
+                            element: document.querySelector('[data-intro="Login karne ke baad, aapki profile, learning dashboard aur logout ka option yahan milega."]'),
+                            title: 'Your Account',
+                            intro: 'Login karne ke baad, aapki profile, learning dashboard aur logout ka option yahan milega.'
+                        },
+                        {
+                            element: document.querySelector('.download-btn-floating'),
+                            title: 'Download App',
+                            intro: 'Yahan se aap hamari official Android App download kar sakte hain, behtar anubhav ke liye.'
+                        },
+                        {
+                            element: document.querySelector('#courses-section'),
+                            title: 'Popular Courses',
+                            intro: 'Hamare sabse popular courses yahan dekhein. Aap "View All Courses" par click karke saare courses dekh sakte hain.'
+                        }
+                    ],
                     showProgress: true,
                     showBullets: false,
                     exitOnOverlayClick: false,
@@ -47,8 +66,11 @@ export default function IntroTour() {
                     localStorage.setItem('intro_done', 'true');
                 });
 
-                intro.start();
-            }, 1000); // 1-second delay
+                // Only start if there are valid elements to attach to.
+                if (document.querySelector('[data-intro]')) {
+                    intro.start();
+                }
+            }, 1500); // 1.5-second delay
 
             return () => clearTimeout(timer);
         }
