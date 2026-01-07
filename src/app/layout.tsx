@@ -1,5 +1,4 @@
 
-
 import type { Metadata } from "next";
 import { PT_Sans, Space_Grotesk, Great_Vibes, Playfair_Display } from "next/font/google";
 import "./globals.css";
@@ -14,6 +13,7 @@ import AnnouncementBar from "@/components/announcement-bar";
 import { FirebaseClientProvider } from "@/firebase/client-provider";
 import FloatingWhatsApp from "@/components/floating-whatsapp";
 import FloatingDownloadButton from "@/components/FloatingDownloadButton";
+import IntroTour from "@/components/intro-tour";
 
 const ptSans = PT_Sans({
   subsets: ["latin"],
@@ -121,6 +121,7 @@ export default async function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@700&family=UnifrakturMaguntia&display=swap" rel="stylesheet" />
         <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2296905809539851" crossOrigin="anonymous"></script>
+        
       </head>
       <body
         className={cn(
@@ -140,6 +141,7 @@ export default async function RootLayout({
             <Footer />
             <FloatingWhatsApp />
             <FloatingDownloadButton />
+            <IntroTour />
           </div>
           <Toaster />
         </FirebaseClientProvider>
@@ -147,5 +149,3 @@ export default async function RootLayout({
     </html>
   );
 }
-
-    

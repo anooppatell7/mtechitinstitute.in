@@ -17,7 +17,6 @@ const HandPhoneIcon = (props: React.SVGProps<SVGSVGElement>) => (
             <stop offset="100%" stopColor="#29B6F6"/>
             </linearGradient>
         </defs>
-        <circle cx="26" cy="26" r="14" fill="#2962FF"/>
         <path d="M26 20V32M21 27L26 32L31 27" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
 );
@@ -55,7 +54,7 @@ export default function FloatingDownloadButton() {
     <Link
       href={downloadPageUrl}
       className={cn(
-          "fixed bottom-6 left-6 z-50 flex items-center h-14",
+          "fixed bottom-6 left-6 z-50 flex items-center h-14 download-btn-floating",
           "bg-gradient-to-r from-blue-400 to-cyan-500 rounded-full shadow-lg",
           "transition-transform duration-300 hover:scale-105",
           "animate-in fade-in slide-in-from-bottom-10"
