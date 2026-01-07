@@ -79,16 +79,12 @@ export default function Header() {
   const [isRegistered, setIsRegistered] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  const isLearnPage = pathname.startsWith('/learn');
-  const courseSlug = isLearnPage ? pathname.split('/')[2] : '';
-
   const isAdmin = user?.email ? ADMIN_EMAILS.includes(user.email) : false;
 
   useEffect(() => {
+    setIsMounted(true);
+    
+    // Check registration status
     if (user && !isAdmin) {
       const checkRegistration = async () => {
         const docRef = doc(db, "examRegistrations", user.uid);
@@ -101,6 +97,13 @@ export default function Header() {
     } else {
       setIsRegistered(false);
     }
+
+    // Expose menu control to window for intro.js
+    (window as any).toggleMobileMenu = setIsOpen;
+    return () => {
+      delete (window as any).toggleMobileMenu;
+    }
+
   }, [user, isAdmin]);
 
   const handleLogout = async () => {
@@ -160,27 +163,8 @@ export default function Header() {
     },
   ];
 
-
-  if (!isMounted) {
-    return (
-      <header className="sticky top-0 z-50 w-full border-b bg-gradient-to-r from-[#0d1a3a] to-blue-900/80 text-white">
-        <div className="container flex h-16 max-w-screen-2xl items-center justify-between">
-          <Logo textClassName="text-white" />
-        </div>
-      </header>
-    );
-  }
-
-  // Expose menu control to window for intro.js
-  useEffect(() => {
-    (window as any).toggleMobileMenu = setIsOpen;
-    return () => {
-      delete (window as any).toggleMobileMenu;
-    }
-  }, []);
-
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-blue-800/20 bg-gradient-to-r from-[#0d1a3a] to-blue-900/80 text-white backdrop-blur-sm">
+    <header className={cn("sticky top-0 z-50 w-full border-b border-blue-800/20 bg-gradient-to-r from-[#0d1a3a] to-blue-900/80 text-white backdrop-blur-sm transition-opacity duration-300", isMounted ? "opacity-100" : "opacity-0")}>
       <div className="container flex h-16 max-w-screen-2xl items-center justify-between">
         <Logo textClassName="text-white" />
 
