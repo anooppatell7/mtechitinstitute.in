@@ -68,34 +68,87 @@
 
   /* Custom styles for Intro.js */
   .custom-intro-tooltip {
-    @apply bg-blue-900/80 backdrop-blur-sm text-white rounded-lg shadow-2xl border border-blue-700;
+    background-color: hsla(222, 84%, 5%, 0.8); /* Dark blue with blur */
+    backdrop-filter: blur(8px);
+    color: hsl(var(--primary-foreground));
+    border-radius: 0.75rem; /* 12px */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    border: 1px solid hsl(var(--primary) / 0.2);
+    padding: 1.5rem;
+    max-width: 350px;
     font-family: var(--font-body);
   }
   .introjs-tooltip-title {
-    @apply text-xl font-headline text-white;
+    font-family: var(--font-headline);
+    color: white;
+    font-size: 1.25rem; /* 20px */
+    font-weight: 700;
   }
   .introjs-tooltiptext {
-    @apply text-base text-blue-100;
+    color: hsl(var(--primary-foreground) / 0.85);
+    font-size: 1rem; /* 16px */
+    line-height: 1.6;
   }
   .introjs-button {
-    @apply rounded-md border text-sm font-semibold transition-colors;
+    text-shadow: none;
+    border-radius: var(--radius);
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+    transition: all 0.2s ease-in-out;
+    border: none;
   }
   .introjs-button:focus, .introjs-button:hover {
-    @apply !shadow-none;
+    box-shadow: none;
+    transform: translateY(-1px);
   }
   .introjs-nextbutton {
-    @apply bg-accent border-accent text-accent-foreground hover:bg-accent/90;
+    background-color: hsl(var(--accent));
+    color: hsl(var(--accent-foreground));
   }
-  .introjs-prevbutton, .introjs-skipbutton {
-    @apply bg-transparent border-blue-400 text-white hover:bg-blue-800;
+  .introjs-nextbutton:hover {
+    background-color: hsl(var(--accent) / 0.9);
+  }
+  .introjs-prevbutton {
+    background-color: hsl(var(--secondary));
+    color: hsl(var(--secondary-foreground));
+  }
+   .introjs-prevbutton:hover {
+    background-color: hsl(var(--secondary) / 0.8);
+  }
+  .introjs-skipbutton {
+    color: hsl(var(--muted-foreground));
+    background-color: transparent;
+  }
+  .introjs-skipbutton:hover {
+    color: hsl(var(--foreground));
+    background-color: hsl(var(--muted));
   }
   .introjs-donebutton {
-    @apply bg-accent border-accent text-accent-foreground hover:bg-accent/90;
+    background-color: hsl(var(--accent));
+    color: hsl(var(--accent-foreground));
+  }
+  .introjs-donebutton:hover {
+     background-color: hsl(var(--accent) / 0.9);
   }
   .introjs-progress {
-    @apply mt-4;
+    margin-top: 1rem;
+    height: 8px;
+    background-color: hsl(var(--primary) / 0.1);
   }
   .introjs-progressbar {
-    @apply bg-accent;
+    background-color: hsl(var(--accent));
+    height: 8px;
+  }
+  .introjs-arrow.top, .introjs-arrow.top-middle, .introjs-arrow.top-right {
+    border-bottom-color: hsla(222, 84%, 5%, 0.8);
+  }
+  .introjs-arrow.right, .introjs-arrow.right-middle {
+    border-left-color: hsla(222, 84%, 5%, 0.8);
+  }
+   .introjs-arrow.bottom, .introjs-arrow.bottom-middle, .introjs-arrow.bottom-right {
+    border-top-color: hsla(222, 84%, 5%, 0.8);
+  }
+   .introjs-arrow.left, .introjs-arrow.left-middle {
+    border-right-color: hsla(222, 84%, 5%, 0.8);
   }
 }
