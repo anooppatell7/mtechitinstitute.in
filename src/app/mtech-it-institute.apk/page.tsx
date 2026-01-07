@@ -43,7 +43,7 @@ export default function AppDownloadPage() {
             <div className="bg-gradient-to-br from-indigo-600 via-blue-500 to-cyan-400 text-white">
                 <div className="container py-16 sm:py-24 text-center">
                     <div className="flex justify-center mb-6">
-                        <Image src="https://res.cloudinary.com/dzr4xjizf/image/upload/v1757138798/mtechlogo_1_wsdhhx.png" alt="MTech IT Institute Logo" width={80} height={80} className="bg-white rounded-2xl p-2 shadow-lg"/>
+                        <Image src="https://res.cloudinary.com/dzr4xjizf/image/upload/v1763980341/trasparent_logo_ok6afb.png" alt="MTech IT Institute Logo" width={80} height={80} className="rounded-2xl shadow-lg"/>
                     </div>
                     <h1 className="font-headline text-4xl font-bold sm:text-5xl">MTech IT Institute Android App</h1>
                     <p className="mt-4 max-w-2xl mx-auto text-lg text-blue-50">
