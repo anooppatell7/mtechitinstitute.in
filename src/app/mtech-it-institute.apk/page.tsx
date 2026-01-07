@@ -5,7 +5,6 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Download, Smartphone, CheckCircle, Rocket } from 'lucide-react';
-import SectionDivider from '@/components/section-divider';
 import { getAppLink } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 import Image from 'next/image';
@@ -41,7 +40,7 @@ export default function AppDownloadPage() {
     return (
         <>
             <div className="bg-gradient-to-br from-indigo-600 via-blue-500 to-cyan-400 text-white">
-                <div className="container py-16 sm:py-24 text-center">
+                <div className="container py-12 sm:py-16 text-center">
                     <div className="flex justify-center mb-6">
                         <Image src="https://res.cloudinary.com/dzr4xjizf/image/upload/v1763979689/MTECHITINSTITUTE_logo.png" alt="MTech IT Institute Logo" width={80} height={80} className="rounded-2xl shadow-lg"/>
                     </div>
@@ -52,8 +51,7 @@ export default function AppDownloadPage() {
                 </div>
             </div>
 
-            <div className="bg-secondary relative">
-                <SectionDivider style="wave" className="text-gradient-to-br from-indigo-600 via-blue-500 to-cyan-400" position="top"/>
+            <div className="bg-secondary relative -mt-16">
                 <div className="container py-16 sm:py-24">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                         <div className="lg:order-last">
