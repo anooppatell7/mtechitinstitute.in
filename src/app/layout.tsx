@@ -13,6 +13,7 @@ import { getSiteSettings } from "@/lib/firebase";
 import AnnouncementBar from "@/components/announcement-bar";
 import { FirebaseClientProvider } from "@/firebase/client-provider";
 import FloatingWhatsApp from "@/components/floating-whatsapp";
+import FloatingDownloadButton from "@/components/FloatingDownloadButton";
 
 const ptSans = PT_Sans({
   subsets: ["latin"],
@@ -138,6 +139,7 @@ export default async function RootLayout({
             <main className="flex-1">{children}</main>
             <Footer />
             <FloatingWhatsApp />
+            <FloatingDownloadButton />
           </div>
           <Toaster />
         </FirebaseClientProvider>
