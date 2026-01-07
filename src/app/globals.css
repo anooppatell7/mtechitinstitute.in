@@ -67,26 +67,25 @@
   }
 
   /* Custom styles for Intro.js */
-  .custom-intro-tooltip {
-    background-color: hsla(222, 84%, 5%, 0.8); /* Dark blue with blur */
-    backdrop-filter: blur(8px);
-    color: hsl(var(--primary-foreground));
-    border-radius: 0.75rem; /* 12px */
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-    border: 1px solid hsl(var(--primary) / 0.2);
+ .introjs-tooltip {
+    background-color: hsl(var(--card));
+    color: hsl(var(--card-foreground));
+    border-radius: var(--radius);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    border: 1px solid hsl(var(--border));
     padding: 1.5rem;
     max-width: 350px;
     font-family: var(--font-body);
   }
   .introjs-tooltip-title {
     font-family: var(--font-headline);
-    color: white;
-    font-size: 1.25rem; /* 20px */
+    color: hsl(var(--primary));
+    font-size: 1.25rem;
     font-weight: 700;
   }
   .introjs-tooltiptext {
-    color: hsl(var(--primary-foreground) / 0.85);
-    font-size: 1rem; /* 16px */
+    color: hsl(var(--foreground) / 0.85);
+    font-size: 1rem;
     line-height: 1.6;
   }
   .introjs-button {
@@ -95,29 +94,27 @@
     padding: 0.5rem 1rem;
     font-weight: 600;
     transition: all 0.2s ease-in-out;
-    border: none;
+    border: 1px solid hsl(var(--border));
   }
   .introjs-button:focus, .introjs-button:hover {
     box-shadow: none;
     transform: translateY(-1px);
+    filter: brightness(0.95);
   }
   .introjs-nextbutton {
-    background-color: hsl(var(--accent));
-    color: hsl(var(--accent-foreground));
-  }
-  .introjs-nextbutton:hover {
-    background-color: hsl(var(--accent) / 0.9);
+    background-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    border-color: hsl(var(--primary));
   }
   .introjs-prevbutton {
     background-color: hsl(var(--secondary));
     color: hsl(var(--secondary-foreground));
-  }
-   .introjs-prevbutton:hover {
-    background-color: hsl(var(--secondary) / 0.8);
+    border-color: hsl(var(--border));
   }
   .introjs-skipbutton {
     color: hsl(var(--muted-foreground));
     background-color: transparent;
+    border-color: transparent;
   }
   .introjs-skipbutton:hover {
     color: hsl(var(--foreground));
@@ -126,29 +123,29 @@
   .introjs-donebutton {
     background-color: hsl(var(--accent));
     color: hsl(var(--accent-foreground));
-  }
-  .introjs-donebutton:hover {
-     background-color: hsl(var(--accent) / 0.9);
+    border-color: hsl(var(--accent));
   }
   .introjs-progress {
     margin-top: 1rem;
     height: 8px;
-    background-color: hsl(var(--primary) / 0.1);
+    background-color: hsl(var(--secondary));
+    border-radius: 99px;
   }
   .introjs-progressbar {
     background-color: hsl(var(--accent));
     height: 8px;
+    border-radius: 99px;
   }
   .introjs-arrow.top, .introjs-arrow.top-middle, .introjs-arrow.top-right {
-    border-bottom-color: hsla(222, 84%, 5%, 0.8);
+    border-bottom-color: hsl(var(--card));
   }
   .introjs-arrow.right, .introjs-arrow.right-middle {
-    border-left-color: hsla(222, 84%, 5%, 0.8);
+    border-left-color: hsl(var(--card));
   }
    .introjs-arrow.bottom, .introjs-arrow.bottom-middle, .introjs-arrow.bottom-right {
-    border-top-color: hsla(222, 84%, 5%, 0.8);
+    border-top-color: hsl(var(--card));
   }
    .introjs-arrow.left, .introjs-arrow.left-middle {
-    border-right-color: hsla(222, 84%, 5%, 0.8);
+    border-right-color: hsl(var(--card));
   }
 }
