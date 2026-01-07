@@ -40,7 +40,7 @@ export default function AppDownloadPage() {
     return (
         <>
             <div className="bg-gradient-to-br from-indigo-600 via-blue-500 to-cyan-400 text-white">
-                <div className="container py-12 sm:py-16 text-center">
+                <div className="container py-12 sm:py-16 text-center pb-24">
                     <div className="flex justify-center mb-6">
                         <Image src="https://res.cloudinary.com/dzr4xjizf/image/upload/v1763979689/MTECHITINSTITUTE_logo.png" alt="MTech IT Institute Logo" width={80} height={80} className="rounded-2xl shadow-lg"/>
                     </div>
