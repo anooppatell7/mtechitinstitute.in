@@ -65,6 +65,11 @@ export default function IntroTour() {
                         intro: 'Website ke sabhi main sections (jaise Courses, Exams, Blog) aapko yahan milenge.'
                     },
                     {
+                        element: document.querySelector('[data-intro-mobile-menu-academics]'),
+                        title: 'All Options',
+                        intro: 'Menu ke andar aapko Academics, Exams, Blog, etc. jaise saare zaroori links mil jayenge.'
+                    },
+                    {
                         element: document.querySelector('.download-btn-floating'),
                         title: 'Download App',
                         intro: 'Yahan se aap hamari official Android App download kar sakte hain, behtar anubhav ke liye.'
@@ -84,12 +89,29 @@ export default function IntroTour() {
                     doneLabel: 'Got it!',
                     tooltipClass: 'custom-intro-tooltip'
                 });
+
+                intro.onbeforechange(function(this: any, targetElement: HTMLElement) {
+                    if (isMobile) {
+                        const menuButton = document.querySelector('[data-intro="Mobile navigation menu"]');
+                        const academicsMenu = document.querySelector('[data-intro-mobile-menu-academics]');
+                        
+                        if (targetElement === academicsMenu) {
+                           // Open the mobile menu before showing the academics step
+                           (window as any).toggleMobileMenu(true);
+                        } else if (targetElement !== menuButton) {
+                           // Close the menu for all other steps
+                           (window as any).toggleMobileMenu(false);
+                        }
+                    }
+                });
                 
                 intro.oncomplete(() => {
                     localStorage.setItem('intro_done', 'true');
+                    (window as any).toggleMobileMenu(false); // Ensure menu is closed on completion
                 });
                 intro.onexit(() => {
                     localStorage.setItem('intro_done', 'true');
+                    (window as any).toggleMobileMenu(false); // Ensure menu is closed on exit
                 });
 
                 // Only start if there are valid elements to attach to.

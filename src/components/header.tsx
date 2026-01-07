@@ -171,6 +171,14 @@ export default function Header() {
     );
   }
 
+  // Expose menu control to window for intro.js
+  useEffect(() => {
+    (window as any).toggleMobileMenu = setIsOpen;
+    return () => {
+      delete (window as any).toggleMobileMenu;
+    }
+  }, []);
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-blue-800/20 bg-gradient-to-r from-[#0d1a3a] to-blue-900/80 text-white backdrop-blur-sm">
       <div className="container flex h-16 max-w-screen-2xl items-center justify-between">
@@ -319,7 +327,7 @@ export default function Header() {
                     <Link href="/" className="flex w-full items-center rounded-md p-2 text-sm font-medium hover:underline" onClick={() => setIsOpen(false)}>Home</Link>
                     <Link href="/about" className="flex w-full items-center rounded-md p-2 text-sm font-medium hover:underline" onClick={() => setIsOpen(false)}>About</Link>
                     
-                    <Accordion type="multiple" className="w-full">
+                    <Accordion type="multiple" className="w-full" data-intro-mobile-menu-academics>
                         <AccordionItem value="academics">
                              <AccordionTrigger className="p-2 text-sm font-medium hover:underline">Academics</AccordionTrigger>
                              <AccordionContent className="pl-4">
