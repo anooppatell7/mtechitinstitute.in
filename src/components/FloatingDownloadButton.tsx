@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -8,18 +9,18 @@ import { cn } from '@/lib/utils';
 
 
 const HandPhoneIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg width="60" height="60" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-        <path d="M35.6,80C34.4,80,33.3,79.5,32.4,78.6L2.8,49C1,47.2,1,44.2,2.8,42.4L11.2,34c1.8-1.8,4.8-1.8,6.6,0l5.4,5.4
-        c0.9,0.9,2.3,0.9,3.2,0l8.4-8.4c0.9-0.9,0.9-2.3,0-3.2l-8-8c-0.9-0.9-0.9-2.3,0-3.2l4.8-4.8c0.9-0.9,2.3-0.9,3.2,0l20.4,20.4
-        c0.9,0.9,0.9,2.3,0,3.2l-4.8,4.8c-0.9,0.9-2.3,0.9-3.2,0l-8.4-8.4c-0.9-0.9-2.3-0.9-3.2,0l-5.8,5.8c-0.9,0.9-0.9,2.3,0,3.2
-        l8.8,8.8c0.9,0.9,2.3,0.9,3.2,0l8.4-8.4c0.9-0.9,2.3-0.9,3.2,0l5.4,5.4c1.8,1.8,1.8,4.8,0,6.6L44.2,78.6
-        c-0.9,0.9-2,1.4-3.2,1.4H35.6z" fill="#F4DDC0"/>
-        <rect x="25" y="2" width="40" height="64" rx="8" fill="#58CCF8"/>
-        <rect x="27" y="4" width="36" height="54" rx="6" fill="#1C1C1C"/>
-        <path d="M45 10H49" stroke="#58CCF8" strokeWidth="2" strokeLinecap="round"/>
-        <circle cx="45" cy="33" r="8" fill="#3D92F8"/>
-        <path d="M45 28V38M40 33H50" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-        <path d="M41,33.5l4,4l4-4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+    <svg width="48" height="48" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+        <circle cx="26" cy="26" r="24" fill="url(#blue-gradient-circle)"/>
+        <defs>
+            <linearGradient id="blue-gradient-circle" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#4FC3F7"/>
+            <stop offset="100%" stopColor="#29B6F6"/>
+            </linearGradient>
+        </defs>
+        <path d="M33.5 28.5V33.5C33.5 35.1569 32.1569 36.5 30.5 36.5H21.5C19.8431 36.5 18.5 35.1569 18.5 33.5V20.5C18.5 18.8431 19.8431 17.5 21.5 17.5H25.5" stroke="#1C1C1C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M22.5 14.5H35.5C37.1569 14.5 38.5 15.8431 38.5 17.5V30.5C38.5 32.1569 37.1569 33.5 35.5 33.5H33.5" stroke="#E1F5FE" strokeOpacity="0.8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        <circle cx="28.5" cy="24.5" r="7" fill="#2962FF"/>
+        <path d="M28.5 22V27M26 24.5H31" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
     </svg>
 );
 
@@ -56,20 +57,21 @@ export default function FloatingDownloadButton() {
     <Link
       href={downloadPageUrl}
       className={cn(
-          "fixed bottom-4 left-1/2 -translate-x-1/2 z-50 flex items-center h-16",
+          "fixed bottom-6 left-6 z-50 flex items-center h-14",
           "bg-gradient-to-r from-blue-400 to-cyan-500 rounded-full shadow-lg",
           "transition-transform duration-300 hover:scale-105",
           "animate-in fade-in slide-in-from-bottom-10"
       )}
       aria-label="Download the MTech IT Institute App"
     >
-      <div className="flex items-center pl-1 pr-6">
-        <HandPhoneIcon className="w-16 h-16 drop-shadow-md -translate-y-1" />
+      <div className="flex items-center pl-1 pr-5">
+        <HandPhoneIcon className="w-12 h-12 drop-shadow-md" />
         <div className="ml-2 text-white text-left">
-            <p className="font-bold text-lg leading-tight uppercase">Download the App!</p>
-            <p className="text-xs leading-tight">For better experience download our app!</p>
+            <p className="font-bold text-base leading-tight uppercase">Download App</p>
+            <p className="text-xs leading-tight">For better experience</p>
         </div>
       </div>
     </Link>
   );
 }
+
